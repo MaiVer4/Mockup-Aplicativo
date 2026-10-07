@@ -7,48 +7,38 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        serif: ['Lora', 'Merriweather', 'Georgia', 'serif'],
-        sans: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
       colors: {
-        academic: {
-          navy: {
-            950: '#061325',
-            900: '#0b1e38',
-            850: '#0f2747',
-            800: '#143156',
-            700: '#1b4170',
-            600: '#23528b',
-            100: '#e0eaf6',
-            50: '#f0f5fb',
-          },
-          gold: {
-            800: '#78350f',
-            700: '#92400e',
-            600: '#b45309',
-            500: '#d97706',
-            400: '#f59e0b',
-            300: '#fcd34d',
-            200: '#fde68a',
-            100: '#fef3c7',
-            50: '#fffbeb',
-          },
-          wine: {
-            900: '#4c0519',
-            800: '#881337',
-            700: '#9f1239',
-            100: '#ffe4e6',
-            50: '#fff1f2',
-          },
-          forest: {
-            900: '#052e16',
-            800: '#064e3b',
-            700: '#047857',
-            600: '#059669',
-            100: '#dcfce7',
-            50: '#f0fdf4',
-          }
+        zinc: {
+          950: '#09090b',
+          900: '#18181b',
+          800: '#27272a',
+          700: '#3f3f46',
+          600: '#52525b',
+          500: '#71717a',
+          400: '#a1a1aa',
+          300: '#d4d4d8',
+          200: '#e4e4e7',
+          100: '#f4f4f5',
+          50: '#fafafa',
+        },
+        corporate: {
+          primary: '#18181b',
+          blue: '#2563eb',
+          'blue-dark': '#1d4ed8',
+          'blue-light': '#eff6ff',
+          surface: '#ffffff',
+          canvas: '#fafafa',
+          subtle: '#f4f4f5',
+          border: '#e4e4e7',
+          'border-subtle': '#f4f4f5',
         }
+      },
+      boxShadow: {
+        'subtle': '0 1px 2px 0 rgba(0, 0, 0, 0.04)',
+        'elevated': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
       }
     },
   },

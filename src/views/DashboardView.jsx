@@ -2,21 +2,17 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Users, 
-  CalendarCheck2, 
+  Calendar, 
   TrendingUp, 
   Search, 
-  CheckCircle2, 
   Radio, 
   Edit3, 
   Lock, 
   FileSpreadsheet,
-  PlusCircle,
-  Music,
-  Trophy,
+  Plus,
   ArrowUpRight,
-  School,
-  BookOpen,
-  FileText
+  CheckCircle,
+  MoreHorizontal
 } from 'lucide-react';
 import { AREAS } from '../data/mockData';
 
@@ -33,7 +29,7 @@ export default function DashboardView({ onOpenModal, onOpenExcelUpload }) {
   const [selectedArea, setSelectedArea] = useState('ALL');
   const [selectedStatus, setSelectedStatus] = useState('ALL');
 
-  // Métricas institucionales
+  // Cálculos de métricas
   const totalEvents = visibleEvents.length;
   const totalAttendees = visibleEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
   
@@ -45,7 +41,7 @@ export default function DashboardView({ onOpenModal, onOpenExcelUpload }) {
   const totalCapacity = visibleEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
   const occupancyRate = totalCapacity > 0 ? Math.round((totalAttendees / totalCapacity) * 100) : 0;
 
-  // Filtrado de la tabla
+  // Filtrado
   const filteredEvents = visibleEvents.filter(evt => {
     const matchesSearch = 
       evt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -59,159 +55,150 @@ export default function DashboardView({ onOpenModal, onOpenExcelUpload }) {
   });
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-200">
       
-      {/* Encabezado Académico */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200/90 pb-6">
+      {/* Encabezado de Operaciones */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#0b1e38] text-amber-300 border border-amber-400/30">
-              Decanatura & Extensión Universitaria
+          <div className="flex items-center gap-2 mb-1">
+            <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
+              OPERACIONES // ANALÍTICA
             </span>
-            <span className="text-xs text-slate-400">• Periodo Lectivo 2026-II</span>
+            <span className="w-1 h-1 rounded-full bg-zinc-300" />
+            <span className="font-mono text-[10px] text-emerald-600 font-medium">TIEMPO REAL</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-serif font-bold text-[#0b1e38] tracking-tight">
-            Panel de Indicadores y Analítica Académica
+          <h1 className="text-xl font-bold tracking-tight text-zinc-950">
+            Métricas & Control de Eventos
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-2xl leading-relaxed">
-            Monitoreo en tiempo real de convocatorias de extensión, control de aforo por auditorio y registro formal de quórum estudiantil.
+          <p className="text-xs text-zinc-500 mt-0.5">
+            Supervisión continua de aforo, estados operativos y registro de asistencia.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-2">
           <button
             onClick={onOpenExcelUpload}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0b1e38] text-amber-300 hover:bg-[#143156] border border-amber-400/40 shadow-sm transition-all"
+            className="btn-tactile flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-zinc-800 border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-xs"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <span>Cargar Planilla Excel</span>
+            <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-600" />
+            <span>Cargar Excel (IA)</span>
           </button>
 
           <button
             onClick={() => onOpenModal(null)}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold bg-amber-600 text-white hover:bg-amber-700 shadow-md shadow-amber-600/20 transition-all"
+            className="btn-tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-xs"
           >
-            <PlusCircle className="w-4 h-4" />
-            <span>Nueva Convocatoria</span>
+            <Plus className="w-3.5 h-3.5" />
+            <span>Nuevo Evento</span>
           </button>
         </div>
       </div>
 
-      {/* Tarjetas KPI Académicas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Grid de 4 KPIs Minimalistas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         
         {/* KPI 1: Total Eventos */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm relative overflow-hidden group hover:border-amber-400/60 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Convocatorias Totales</span>
-            <div className="w-9 h-9 rounded-xl bg-[#0b1e38]/5 border border-[#0b1e38]/10 flex items-center justify-center text-[#0b1e38]">
-              <BookOpen className="w-4 h-4" />
+        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 text-xs">
+            <span className="font-medium text-zinc-600">Total Eventos</span>
+            <Calendar className="w-4 h-4 text-zinc-400" />
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950">{totalEvents}</div>
+            <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
+              {todayEvents.length} programados hoy
             </div>
           </div>
-          <div className="text-3xl font-serif font-bold text-[#0b1e38] tracking-tight">{totalEvents}</div>
-          <p className="text-xs text-slate-500 mt-1 flex items-center gap-1 font-medium">
-            <span className="text-amber-700 font-bold">{todayEvents.length} programadas para hoy</span>
-          </p>
-          <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-[#0b1e38] to-amber-500" />
         </div>
 
-        {/* KPI 2: Total Asistencias */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm relative overflow-hidden group hover:border-amber-400/60 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Asistencias Validadas</span>
-            <div className="w-9 h-9 rounded-xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700">
-              <Users className="w-4 h-4" />
+        {/* KPI 2: Total Asistentes */}
+        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 text-xs">
+            <span className="font-medium text-zinc-600">Asistencias Confirmadas</span>
+            <Users className="w-4 h-4 text-zinc-400" />
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950">{totalAttendees}</div>
+            <div className="text-[11px] text-emerald-600 font-mono mt-0.5 flex items-center gap-1">
+              <ArrowUpRight className="w-3 h-3" />
+              <span>Registros validados</span>
             </div>
           </div>
-          <div className="text-3xl font-serif font-bold text-slate-900 tracking-tight">{totalAttendees}</div>
-          <p className="text-xs text-emerald-700 mt-1 flex items-center gap-1 font-semibold">
-            <ArrowUpRight className="w-3.5 h-3.5" /> Registros de presencia
-          </p>
-          <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-emerald-600 to-teal-500" />
         </div>
 
-        {/* KPI 3: Asistencia Abierta Ahora */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm relative overflow-hidden group hover:border-amber-400/60 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Libro de Asistencia</span>
-            <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-700">
-              <Radio className="w-4 h-4" />
+        {/* KPI 3: Asistencia Abierta */}
+        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 text-xs">
+            <span className="font-medium text-zinc-600">Asistencia Habilitada</span>
+            <Radio className="w-4 h-4 text-zinc-400" />
+          </div>
+          <div className="mt-2 flex items-baseline justify-between">
+            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950 flex items-center gap-2">
+              {activeAttendanceEvents.length}
+              {activeAttendanceEvents.length > 0 && (
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
+              )}
             </div>
+            <span className="text-[10px] font-mono text-zinc-500">EN CURSO</span>
           </div>
-          <div className="text-3xl font-serif font-bold text-amber-800 tracking-tight flex items-center gap-2">
-            {activeAttendanceEvents.length}
-            {activeAttendanceEvents.length > 0 && (
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
-              </span>
-            )}
+          <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
+            Recibiendo check-ins
           </div>
-          <p className="text-xs text-slate-500 mt-1 font-medium">
-            Convocatorias en fase de registro
-          </p>
-          <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-amber-500 to-yellow-400" />
         </div>
 
-        {/* KPI 4: Índice de Aforo */}
-        <div className="p-5 rounded-2xl bg-white border border-slate-200/90 shadow-sm relative overflow-hidden group hover:border-amber-400/60 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Cobertura de Aforo</span>
-            <div className="w-9 h-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-700">
-              <TrendingUp className="w-4 h-4" />
+        {/* KPI 4: Tasa de Ocupación */}
+        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
+          <div className="flex items-center justify-between text-zinc-500 text-xs">
+            <span className="font-medium text-zinc-600">Ocupación Global</span>
+            <TrendingUp className="w-4 h-4 text-zinc-400" />
+          </div>
+          <div className="mt-2">
+            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950">{occupancyRate}%</div>
+            <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
+              {totalAttendees} / {totalCapacity} aforo total
             </div>
           </div>
-          <div className="text-3xl font-serif font-bold text-[#0b1e38] tracking-tight">{occupancyRate}%</div>
-          <p className="text-xs text-slate-500 mt-1 font-medium">
-            {totalAttendees} ocupados de {totalCapacity} cupos
-          </p>
-          <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-[#173d63] to-indigo-500" />
         </div>
       </div>
 
-      {/* Gráficos y Desglose Curricular */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {/* Sección Analítica: Capacidad por Evento & Distribución */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         
-        {/* Gráfico 1: Asistencia vs Aforo por Actividad */}
-        <div className="lg:col-span-2 p-6 rounded-2xl bg-white border border-slate-200/90 shadow-sm space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        {/* Desglose de Capacidad */}
+        <div className="lg:col-span-2 p-5 rounded-xl bg-white border border-zinc-200 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-2.5">
             <div>
-              <h2 className="text-base font-serif font-bold text-[#0b1e38]">
-                Quórum Curricular por Actividad
+              <h2 className="text-xs font-bold text-zinc-900 tracking-tight uppercase">
+                Capacidad & Quórum por Evento
               </h2>
-              <p className="text-xs text-slate-500">Estudiantes acreditados frente al aforo del recinto académico</p>
+              <p className="text-[11px] text-zinc-500">Comparativa de asistentes vs límite de aforo</p>
             </div>
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-              Acreditación Oficial
+            <span className="font-mono text-[10px] text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">
+              TELEMETRÍA
             </span>
           </div>
 
-          <div className="space-y-4 pt-1">
+          <div className="space-y-3 pt-1">
             {visibleEvents.slice(0, 5).map(evt => {
               const pct = Math.min(100, Math.round((evt.attendeesCount / (evt.capacity || 50)) * 100));
-              const isMusic = evt.area === 'Música';
               return (
-                <div key={evt.id} className="space-y-1.5">
+                <div key={evt.id} className="space-y-1">
                   <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 truncate max-w-[68%]">
-                      <span className="font-mono text-[10px] text-amber-700 font-bold bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
-                        {evt.code || 'ACT'}
+                    <div className="flex items-center gap-2 truncate max-w-[70%]">
+                      <span className="font-mono text-[10px] text-zinc-600 bg-zinc-100 px-1 py-0.5 rounded border border-zinc-200">
+                        {evt.code || 'EVT'}
                       </span>
-                      <span className="font-bold text-slate-800 truncate">{evt.title}</span>
+                      <span className="font-medium text-zinc-800 truncate">{evt.title}</span>
                     </div>
-                    <div className="font-mono text-slate-600 text-xs">
-                      <strong className="text-[#0b1e38] font-bold">{evt.attendeesCount}</strong> / {evt.capacity} asist. ({pct}%)
+                    <div className="font-mono text-zinc-600 text-xs">
+                      <strong className="text-zinc-950">{evt.attendeesCount}</strong>/{evt.capacity} <span className="text-zinc-400">({pct}%)</span>
                     </div>
                   </div>
                   
-                  {/* Barra sobria */}
-                  <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden flex">
+                  {/* Barra monocromática limpia */}
+                  <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden flex">
                     <div 
-                      className={`h-full rounded-full transition-all duration-700 ${
-                        isMusic 
-                          ? 'bg-gradient-to-r from-[#1b4170] to-[#2563eb]' 
-                          : 'bg-gradient-to-r from-emerald-700 to-teal-600'
-                      }`}
+                      className="h-full bg-zinc-900 rounded-full transition-all duration-500"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -221,77 +208,73 @@ export default function DashboardView({ onOpenModal, onOpenExcelUpload }) {
           </div>
         </div>
 
-        {/* Desglose de Actas y Estados */}
-        <div className="p-6 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex flex-col justify-between space-y-4">
-          <div className="border-b border-slate-100 pb-3">
-            <h2 className="text-base font-serif font-bold text-[#0b1e38]">
-              Estado del Libro de Actas
+        {/* Distribución de Estados */}
+        <div className="p-5 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between space-y-3">
+          <div className="border-b border-zinc-100 pb-2.5">
+            <h2 className="text-xs font-bold text-zinc-900 tracking-tight uppercase">
+              Ciclo de Vida Operativo
             </h2>
-            <p className="text-xs text-slate-500">Distribución operativa de las convocatorias</p>
+            <p className="text-[11px] text-zinc-500">Estado de convocatorias activas</p>
           </div>
 
-          <div className="space-y-2.5 py-1">
-            {/* Publicados */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-800">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                <span>Convocatorias Publicadas</span>
+          <div className="space-y-2 py-1">
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
+              <div className="flex items-center gap-2 font-medium text-zinc-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                <span>Publicados</span>
               </div>
-              <span className="font-bold text-sm text-[#0b1e38]">
+              <span className="font-mono font-bold text-zinc-900">
                 {visibleEvents.filter(e => e.status === 'published').length}
               </span>
             </div>
 
-            {/* Asistencia Abierta */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-amber-50/70 border border-amber-200">
-              <div className="flex items-center gap-2 text-xs font-bold text-amber-900">
-                <Radio className="w-4 h-4 text-amber-600" />
-                <span>Libro de Asistencia Abierto</span>
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
+              <div className="flex items-center gap-2 font-medium text-zinc-800">
+                <span className="w-2 h-2 rounded-full bg-amber-500" />
+                <span>Asistencia Habilitada</span>
               </div>
-              <span className="font-bold text-sm text-amber-900">
+              <span className="font-mono font-bold text-zinc-900">
                 {visibleEvents.filter(e => e.attendanceEnabled).length}
               </span>
             </div>
 
-            {/* Borradores */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50/70 border border-slate-200">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-600">
-                <Edit3 className="w-4 h-4 text-slate-500" />
-                <span>Borradores Curriculares</span>
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
+              <div className="flex items-center gap-2 font-medium text-zinc-800">
+                <span className="w-2 h-2 rounded-full bg-zinc-400" />
+                <span>Borradores</span>
               </div>
-              <span className="font-bold text-sm text-slate-700">
+              <span className="font-mono font-bold text-zinc-900">
                 {visibleEvents.filter(e => e.status === 'draft').length}
               </span>
             </div>
 
-            {/* Cerrados */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-rose-50/70 border border-rose-200">
-              <div className="flex items-center gap-2 text-xs font-bold text-rose-900">
-                <Lock className="w-4 h-4 text-rose-700" />
-                <span>Actas Finalizadas y Cerradas</span>
+            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
+              <div className="flex items-center gap-2 font-medium text-zinc-800">
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+                <span>Cerrados</span>
               </div>
-              <span className="font-bold text-sm text-rose-900">
+              <span className="font-mono font-bold text-zinc-900">
                 {visibleEvents.filter(e => e.status === 'closed').length}
               </span>
             </div>
           </div>
 
-          <div className="text-[11px] text-slate-400 text-center pt-2 border-t border-slate-100 font-medium">
-            Registros sincronizados con la secretaría académica
+          <div className="text-[10px] font-mono text-zinc-400 text-center pt-2 border-t border-zinc-100">
+            AUTO-SYNC CON LOCALSTORAGE
           </div>
         </div>
       </div>
 
-      {/* Controles de Búsqueda y Filtros de la Tabla */}
-      <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-sm flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      {/* Barra de Filtros Minimalista */}
+      <div className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
         <div className="relative flex-1">
-          <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
           <input
             type="text"
-            placeholder="Buscar por código, título, propósito formativo o auditorio..."
+            placeholder="Filtrar por código, título, propósito o ubicación..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-slate-200 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+            className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900 transition-colors"
           />
         </div>
 
@@ -300,11 +283,11 @@ export default function DashboardView({ onOpenModal, onOpenExcelUpload }) {
             <select
               value={selectedArea}
               onChange={(e) => setSelectedArea(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white"
+              className="px-2.5 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-700 bg-white focus:outline-none focus:border-zinc-900"
             >
-              <option value="ALL">Todos los Departamentos</option>
+              <option value="ALL">Todas las Áreas</option>
               {AREAS.map(a => (
-                <option key={a} value={a}>Depto. de {a}</option>
+                <option key={a} value={a}>Área: {a}</option>
               ))}
             </select>
           )}
@@ -312,203 +295,202 @@ export default function DashboardView({ onOpenModal, onOpenExcelUpload }) {
           <select
             value={selectedStatus}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-700 bg-white"
+            className="px-2.5 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-700 bg-white focus:outline-none focus:border-zinc-900"
           >
             <option value="ALL">Todos los Estados</option>
-            <option value="published">Convocatorias Publicadas</option>
-            <option value="draft">Borradores Curriculares</option>
-            <option value="closed">Actas Cerradas</option>
+            <option value="published">Publicados</option>
+            <option value="draft">Borradores</option>
+            <option value="closed">Cerrados</option>
           </select>
         </div>
       </div>
 
-      {/* Tabla Maestra con los 4 Botones Operativos en Diseño Académico */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden">
-        <div className="px-6 py-4 border-b border-slate-200/80 flex items-center justify-between bg-slate-50">
+      {/* Tabla Maestra de Alta Densidad */}
+      <div className="bg-white rounded-xl border border-zinc-200 shadow-xs overflow-hidden">
+        <div className="px-5 py-3 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
           <div>
-            <h2 className="text-base font-serif font-bold text-[#0b1e38]">
-              Libro de Registro de Convocatorias
-            </h2>
-            <p className="text-xs text-slate-500">
-              Operaciones del ciclo de vida: Publicar, Habilitar Asistencia, Editar Ficha y Cerrar Acta
-            </p>
+            <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
+              Registro de Operaciones
+            </h3>
           </div>
-          <span className="text-xs font-bold text-slate-600 bg-white px-2.5 py-1 rounded-lg border border-slate-200">
-            {filteredEvents.length} convocatorias listadas
+          <span className="font-mono text-[10px] text-zinc-500 bg-white px-2 py-0.5 rounded border border-zinc-200">
+            {filteredEvents.length} REGISTROS
           </span>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-[#0b1e38] uppercase tracking-wider text-[11px] font-bold text-amber-300/90 border-b border-slate-300">
+          <table className="w-full text-left text-xs text-zinc-700">
+            <thead className="bg-zinc-50/80 font-mono text-[10px] uppercase text-zinc-500 border-b border-zinc-200">
               <tr>
-                <th className="px-5 py-3.5">Ficha Curricular & Propósito</th>
-                <th className="px-4 py-3.5">Departamento</th>
-                <th className="px-4 py-3.5">Fecha & Recinto</th>
-                <th className="px-4 py-3.5">Quórum Acreditado</th>
-                <th className="px-4 py-3.5">Estado</th>
-                <th className="px-5 py-3.5 text-center">Acciones Operativas</th>
+                <th className="px-4 py-2.5 font-medium">Evento // Propósito</th>
+                <th className="px-3 py-2.5 font-medium">Área</th>
+                <th className="px-3 py-2.5 font-medium">Fecha & Lugar</th>
+                <th className="px-3 py-2.5 font-medium">Asistencia</th>
+                <th className="px-3 py-2.5 font-medium">Estado</th>
+                <th className="px-4 py-2.5 text-center font-medium">Acciones Operativas</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-zinc-100">
               {filteredEvents.length === 0 ? (
                 <tr>
-                  <td colSpan="6" className="text-center py-12 text-slate-400">
-                    No se encontraron convocatorias académicas con los criterios especificados.
+                  <td colSpan="6" className="text-center py-10 text-zinc-400 font-mono">
+                    No se encontraron registros.
                   </td>
                 </tr>
               ) : (
                 filteredEvents.map((evt) => {
-                  const isMusic = evt.area === 'Música';
                   const isClosed = evt.status === 'closed';
 
                   return (
-                    <tr key={evt.id} className="hover:bg-slate-50 transition-colors">
-                      {/* Columna: Evento */}
-                      <td className="px-5 py-4 max-w-sm">
+                    <tr key={evt.id} className="hover:bg-zinc-50/70 transition-colors">
+                      {/* Evento & Propósito */}
+                      <td className="px-4 py-3 max-w-sm">
                         <div className="flex items-start gap-3">
                           <img
                             src={evt.image}
                             alt={evt.title}
-                            className="w-12 h-12 rounded-xl object-cover shrink-0 border border-slate-200 shadow-sm mt-0.5"
+                            className="w-10 h-10 rounded-lg object-cover shrink-0 border border-zinc-200 mt-0.5"
                           />
                           <div className="min-w-0">
                             <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="font-mono text-[10px] font-bold text-amber-800 bg-amber-50 px-1.5 py-0.2 rounded border border-amber-200">
-                                {evt.code || 'COD-ACT'}
+                              <span className="font-mono text-[10px] text-zinc-500 bg-zinc-100 px-1 rounded">
+                                {evt.code || 'EVT'}
                               </span>
+                              <h4 className="font-semibold text-zinc-900 text-xs truncate">
+                                {evt.title}
+                              </h4>
                             </div>
-                            <h3 className="font-bold text-[#0b1e38] text-sm leading-snug line-clamp-1">{evt.title}</h3>
-                            <p className="text-xs text-slate-500 line-clamp-2 mt-0.5 leading-relaxed">{evt.purpose}</p>
+                            <p className="text-[11px] text-zinc-500 line-clamp-1 leading-snug">
+                              {evt.purpose}
+                            </p>
                           </div>
                         </div>
                       </td>
 
-                      {/* Columna: Departamento */}
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-bold border ${
-                          isMusic 
-                            ? 'bg-blue-50 text-blue-800 border-blue-200' 
-                            : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-                        }`}>
-                          {isMusic ? <Music className="w-3 h-3" /> : <Trophy className="w-3 h-3" />}
-                          Depto. {evt.area}
+                      {/* Área */}
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <span className="font-mono text-[10px] text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
+                          {evt.area}
                         </span>
                       </td>
 
-                      {/* Columna: Fecha */}
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="font-bold text-slate-800">{evt.date}</div>
-                        <div className="text-[11px] text-slate-500 font-mono mt-0.5">{evt.time}</div>
-                        <div className="text-[10px] text-slate-400 truncate max-w-[150px]">📍 {evt.location}</div>
+                      {/* Fecha */}
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <div className="font-mono text-zinc-900 text-xs">{evt.date}</div>
+                        <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate max-w-[140px]">
+                          {evt.location}
+                        </div>
                       </td>
 
-                      {/* Columna: Métrica de Asistencia */}
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center gap-2">
-                          <span className="font-serif font-bold text-sm text-[#0b1e38]">{evt.attendeesCount}</span>
-                          <span className="text-slate-400 text-xs">/ {evt.capacity} cupos</span>
+                      {/* Asistencia */}
+                      <td className="px-3 py-3 whitespace-nowrap">
+                        <div className="font-mono text-xs">
+                          <strong className="text-zinc-950 font-bold">{evt.attendeesCount}</strong>
+                          <span className="text-zinc-400">/{evt.capacity}</span>
                         </div>
-                        <div className="w-24 h-1.5 bg-slate-100 rounded-full mt-1.5 overflow-hidden">
+                        <div className="w-20 h-1 bg-zinc-100 rounded-full mt-1 overflow-hidden">
                           <div
-                            className="h-full bg-amber-600 rounded-full"
+                            className="h-full bg-zinc-900 rounded-full"
                             style={{ width: `${Math.min(100, (evt.attendeesCount / evt.capacity) * 100)}%` }}
                           />
                         </div>
                       </td>
 
-                      {/* Columna: Estado & Asistencia */}
-                      <td className="px-4 py-4 whitespace-nowrap">
+                      {/* Estado */}
+                      <td className="px-3 py-3 whitespace-nowrap">
                         <div className="space-y-1">
                           {evt.status === 'published' && (
-                            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
                               Publicado
                             </span>
                           )}
                           {evt.status === 'draft' && (
-                            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-300">
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-100 text-zinc-700 border border-zinc-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
                               Borrador
                             </span>
                           )}
                           {evt.status === 'closed' && (
-                            <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-900 border border-rose-300">
-                              Acta Cerrada
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-800 border border-rose-200">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                              Cerrado
                             </span>
                           )}
 
                           {evt.attendanceEnabled && (
-                            <div className="flex items-center gap-1 text-[10px] text-amber-800 font-bold">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-600 animate-ping" />
-                              Asistencia Abierta
+                            <div className="flex items-center gap-1 text-[10px] text-amber-700 font-mono font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                              Asist. Abierta
                             </div>
                           )}
                         </div>
                       </td>
 
-                      {/* Columna: Los 4 Botones Operativos */}
-                      <td className="px-5 py-4 whitespace-nowrap text-center">
-                        <div className="inline-flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-xl border border-slate-200">
+                      {/* Los 4 Botones Operativos Minimalistas */}
+                      <td className="px-4 py-3 whitespace-nowrap text-center">
+                        <div className="inline-flex items-center gap-1 bg-zinc-100/70 p-1 rounded-lg border border-zinc-200">
                           
-                          {/* 1. Botón Publicar / Despublicar */}
+                          {/* 1. Publicar / Despublicar */}
                           <button
                             disabled={isClosed}
                             onClick={() => togglePublishEvent(evt.id)}
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            className={`btn-tactile px-2 py-1 rounded text-xs font-medium transition-all ${
                               isClosed
-                                ? 'opacity-40 cursor-not-allowed bg-slate-200 text-slate-500'
+                                ? 'opacity-40 cursor-not-allowed text-zinc-400'
                                 : evt.status === 'published'
-                                ? 'bg-amber-100 text-amber-900 hover:bg-amber-200 border border-amber-300'
-                                : 'bg-[#0b1e38] text-amber-300 hover:bg-[#143156] border border-amber-400/40 shadow-sm'
+                                ? 'bg-white text-zinc-800 shadow-xs border border-zinc-200 hover:bg-zinc-50'
+                                : 'bg-zinc-950 text-white hover:bg-zinc-800 shadow-xs'
                             }`}
-                            title={evt.status === 'published' ? 'Despublicar convocatoria' : 'Publicar convocatoria oficial'}
+                            title={evt.status === 'published' ? 'Despublicar evento' : 'Publicar evento'}
                           >
                             {evt.status === 'published' ? 'Despublicar' : 'Publicar'}
                           </button>
 
-                          {/* 2. Botón Habilitar / Deshabilitar Asistencia */}
+                          {/* 2. Habilitar Asistencia */}
                           <button
                             disabled={isClosed || evt.status !== 'published'}
                             onClick={() => toggleAttendance(evt.id)}
-                            className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            className={`btn-tactile px-2 py-1 rounded text-xs font-medium transition-all ${
                               isClosed || evt.status !== 'published'
-                                ? 'opacity-40 cursor-not-allowed bg-slate-200 text-slate-500'
+                                ? 'opacity-40 cursor-not-allowed text-zinc-400'
                                 : evt.attendanceEnabled
-                                ? 'bg-amber-600 text-white hover:bg-amber-700 shadow-sm'
-                                : 'bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-300'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
+                                : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50'
                             }`}
-                            title="Habilitar o pausar libro de asistencia"
+                            title="Habilitar o pausar asistencia de aprendices"
                           >
                             {evt.attendanceEnabled ? 'Pausar Asist.' : 'Habilitar Asist.'}
                           </button>
 
-                          {/* 3. Botón Editar Evento */}
+                          {/* 3. Editar Evento */}
                           <button
                             disabled={isClosed}
                             onClick={() => onOpenModal(evt)}
-                            className={`p-1.5 rounded-lg text-slate-600 hover:text-[#0b1e38] hover:bg-slate-200 transition-colors ${
+                            className={`btn-tactile p-1 rounded text-zinc-600 hover:text-zinc-950 hover:bg-white transition-colors ${
                               isClosed ? 'opacity-40 cursor-not-allowed' : ''
                             }`}
-                            title="Editar ficha curricular del evento"
+                            title="Editar evento"
                           >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit3 className="w-3.5 h-3.5" />
                           </button>
 
-                          {/* 4. Botón Cerrar Evento */}
+                          {/* 4. Cerrar Evento */}
                           <button
                             disabled={isClosed}
                             onClick={() => {
-                              if (window.confirm(`¿Confirmas cerrar definitivamente el acta del evento "${evt.title}"?`)) {
+                              if (window.confirm(`¿Confirmas cerrar definitivamente el evento "${evt.title}"?`)) {
                                 closeEvent(evt.id);
                               }
                             }}
-                            className={`p-1.5 rounded-lg transition-colors ${
+                            className={`btn-tactile p-1 rounded transition-colors ${
                               isClosed
-                                ? 'text-slate-300 cursor-not-allowed'
-                                : 'text-slate-400 hover:text-rose-700 hover:bg-rose-50'
+                                ? 'text-zinc-300 cursor-not-allowed'
+                                : 'text-zinc-400 hover:text-rose-600 hover:bg-white'
                             }`}
-                            title={isClosed ? 'Acta ya cerrada' : 'Cerrar acta y certificar asistencias'}
+                            title={isClosed ? 'Evento cerrado' : 'Cerrar evento y congelar métricas'}
                           >
-                            <Lock className="w-4 h-4" />
+                            <Lock className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </td>

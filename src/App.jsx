@@ -9,7 +9,7 @@ import DashboardView from './views/DashboardView';
 import EventsView from './views/EventsView';
 import ExcelUploadView from './views/ExcelUploadView';
 import ApprenticePortal from './views/ApprenticePortal';
-import { KeyRound, Building2 } from 'lucide-react';
+import { Layers } from 'lucide-react';
 
 function MainLayout() {
   const { activeTab, setActiveTab } = useApp();
@@ -28,11 +28,11 @@ function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 selection:bg-amber-600 selection:text-white">
-      {/* Barra de navegación superior institucional */}
+    <div className="min-h-screen flex flex-col bg-[#fafafa] text-zinc-900 selection:bg-zinc-900 selection:text-white font-sans">
+      {/* Barra de navegación superior */}
       <Navbar />
 
-      {/* Banner contextual de credencial activa */}
+      {/* Banner de rol activo */}
       <RoleBanner />
 
       {/* Contenedor Principal */}
@@ -61,25 +61,23 @@ function MainLayout() {
         )}
       </main>
 
-      {/* Pie de página con créditos institucionales y cambio de credencial */}
-      <footer className="border-t border-slate-200 bg-white py-6 text-xs text-slate-600">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Pie de página minimalista */}
+      <footer className="border-t border-zinc-200 bg-white py-5 text-xs text-zinc-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-amber-600" />
-            <span className="font-serif font-bold text-[#0b1e38]">SIEE — Plataforma Universitaria</span>
+            <span className="font-semibold text-zinc-900">EventFlow Operations</span>
             <span>—</span>
-            <span>Gestión Curricular, Extensión y Acreditación de Asistencia</span>
+            <span>Mockup Funcional para Demostración Corporativa</span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
+              className="text-xs text-zinc-700 hover:text-zinc-950 font-medium underline underline-offset-4"
             >
-              <KeyRound className="w-3.5 h-3.5 text-amber-600" />
-              <span>Cambiar Perfil (Modal de Acceso)</span>
+              Cambiar Perfil (Modal)
             </button>
-            <span className="text-[11px] text-slate-400 font-mono">Edición Académica 2026</span>
+            <span className="font-mono text-[11px] text-zinc-400">BUILD 2026.10</span>
           </div>
         </div>
       </footer>

@@ -1,15 +1,13 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   X, 
   LogIn, 
-  ShieldCheck, 
+  Shield, 
   Music, 
-  Trophy, 
-  GraduationCap, 
-  ArrowRight,
-  School,
-  Award
+  Dumbbell, 
+  User, 
+  ArrowRight
 } from 'lucide-react';
 
 export default function LoginModal({ isOpen, onClose }) {
@@ -23,97 +21,71 @@ export default function LoginModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-lg overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-xl shadow-xl border border-zinc-200 w-full max-w-md overflow-hidden flex flex-col">
         {/* Cabecera */}
-        <div className="px-6 py-5 border-b border-slate-200 flex items-center justify-between bg-[#0b1e38] text-white">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center">
-              <School className="w-4 h-4" />
-            </div>
-            <div>
-              <h3 className="text-base font-serif font-bold text-white">
-                Acceso al Campus Virtual (Demostración)
-              </h3>
-              <p className="text-[11px] text-slate-300">
-                Selecciona una credencial académica para simular sus facultades operativas.
-              </p>
-            </div>
+        <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+          <div>
+            <h3 className="text-sm font-semibold text-zinc-950">
+              Cambiar Perfil // Control de Acceso
+            </h3>
+            <p className="text-[11px] text-zinc-500">
+              Selecciona un rol para simular sus permisos de plataforma.
+            </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
+            className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Contenido con opciones de rol */}
-        <div className="p-6 space-y-4">
-          <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">
-            Credenciales Académicas Disponibles
-          </span>
-
-          <div className="space-y-2.5">
-            {users.map(u => {
-              let Icon = ShieldCheck;
-              let color = 'text-[#0b1e38] bg-slate-100 border-slate-300';
-              if (u.id === 'user_admin_musica') {
-                Icon = Music;
-                color = 'text-blue-900 bg-blue-50 border-blue-200';
-              } else if (u.id === 'user_admin_deportes') {
-                Icon = Trophy;
-                color = 'text-emerald-900 bg-emerald-50 border-emerald-200';
-              } else if (u.id === 'user_aprendiz') {
-                Icon = GraduationCap;
-                color = 'text-amber-900 bg-amber-50 border-amber-200';
-              }
-
-              return (
-                <div
-                  key={u.id}
-                  onClick={() => handleQuickSelect(u.id)}
-                  className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group hover:border-amber-500 hover:bg-amber-50/20 ${
-                    currentUser.id === u.id
-                      ? 'border-amber-500 bg-amber-50/30 ring-2 ring-amber-500/20'
-                      : 'border-slate-200 bg-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={u.avatar}
-                      alt={u.name}
-                      className="w-10 h-10 rounded-xl object-cover ring-2 ring-slate-200"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-slate-900 group-hover:text-[#0b1e38] transition-colors">
-                          {u.name}
-                        </span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border uppercase tracking-wider ${color}`}>
-                          {u.shortRole || u.roleLabel}
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
-                        {u.description}
-                      </p>
+        {/* Lista de Usuarios */}
+        <div className="p-4 space-y-2 text-xs">
+          {users.map(u => {
+            const isSelected = currentUser.id === u.id;
+            return (
+              <div
+                key={u.id}
+                onClick={() => handleQuickSelect(u.id)}
+                className={`p-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between group hover:border-zinc-400 ${
+                  isSelected
+                    ? 'border-zinc-950 bg-zinc-50'
+                    : 'border-zinc-200 bg-white hover:bg-zinc-50/50'
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <img
+                    src={u.avatar}
+                    alt={u.name}
+                    className="w-8 h-8 rounded-md object-cover border border-zinc-200"
+                  />
+                  <div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-semibold text-zinc-900 group-hover:text-zinc-950">
+                        {u.name}
+                      </span>
+                      <span className="font-mono text-[9px] text-zinc-500 bg-zinc-100 px-1.5 py-0.2 rounded border border-zinc-200">
+                        {u.shortRole}
+                      </span>
                     </div>
-                  </div>
-
-                  <div className="text-slate-400 group-hover:text-amber-600 transition-colors">
-                    <ArrowRight className="w-4 h-4" />
+                    <p className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5">
+                      {u.description}
+                    </p>
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          <div className="pt-3 border-t border-slate-100 text-center">
-            <p className="text-xs text-slate-500 flex items-center justify-center gap-1.5">
-              <Award className="w-3.5 h-3.5 text-amber-600" />
-              <span>También puedes cambiar de perfil al instante desde la barra superior del portal.</span>
-            </p>
-          </div>
+                <div className="text-zinc-400 group-hover:text-zinc-900 transition-colors">
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="p-3 border-t border-zinc-100 text-center font-mono text-[10px] text-zinc-400 bg-zinc-50/50">
+          CAMBIO DE ROL INSTANTÁNEO EN UN CLIC
         </div>
       </div>
     </div>
