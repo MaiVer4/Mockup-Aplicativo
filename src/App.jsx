@@ -9,13 +9,20 @@ import DashboardView from './views/DashboardView';
 import EventsView from './views/EventsView';
 import ExcelUploadView from './views/ExcelUploadView';
 import ApprenticePortal from './views/ApprenticePortal';
-import { Sparkles, KeyRound } from 'lucide-react';
+import MaintenanceView from './views/MaintenanceView';
+import { Sparkles, KeyRound, Wrench } from 'lucide-react';
 
 function MainLayout() {
   const { activeTab, setActiveTab } = useApp();
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(true);
+
+  // Pantalla completa de mantenimiento al inicio
+  if (isMaintenanceMode) {
+    return <MaintenanceView />;
+  }
 
   const handleOpenEventModal = (event = null) => {
     setEventToEdit(event);
@@ -71,6 +78,15 @@ function MainLayout() {
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsMaintenanceMode(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-semibold transition-colors text-xs"
+              title="Volver a la pantalla de mantenimiento 503"
+            >
+              <Wrench className="w-3.5 h-3.5 text-amber-600" />
+              <span>Pantalla Mantenimiento</span>
+            </button>
+
             <button
               onClick={() => setIsLoginModalOpen(true)}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors"
