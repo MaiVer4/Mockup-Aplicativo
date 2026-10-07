@@ -10,7 +10,7 @@ import EventsView from './views/EventsView';
 import ExcelUploadView from './views/ExcelUploadView';
 import ApprenticePortal from './views/ApprenticePortal';
 import MaintenanceView from './views/MaintenanceView';
-import { Sparkles, KeyRound, Wrench } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 
 function MainLayout() {
   const { activeTab, setActiveTab } = useApp();
@@ -35,11 +35,11 @@ function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-[#fafafa] text-zinc-900 selection:bg-zinc-900 selection:text-white font-sans">
       {/* Barra de navegación superior */}
       <Navbar />
 
-      {/* Banner contextual del rol activo */}
+      {/* Banner de rol activo */}
       <RoleBanner />
 
       {/* Contenedor Principal */}
@@ -68,13 +68,13 @@ function MainLayout() {
         )}
       </main>
 
-      {/* Pie de página con atajos y créditos de demostración */}
-      <footer className="border-t border-slate-200 bg-white py-6 text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* Pie de página minimalista */}
+      <footer className="border-t border-zinc-200 bg-white py-5 text-xs text-zinc-500">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-700">EventFlow Mockup Funcional</span>
+            <span className="font-semibold text-zinc-900">EventFlow Operations</span>
             <span>—</span>
-            <span>Flujo de análisis por IA, roles y control de asistencia</span>
+            <span>Mockup Funcional para Demostración Corporativa</span>
           </div>
 
           <div className="flex items-center gap-3">
@@ -89,12 +89,11 @@ function MainLayout() {
 
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors"
+              className="text-xs text-zinc-700 hover:text-zinc-950 font-medium underline underline-offset-4"
             >
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>Cambiar Perfil (Modal Login)</span>
+              Cambiar Perfil (Modal)
             </button>
-            <span className="text-[11px] text-slate-400">Versión 1.0 Demo</span>
+            <span className="font-mono text-[11px] text-zinc-400">BUILD 2026.10</span>
           </div>
         </div>
       </footer>

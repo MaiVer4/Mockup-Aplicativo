@@ -4,32 +4,41 @@
 
 @layer base {
   body {
-    @apply antialiased text-slate-800 bg-slate-50 min-h-screen;
+    @apply antialiased text-zinc-900 bg-[#fafafa] min-h-screen font-sans;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    letter-spacing: -0.011em;
+  }
+
+  table {
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* Custom scrollbars */
+/* Minimalist scrollbars */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+  background: #d4d4d8;
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #a1a1aa;
 }
 
-/* Smooth card transitions */
-.transition-smooth {
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+/* Tactile micro-transitions */
+.btn-tactile {
+  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-tactile:active {
+  transform: scale(0.98);
 }
 
 /* ============================================================
