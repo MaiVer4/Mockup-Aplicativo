@@ -9,7 +9,7 @@ import DashboardView from './views/DashboardView';
 import EventsView from './views/EventsView';
 import ExcelUploadView from './views/ExcelUploadView';
 import ApprenticePortal from './views/ApprenticePortal';
-import { Sparkles, KeyRound } from 'lucide-react';
+import { KeyRound, Building2 } from 'lucide-react';
 
 function MainLayout() {
   const { activeTab, setActiveTab } = useApp();
@@ -28,11 +28,11 @@ function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 selection:bg-indigo-500 selection:text-white">
-      {/* Barra de navegación superior */}
+    <div className="min-h-screen flex flex-col bg-[#f8fafc] text-slate-800 selection:bg-amber-600 selection:text-white">
+      {/* Barra de navegación superior institucional */}
       <Navbar />
 
-      {/* Banner contextual del rol activo */}
+      {/* Banner contextual de credencial activa */}
       <RoleBanner />
 
       {/* Contenedor Principal */}
@@ -61,24 +61,25 @@ function MainLayout() {
         )}
       </main>
 
-      {/* Pie de página con atajos y créditos de demostración */}
-      <footer className="border-t border-slate-200 bg-white py-6 text-xs text-slate-500">
+      {/* Pie de página con créditos institucionales y cambio de credencial */}
+      <footer className="border-t border-slate-200 bg-white py-6 text-xs text-slate-600">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-700">EventFlow Mockup Funcional</span>
+            <Building2 className="w-4 h-4 text-amber-600" />
+            <span className="font-serif font-bold text-[#0b1e38]">SIEE — Plataforma Universitaria</span>
             <span>—</span>
-            <span>Flujo de análisis por IA, roles y control de asistencia</span>
+            <span>Gestión Curricular, Extensión y Acreditación de Asistencia</span>
           </div>
 
           <div className="flex items-center gap-3">
             <button
               onClick={() => setIsLoginModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-colors"
             >
-              <KeyRound className="w-3.5 h-3.5" />
-              <span>Cambiar Perfil (Modal Login)</span>
+              <KeyRound className="w-3.5 h-3.5 text-amber-600" />
+              <span>Cambiar Perfil (Modal de Acceso)</span>
             </button>
-            <span className="text-[11px] text-slate-400">Versión 1.0 Demo</span>
+            <span className="text-[11px] text-slate-400 font-mono">Edición Académica 2026</span>
           </div>
         </div>
       </footer>

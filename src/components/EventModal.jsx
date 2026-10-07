@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Image, Sparkles, Check, Calendar, Clock, MapPin, Users } from 'lucide-react';
+import { X, Sparkles, Check, Calendar, Clock, MapPin, Users, BookOpen } from 'lucide-react';
 import { AREAS } from '../data/mockData';
 import { getSemanticImage } from '../utils/excelHelper';
 
@@ -14,7 +14,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
     image: '',
     date: new Date().toISOString().split('T')[0],
     time: '14:00 - 17:00',
-    location: 'Auditorio Principal',
+    location: 'Auditorio Mayor - Bloque B',
     capacity: 50
   });
 
@@ -39,7 +39,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
         image: getSemanticImage(defaultArea, ''),
         date: new Date().toISOString().split('T')[0],
         time: '14:00 - 17:00',
-        location: 'Auditorio Principal',
+        location: 'Auditorio Mayor - Bloque B',
         capacity: 50
       });
     }
@@ -65,21 +65,26 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-300 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Cabecera del modal */}
-        <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-          <div>
-            <h3 className="text-lg font-bold text-slate-900">
-              {eventToEdit ? 'Editar Evento' : 'Crear Nuevo Evento'}
-            </h3>
-            <p className="text-xs text-slate-500">
-              Define los parámetros del evento para su publicación en la comunidad.
-            </p>
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-[#0b1e38] text-white">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-300 border border-amber-400/30 flex items-center justify-center">
+              <BookOpen className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-serif font-bold text-white">
+                {eventToEdit ? 'Editar Ficha Curricular' : 'Registrar Convocatoria Académica'}
+              </h3>
+              <p className="text-[11px] text-slate-300">
+                Parámetros oficiales para la cartelera de extensión y acreditación.
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-200/60 transition-colors"
+            className="p-1.5 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -90,30 +95,30 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
           {/* Título */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-              Título del Evento *
+              Título de la Actividad / Convocatoria *
             </label>
             <input
               type="text"
               required
-              placeholder="Ej. Encuentro Coral de Jóvenes Intérpretes"
+              placeholder="Ej. Cátedra Magistral de Interpretación y Ensambles"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none"
             />
           </div>
 
           {/* Propósito */}
           <div>
             <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-              Propósito / Objetivo del Evento *
+              Propósito Pedagógico y Formativo *
             </label>
             <textarea
               required
               rows={3}
-              placeholder="Describe el objetivo, enfoque formativo y lo que aprenderán los asistentes..."
+              placeholder="Describe las competencias, objetivos de aprendizaje y fundamentación formativa..."
               value={formData.purpose}
               onChange={(e) => setFormData({ ...formData, purpose: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none resize-none"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 focus:border-amber-500 transition-all outline-none resize-none leading-relaxed"
             />
           </div>
 
@@ -121,20 +126,20 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Área Organizadora
+                Departamento / Facultad Responsable
               </label>
               {currentUser.role === 'admin_area' ? (
-                <div className="px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-sm font-semibold text-slate-700">
-                  {currentUser.area} (Restringido por tu rol)
+                <div className="px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-xs font-bold text-slate-700">
+                  Depto. de {currentUser.area} (Asignado por Credencial)
                 </div>
               ) : (
                 <select
                   value={formData.area}
                   onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none bg-white"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-700 focus:ring-2 focus:ring-amber-500 transition-all outline-none bg-white"
                 >
                   {AREAS.map(area => (
-                    <option key={area} value={area}>{area}</option>
+                    <option key={area} value={area}>Depto. de {area}</option>
                   ))}
                 </select>
               )}
@@ -142,7 +147,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Aforo Máximo (Cupos)
+                Aforo Máximo del Recinto (Cupos)
               </label>
               <div className="relative">
                 <Users className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -152,7 +157,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
                   max="500"
                   value={formData.capacity}
                   onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
-                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                  className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none"
                 />
               </div>
             </div>
@@ -162,7 +167,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Fecha
+                Fecha Lectiva
               </label>
               <div className="relative">
                 <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
@@ -170,7 +175,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
                   type="date"
                   value={formData.date}
                   onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none"
                 />
               </div>
             </div>
@@ -186,23 +191,23 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
                   placeholder="14:00 - 17:00"
                   value={formData.time}
                   onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none"
                 />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1">
-                Lugar
+                Recinto / Aula
               </label>
               <div className="relative">
                 <MapPin className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                 <input
                   type="text"
-                  placeholder="Auditorio B"
+                  placeholder="Auditorio Mayor"
                   value={formData.location}
                   onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none"
                 />
               </div>
             </div>
@@ -212,15 +217,15 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
-                Imagen del Evento
+                Imagen de la Ficha
               </label>
               <button
                 type="button"
                 onClick={handleGenerateImage}
-                className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1"
+                className="text-xs text-amber-700 hover:text-amber-800 font-bold flex items-center gap-1"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                Sugerir imagen por IA
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                Sugerir imagen temática por IA
               </button>
             </div>
 
@@ -230,7 +235,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
                 placeholder="https://images.unsplash.com/..."
                 value={formData.image}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none"
+                className="flex-1 px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-amber-500 outline-none"
               />
               {formData.image && (
                 <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-slate-200">
@@ -245,16 +250,16 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+              className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-md shadow-indigo-600/30 transition-all flex items-center gap-2"
+              className="px-6 py-2.5 rounded-xl text-xs font-bold text-amber-300 bg-[#0b1e38] hover:bg-[#143156] border border-amber-400/40 shadow-sm transition-all flex items-center gap-2"
             >
-              <Check className="w-4 h-4" />
-              {eventToEdit ? 'Guardar Cambios' : 'Crear Evento'}
+              <Check className="w-4 h-4 text-amber-400" />
+              <span>{eventToEdit ? 'Guardar Cambios Curriculares' : 'Registrar Convocatoria'}</span>
             </button>
           </div>
         </form>

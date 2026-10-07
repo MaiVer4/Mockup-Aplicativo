@@ -1,53 +1,58 @@
-// Datos de prueba y configuración inicial del sistema
+// Datos de prueba y configuración inicial del sistema con identidad académica
 
 export const USERS = [
   {
     id: 'user_admin_gen',
     username: 'admin',
-    name: 'Ing. Carlos Mendoza',
-    email: 'carlos.mendoza@institucion.edu',
+    name: 'Dr. Carlos Mendoza',
+    email: 'carlos.mendoza@universidad.edu',
     role: 'admin_general',
-    roleLabel: 'Administrador General',
+    roleLabel: 'Decanatura General / Dirección de Extensión',
+    shortRole: 'Decanatura',
     area: null,
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
-    description: 'Acceso irrestricto a todas las áreas, gestión global y analíticas consolidadas.'
+    description: 'Autoridad institucional con supervisión de todas las facultades, validación curricular y analítica consolidada.'
   },
   {
     id: 'user_admin_musica',
     username: 'admin_musica',
-    name: 'Prof. Elena Ríos',
-    email: 'elena.musica@institucion.edu',
+    name: 'Mtra. Elena Ríos',
+    email: 'elena.musica@universidad.edu',
     role: 'admin_area',
-    roleLabel: 'Coordinador de Área: Música',
+    roleLabel: 'Dirección del Depto. de Música',
+    shortRole: 'Depto. Música',
     area: 'Música',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-    description: 'Gestión exclusiva de eventos, asistencias y métricas del área de Música.'
+    description: 'Gestión académica de cátedras, ensambles y registro de asistencia en el área musical.'
   },
   {
     id: 'user_admin_deportes',
     username: 'admin_deportes',
     name: 'Lic. Mateo Silva',
-    email: 'mateo.deportes@institucion.edu',
+    email: 'mateo.deportes@universidad.edu',
     role: 'admin_area',
-    roleLabel: 'Coordinador de Área: Deportes',
+    roleLabel: 'Dirección del Depto. de Deportes y Bienestar',
+    shortRole: 'Depto. Deportes',
     area: 'Deportes',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-    description: 'Gestión exclusiva de eventos, asistencias y métricas del área de Deportes.'
+    description: 'Coordinación de torneos interfichas, actividades físicas y asistencia estudiantil deportiva.'
   },
   {
     id: 'user_aprendiz',
     username: 'aprendiz',
     name: 'Sofía Castillo',
-    email: 'sofia.aprendiz@estudiantes.edu',
+    email: 'sofia.castillo@estudiantes.edu',
     role: 'aprendiz',
-    roleLabel: 'Aprendiz / Estudiante',
+    roleLabel: 'Estudiante / Aprendiz Matriculado',
+    shortRole: 'Estudiante',
     area: 'General',
+    matricula: 'MAT-2026-8842',
     avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80',
-    description: 'Visualiza eventos publicados para la fecha actual y confirma su asistencia.'
+    description: 'Consulta de la agenda académica del día y acreditación de asistencia a convocatorias habilitadas.'
   }
 ];
 
-export const AREAS = ['Música', 'Deportes', 'Tecnología', 'Arte y Cultura'];
+export const AREAS = ['Música', 'Deportes', 'Tecnología', 'Arte y Humanidades'];
 
 const todayStr = new Date().toISOString().split('T')[0];
 const yesterdayStr = new Date(Date.now() - 86400000).toISOString().split('T')[0];
@@ -56,13 +61,15 @@ const tomorrowStr = new Date(Date.now() + 86400000).toISOString().split('T')[0];
 export const INITIAL_EVENTS = [
   {
     id: 'evt-101',
-    title: 'Ensamble Sinfónico y Batuta Joven',
-    purpose: 'Promover la interpretación musical instrumental y el desarrollo acústico de agrupaciones corales y orquestales en formación.',
+    code: 'MUS-2026-101',
+    title: 'Ensamble Sinfónico y Práctica Coral Polifónica',
+    purpose: 'Desarrollar competencias en lectura a primera vista, ensamble orquestal e interpretación de repertorio clásico latinoamericano.',
     image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
     area: 'Música',
+    faculty: 'Facultad de Artes y Música',
     date: todayStr,
     time: '14:00 - 17:00',
-    location: 'Auditorio Principal - Bloque B',
+    location: 'Auditorio Mayor - Bloque Académico B',
     status: 'published', // 'draft' | 'published' | 'closed'
     attendanceEnabled: true,
     attendeesCount: 45,
@@ -72,13 +79,15 @@ export const INITIAL_EVENTS = [
   },
   {
     id: 'evt-102',
-    title: 'Torneo Interfichas de Futsal y Voleibol Mixto',
-    purpose: 'Fomentar la integración estudiantil, la sana convivencia y la actividad física a través de encuentros deportivos simultáneos.',
+    code: 'DEP-2026-102',
+    title: 'Torneo Interdepartamental de Futsal y Formación Deportiva',
+    purpose: 'Fomentar la cultura de integración comunitaria, rendimiento físico, valores cívicos y juego limpio inter-carreras.',
     image: 'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
     area: 'Deportes',
+    faculty: 'Departamento de Bienestar y Deportes',
     date: todayStr,
     time: '15:30 - 18:30',
-    location: 'Polideportivo Central',
+    location: 'Polideportivo del Campus Central',
     status: 'published',
     attendanceEnabled: true,
     attendeesCount: 68,
@@ -88,15 +97,17 @@ export const INITIAL_EVENTS = [
   },
   {
     id: 'evt-103',
-    title: 'Taller de Producción Sonora y Sintetizadores',
-    purpose: 'Instruir a los participantes en técnicas de mezcla básica, síntesis analógica y masterización de pistas en entornos DAW.',
+    code: 'MUS-2026-103',
+    title: 'Cátedra Abierta de Producción Sonora y Síntesis Modular',
+    purpose: 'Instruir a los estudiantes en fundamentos de procesamiento electroacústico, cadenas de efectos y mezcla en entornos DAW profesionales.',
     image: 'https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?w=800&auto=format&fit=crop&q=80',
     area: 'Música',
+    faculty: 'Facultad de Artes y Música',
     date: todayStr,
     time: '16:00 - 18:00',
-    location: 'Laboratorio de Audio 1',
+    location: 'Laboratorio de Acústica y Sonido 1',
     status: 'published',
-    attendanceEnabled: false, // Asistencia aún no abierta
+    attendanceEnabled: false, // Asistencia aún no abierta por el docente
     attendeesCount: 20,
     capacity: 30,
     attendedByUserIds: [],
@@ -104,14 +115,16 @@ export const INITIAL_EVENTS = [
   },
   {
     id: 'evt-104',
-    title: 'Clínica de Acondicionamiento y Calistenia',
-    purpose: 'Capacitación teórico-práctica en prevención de lesiones musculares, biomecánica del ejercicio y rutinas funcionales de alta intensidad.',
+    code: 'DEP-2026-104',
+    title: 'Seminario Teórico-Práctico de Biomecánica y Acondicionamiento',
+    purpose: 'Analizar la prevención biomecánica de lesiones, periodización del entrenamiento funcional y fisiología del esfuerzo deportivo.',
     image: 'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=80',
     area: 'Deportes',
+    faculty: 'Departamento de Bienestar y Deportes',
     date: yesterdayStr,
     time: '08:00 - 11:00',
-    location: 'Pista de Atletismo Norte',
-    status: 'closed', // Evento cerrado
+    location: 'Pista de Atletismo - Sede Norte',
+    status: 'closed', // Acta cerrada
     attendanceEnabled: false,
     attendeesCount: 52,
     capacity: 55,
@@ -120,14 +133,16 @@ export const INITIAL_EVENTS = [
   },
   {
     id: 'evt-105',
-    title: 'Festival Acústico de Cantautores y Solistas',
-    purpose: 'Espacio para visibilizar las composiciones originales de los aprendices, estimulando la autoría lírica y armonía musical.',
+    code: 'MUS-2026-105',
+    title: 'Coloquio de Creación Musical e Interpretación Solista',
+    purpose: 'Crear un espacio de investigación formativa y exposición para composiciones originales y ensambles instrumentales de grado.',
     image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
     area: 'Música',
+    faculty: 'Facultad de Artes y Música',
     date: tomorrowStr,
     time: '17:00 - 19:30',
-    location: 'Plazoleta de Eventos',
-    status: 'draft', // Borrador pendiente de publicar
+    location: 'Aula Magna de Humanidades',
+    status: 'draft', // Borrador curricular pendiente de publicación
     attendanceEnabled: false,
     attendeesCount: 0,
     capacity: 80,
@@ -139,35 +154,35 @@ export const INITIAL_EVENTS = [
 // Datos demo predefinidos listos para la simulación de extracción por IA
 export const DEMO_EXCEL_DATA = [
   {
-    titulo: 'Concierto de Cuerdas y Ensambles Acústicos',
-    proposito: 'Estimular la sensibilidad auditiva y la ejecución coordinada de violines, violonchelos y guitarras clásicas.',
+    titulo: 'Concierto Magistral de Cuerdas y Ensambles Barrocos',
+    proposito: 'Estimular la disciplina del análisis auditivo histórico y la articulación técnica en violines, violonchelos y laúd.',
     area: 'Música',
     capacidad: 60,
     horario: '10:00 - 12:30',
-    lugar: 'Sala de Cámara Musical'
+    lugar: 'Sala de Cámara de Bellas Artes'
   },
   {
-    titulo: 'Campeonato Relámpago de Tenis de Mesa',
-    proposito: 'Desarrollar reflejos rápidos, coordinación ojo-mano y camaradería a través de cuadros de eliminación directa.',
+    titulo: 'Clínica Universitaria de Tenis de Mesa y Reflejos Motores',
+    proposito: 'Desarrollar rapidez perceptiva, toma de decisiones bajo presión y coordinación neuromuscular mediante partidos cronometrados.',
     area: 'Deportes',
     capacidad: 40,
     horario: '14:00 - 17:00',
-    lugar: 'Gimnasio Cubierto A'
+    lugar: 'Pabellón Polideportivo A'
   },
   {
-    titulo: 'Seminario de Armonía Moderna y Composición Jazz',
-    proposito: 'Brindar herramientas teóricas para la progresión de acordes, escalas modales y arreglos orquestales contemporáneos.',
+    titulo: 'Taller de Armonía Modal Avanzada y Arreglos Orquestales',
+    proposito: 'Capacitar a los compositores en rearmonización funcional, cadencias contemporáneas y estructuración de partituras.',
     area: 'Música',
     capacidad: 45,
     horario: '15:00 - 18:00',
-    lugar: 'Aula Magna de Música'
+    lugar: 'Laboratorio de Notación y Composición'
   },
   {
-    titulo: 'Jornada Recreativa de Voleibol de Playa y Resistencia',
-    proposito: 'Ejercitar la fuerza muscular y movilidad en terreno de arena con dinámicas grupales y juego limpio.',
+    titulo: 'Jornada de Resistencia Aeróbica y Salud Cardiovascular',
+    proposito: 'Promover hábitos saludables de acondicionamiento físico continuado y control de métricas de frecuencia cardíaca.',
     area: 'Deportes',
     capacidad: 50,
     horario: '09:00 - 12:00',
-    lugar: 'Canchas de Arena Sur'
+    lugar: 'Circuito de Pista Verde'
   }
 ];
