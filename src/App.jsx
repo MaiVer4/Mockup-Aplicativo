@@ -17,11 +17,11 @@ function MainLayout() {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isMaintenanceMode, setIsMaintenanceMode] = useState(true);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
 
-  // Pantalla completa de mantenimiento al inicio
+  // Pantalla completa de mantenimiento (condicional)
   if (isMaintenanceMode) {
-    return <MaintenanceView />;
+    return <MaintenanceView onClose={() => setIsMaintenanceMode(false)} />;
   }
 
   const handleOpenEventModal = (event = null) => {

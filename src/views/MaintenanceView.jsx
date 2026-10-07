@@ -5,8 +5,10 @@ import { WifiOff, RefreshCw } from 'lucide-react';
  * MaintenanceView - Estilo "Sin Conexión a Internet"
  * Pantalla completa sobria y directa inspirada en las pantallas de "Sin Conexión"
  * de los navegadores modernos, con animación fluida de búsqueda de señal.
+ *
+ * @param {Function} onClose - Callback opcional para volver a la app durante pruebas.
  */
-export default function MaintenanceView() {
+export default function MaintenanceView({ onClose }) {
   const [isRetrying, setIsRetrying] = useState(false);
   const [statusMessage, setStatusMessage] = useState(null);
 
@@ -79,6 +81,16 @@ export default function MaintenanceView() {
             <RefreshCw className={`w-3.5 h-3.5 ${isRetrying ? 'animate-spin' : ''}`} />
             <span>{isRetrying ? 'Buscando señal...' : 'Reintentar conexión'}</span>
           </button>
+
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              className="w-full sm:w-auto inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-slate-400 hover:text-white text-xs font-mono transition-colors"
+            >
+              Volver a la aplicación
+            </button>
+          )}
         </div>
 
         {/* Feedback interactivo de reintento */}
