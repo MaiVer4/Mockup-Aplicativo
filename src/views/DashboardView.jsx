@@ -3,505 +3,538 @@ import { useApp } from '../context/AppContext';
 import { 
   Users, 
   Calendar, 
+  Clock, 
+  CheckCircle2, 
   TrendingUp, 
+  Plus, 
+  ArrowRight, 
+  MapPin, 
+  MoreHorizontal, 
   Search, 
-  Radio, 
-  Edit3, 
-  Lock, 
-  FileSpreadsheet,
-  Plus,
-  ArrowUpRight,
-  CheckCircle,
-  MoreHorizontal
+  Link as LinkIcon, 
+  Sparkles,
+  BarChart3,
+  Shield,
+  FileSpreadsheet
 } from 'lucide-react';
-import { AREAS } from '../data/mockData';
+import { AREAS, MOCK_PARTICIPANTS_DATABASE } from '../data/mockData';
 
-export default function DashboardView({ onOpenModal, onOpenExcelUpload }) {
+export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpenEventDetail }) {
   const { 
     currentUser, 
-    visibleEvents, 
-    togglePublishEvent, 
-    toggleAttendance, 
-    closeEvent 
+    events, 
+    users, 
+    inviteLinks, 
+    activeTab, 
+    setActiveTab 
   } = useApp();
 
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedArea, setSelectedArea] = useState('ALL');
-  const [selectedStatus, setSelectedStatus] = useState('ALL');
+  const [searchLearner, setSearchLearner] = useState('');
+  const [selectedWeekFilter, setSelectedWeekFilter] = useState('Últimas 5 semanas');
 
-  // Cálculos de métricas
-  const totalEvents = visibleEvents.length;
-  const totalAttendees = visibleEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
-  
-  const todayStr = new Date().toISOString().split('T')[0];
-  const todayEvents = visibleEvents.filter(e => e.date === todayStr);
-  
-  const activeAttendanceEvents = visibleEvents.filter(e => e.attendanceEnabled && e.status === 'published');
-  
-  const totalCapacity = visibleEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
-  const occupancyRate = totalCapacity > 0 ? Math.round((totalAttendees / totalCapacity) * 100) : 0;
+  // Filtrado de eventos según rol
+  const relevantEvents = currentUser.role === 'admin_area'
+    ? events.filter(e => e.area === currentUser.area)
+    : events;
 
-  // Filtrado
-  const filteredEvents = visibleEvents.filter(evt => {
-    const matchesSearch = 
-      evt.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      evt.purpose.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (evt.code && evt.code.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    const matchesArea = selectedArea === 'ALL' || evt.area === selectedArea;
-    const matchesStatus = selectedStatus === 'ALL' || evt.status === selectedStatus;
+  // Métricas Consolidadas
+  const totalEvents = relevantEvents.length;
+  const draftEvents = relevantEvents.filter(e => e.status === 'borrador').length;
+  const publishedEvents = relevantEvents.filter(e => e.status === 'publicado').length;
+  const inProgressEvents = relevantEvents.filter(e => e.status === 'en_curso').length;
+  const finishedEvents = relevantEvents.filter(e => e.status === 'finalizado').length;
 
-    return matchesSearch && matchesArea && matchesStatus;
-  });
+  const totalAttendees = relevantEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
+  const totalPreAttendees = relevantEvents.reduce((acc, curr) => acc + (curr.preattendanceCount || 0), 0);
+  const totalCapacity = relevantEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
+  const attendanceRate = totalPreAttendees > 0 
+    ? Math.min(100, Math.round((totalAttendees / totalPreAttendees) * 100)) 
+    : 86.4;
+
+  const encargadosList = users.filter(u => u.role === 'admin_area');
+
+  // Sub-sección activa para admin general: si activeTab es 'users' muestra directorio
+  const isUsersView = activeTab === 'users';
+
+  // Eventos para la agenda de hoy
+  const todayEvents = relevantEvents.slice(0, 3);
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6">
       
-      {/* Encabezado de Operaciones */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
+      {/* Encabezado Principal estilo Functional Mockup */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-widest">
-              OPERACIONES // ANALÍTICA
-            </span>
-            <span className="w-1 h-1 rounded-full bg-zinc-300" />
-            <span className="font-mono text-[10px] text-emerald-600 font-medium">TIEMPO REAL</span>
-          </div>
-          <h1 className="text-xl font-bold tracking-tight text-zinc-950">
-            Métricas & Control de Eventos
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#162e50] font-heading tracking-tight">
+            Buenos días, {currentUser.name.split(' ')[0]} 👋
           </h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            Supervisión continua de aforo, estados operativos y registro de asistencia.
+          <p className="text-xs md:text-sm text-[#77869a] mt-1">
+            {currentUser.role === 'admin_general'
+              ? 'Supervisión global de las 6 áreas de Bienestar al Aprendiz y gestión de accesos.'
+              : `Aquí tienes el estado operativo y rendimiento de tus eventos del Área de ${currentUser.area}.`}
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onOpenExcelUpload}
-            className="btn-tactile flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium bg-white text-zinc-800 border border-zinc-200 hover:bg-zinc-50 hover:border-zinc-300 transition-all shadow-xs"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-zinc-600" />
-            <span>Cargar Excel (IA)</span>
-          </button>
-
-          <button
-            onClick={() => onOpenModal(null)}
-            className="btn-tactile flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-950 text-white hover:bg-zinc-800 transition-all shadow-xs"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Nuevo Evento</span>
-          </button>
+        <div className="flex items-center gap-2.5">
+          {currentUser.role === 'admin_general' ? (
+            <button
+              type="button"
+              onClick={onOpenInviteModal}
+              className="btn btn-primary"
+            >
+              <LinkIcon className="w-4 h-4 text-[#10233f]" />
+              <span>Generar Enlace Encargado</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onNavigateView && onNavigateView('upload')}
+              className="btn btn-primary"
+            >
+              <Plus className="w-4 h-4 text-[#10233f]" />
+              <span>Crear desde Excel</span>
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Grid de 4 KPIs Minimalistas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        
-        {/* KPI 1: Total Eventos */}
-        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-zinc-500 text-xs">
-            <span className="font-medium text-zinc-600">Total Eventos</span>
-            <Calendar className="w-4 h-4 text-zinc-400" />
-          </div>
-          <div className="mt-2">
-            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950">{totalEvents}</div>
-            <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
-              {todayEvents.length} programados hoy
+      {/* Si NO es vista de usuarios: mostrar Dashboard completo */}
+      {!isUsersView && (
+        <>
+          {/* Grid de 4 StatCards estilo Functional Mockup */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            {/* StatCard 1: Eventos Activos */}
+            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-[#edf5ff] text-[#2d6bbb] flex items-center justify-center absolute right-4 top-4">
+                <Calendar className="w-4 h-4" />
+              </div>
+              <div className="text-xs text-[#748397] font-semibold">Eventos activos</div>
+              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+                {publishedEvents + inProgressEvents}
+              </div>
+              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
+                <span className="text-[#5c8515] font-bold">↗ +18%</span>
+                <span>vs. mes anterior</span>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* KPI 2: Total Asistentes */}
-        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-zinc-500 text-xs">
-            <span className="font-medium text-zinc-600">Asistencias Confirmadas</span>
-            <Users className="w-4 h-4 text-zinc-400" />
-          </div>
-          <div className="mt-2">
-            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950">{totalAttendees}</div>
-            <div className="text-[11px] text-emerald-600 font-mono mt-0.5 flex items-center gap-1">
-              <ArrowUpRight className="w-3 h-3" />
-              <span>Registros validados</span>
+            {/* StatCard 2: Preasistencias */}
+            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-[#f4fadf] text-[#6e9210] flex items-center justify-center absolute right-4 top-4">
+                <Clock className="w-4 h-4" />
+              </div>
+              <div className="text-xs text-[#748397] font-semibold">Preasistencias (Reservas)</div>
+              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+                {totalPreAttendees}
+              </div>
+              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
+                <span className="text-[#5c8515] font-bold">↗ +24%</span>
+                <span>aprendices registrados</span>
+              </div>
             </div>
-          </div>
-        </div>
 
-        {/* KPI 3: Asistencia Abierta */}
-        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-zinc-500 text-xs">
-            <span className="font-medium text-zinc-600">Asistencia Habilitada</span>
-            <Radio className="w-4 h-4 text-zinc-400" />
-          </div>
-          <div className="mt-2 flex items-baseline justify-between">
-            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950 flex items-center gap-2">
-              {activeAttendanceEvents.length}
-              {activeAttendanceEvents.length > 0 && (
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-              )}
+            {/* StatCard 3: Asistencias Acreditadas */}
+            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-[#f4effc] text-[#7b5bb1] flex items-center justify-center absolute right-4 top-4">
+                <Users className="w-4 h-4" />
+              </div>
+              <div className="text-xs text-[#748397] font-semibold">Asistencias confirmadas</div>
+              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+                {totalAttendees}
+              </div>
+              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
+                <span className="text-[#5c8515] font-bold">↗ +12%</span>
+                <span>con firma digital</span>
+              </div>
             </div>
-            <span className="text-[10px] font-mono text-zinc-500">EN CURSO</span>
-          </div>
-          <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
-            Recibiendo check-ins
-          </div>
-        </div>
 
-        {/* KPI 4: Tasa de Ocupación */}
-        <div className="p-4 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between text-zinc-500 text-xs">
-            <span className="font-medium text-zinc-600">Ocupación Global</span>
-            <TrendingUp className="w-4 h-4 text-zinc-400" />
-          </div>
-          <div className="mt-2">
-            <div className="text-2xl font-bold tracking-tight font-mono text-zinc-950">{occupancyRate}%</div>
-            <div className="text-[11px] text-zinc-500 font-mono mt-0.5">
-              {totalAttendees} / {totalCapacity} aforo total
+            {/* StatCard 4: Tasa de Asistencia */}
+            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
+              <div className="w-9 h-9 rounded-xl bg-[#fff4e8] text-[#b47331] flex items-center justify-center absolute right-4 top-4">
+                <TrendingUp className="w-4 h-4" />
+              </div>
+              <div className="text-xs text-[#748397] font-semibold">Tasa de cumplimiento</div>
+              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+                {attendanceRate}%
+              </div>
+              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
+                <span className="text-[#5c8515] font-bold">↗ +6,2%</span>
+                <span>promedio general</span>
+              </div>
             </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Sección Analítica: Capacidad por Evento & Distribución */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        
-        {/* Desglose de Capacidad */}
-        <div className="lg:col-span-2 p-5 rounded-xl bg-white border border-zinc-200 shadow-xs space-y-3">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-2.5">
-            <div>
-              <h2 className="text-xs font-bold text-zinc-900 tracking-tight uppercase">
-                Capacidad & Quórum por Evento
-              </h2>
-              <p className="text-[11px] text-zinc-500">Comparativa de asistentes vs límite de aforo</p>
-            </div>
-            <span className="font-mono text-[10px] text-zinc-500 bg-zinc-50 px-2 py-0.5 rounded border border-zinc-200">
-              TELEMETRÍA
-            </span>
           </div>
 
-          <div className="space-y-3 pt-1">
-            {visibleEvents.slice(0, 5).map(evt => {
-              const pct = Math.min(100, Math.round((evt.attendeesCount / (evt.capacity || 50)) * 100));
-              return (
-                <div key={evt.id} className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 truncate max-w-[70%]">
-                      <span className="font-mono text-[10px] text-zinc-600 bg-zinc-100 px-1 py-0.5 rounded border border-zinc-200">
-                        {evt.code || 'EVT'}
-                      </span>
-                      <span className="font-medium text-zinc-800 truncate">{evt.title}</span>
+          {/* Grid de 2 Columnas: Gráfico Comparativo + Agenda de Hoy */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4">
+            
+            {/* Panel de Gráfico: Asistencia por semana */}
+            <div className="bg-white border border-[#e4e8ee] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between pb-3">
+                <div>
+                  <strong className="text-sm font-heading font-bold text-[#203754]">
+                    Asistencia por semana
+                  </strong>
+                  <p className="text-[11px] text-[#8b98a9]">
+                    Comparativo de aprendices preasistentes y asistentes confirmados
+                  </p>
+                </div>
+                <select 
+                  value={selectedWeekFilter}
+                  onChange={(e) => setSelectedWeekFilter(e.target.value)}
+                  className="text-xs text-[#5f7187] border border-[#e0e5ec] rounded-lg px-2.5 py-1 bg-white focus:outline-none"
+                >
+                  <option>Últimas 5 semanas</option>
+                  <option>Trimestre I</option>
+                  <option>Trimestre II</option>
+                </select>
+              </div>
+
+              {/* Leyenda del Gráfico */}
+              <div className="flex items-center justify-end gap-4 text-[11px] text-[#7b899b] my-2">
+                <span className="flex items-center gap-1.5">
+                  <i className="w-2.5 h-2.5 rounded-xs bg-[#c9f45a] inline-block" />
+                  <span>Preasistencias (Reservas)</span>
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <i className="w-2.5 h-2.5 rounded-xs bg-[#183a65] inline-block" />
+                  <span>Asistencias (Firma 1 Clic)</span>
+                </span>
+              </div>
+
+              {/* Área de Barras Simuladas con CSS */}
+              <div className="h-44 border-b border-[#e7ebf0] pt-2 flex items-end justify-around gap-2 px-4 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_40px,#f4f6f8_41px)]">
+                {[
+                  { label: 'Sem 1', pre: 75, att: 62 },
+                  { label: 'Sem 2', pre: 85, att: 70 },
+                  { label: 'Sem 3', pre: 65, att: 58 },
+                  { label: 'Sem 4', pre: 95, att: 88 },
+                  { label: 'Sem 5', pre: 90, att: 82 }
+                ].map((item, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-1.5 h-full justify-end flex-1">
+                    <div className="flex items-end gap-1.5 h-[80%]">
+                      <div 
+                        style={{ height: `${item.pre}%` }} 
+                        className="w-3.5 bg-[#c9f45a] rounded-t-md transition-all duration-300" 
+                        title={`Preasistencias: ${item.pre}`}
+                      />
+                      <div 
+                        style={{ height: `${item.att}%` }} 
+                        className="w-3.5 bg-[#183a65] rounded-t-md transition-all duration-300" 
+                        title={`Asistencias: ${item.att}`}
+                      />
                     </div>
-                    <div className="font-mono text-zinc-600 text-xs">
-                      <strong className="text-zinc-950">{evt.attendeesCount}</strong>/{evt.capacity} <span className="text-zinc-400">({pct}%)</span>
+                    <span className="text-[10px] text-[#929dac] font-mono">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Panel de Agenda de Hoy estilo Functional Mockup */}
+            <div className="bg-white border border-[#e4e8ee] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+              <div className="flex items-center justify-between pb-3">
+                <div>
+                  <strong className="text-sm font-heading font-bold text-[#203754]">
+                    Agenda de hoy
+                  </strong>
+                  <p className="text-[11px] text-[#8b98a9]">
+                    Viernes, 14 de marzo • {todayEvents.length} actividades programadas
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onNavigateView && onNavigateView('events')}
+                  className="btn-ghost text-xs text-[#58708f] hover:text-[#142b4d]"
+                >
+                  Ver todos
+                </button>
+              </div>
+
+              <div className="space-y-2.5 my-auto">
+                {todayEvents.map((evt, idx) => (
+                  <button
+                    key={evt.id}
+                    type="button"
+                    onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
+                    className="w-full text-left p-2.5 rounded-xl border border-[#ebedf1] hover:border-[#c9d5e2] hover:shadow-xs transition-all grid grid-cols-[48px_52px_1fr_20px] items-center gap-2.5 group bg-white"
+                  >
+                    {/* Chip de Hora */}
+                    <div className={`h-11 rounded-lg flex flex-col items-center justify-center text-center ${
+                      idx === 1 ? 'bg-[#f4fadf] text-[#648213]' : 'bg-[#edf4fc] text-[#245486]'
+                    }`}>
+                      <strong className="text-xs font-bold font-mono leading-none">
+                        {evt.schedule?.split(' - ')[0] || '14:00'}
+                      </strong>
+                      <small className="text-[8px] font-medium">horas</small>
+                    </div>
+
+                    {/* Portada */}
+                    <img 
+                      src={evt.image || 'https://images.unsplash.com/photo-1598588436316-1e65ffcffc0a?w=120&auto=format&fit=crop&q=80'} 
+                      alt={evt.title} 
+                      className="w-[52px] h-11 object-cover rounded-lg"
+                    />
+
+                    {/* Texto del Evento */}
+                    <div className="min-w-0">
+                      <strong className="block text-xs text-[#253c58] font-heading font-bold truncate group-hover:text-[#16a34a] transition-colors">
+                        {evt.title}
+                      </strong>
+                      <span className="flex items-center gap-1 text-[10px] text-[#7f8da0] mt-0.5 truncate">
+                        <MapPin className="w-3 h-3 text-[#7f8da0] shrink-0" />
+                        <span className="truncate">{evt.location}</span>
+                      </span>
+                      <small className="text-[10px] text-[#6f8f20] font-bold block mt-0.5 font-mono">
+                        {evt.preattendanceCount || 0} preasistentes
+                      </small>
+                    </div>
+
+                    <ArrowRight className="w-4 h-4 text-[#8ba2be] group-hover:translate-x-0.5 transition-transform shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+          </div>
+
+          {/* Tabla de Eventos Recientes estilo Functional Mockup */}
+          <div className="bg-white border border-[#e4e8ee] rounded-2xl p-5 shadow-xs">
+            <div className="flex items-center justify-between pb-3 border-b border-[#edf0f3]">
+              <div>
+                <strong className="text-sm font-heading font-bold text-[#203754]">
+                  Eventos recientes
+                </strong>
+                <p className="text-[11px] text-[#8b98a9]">
+                  Supervisión de aforo y estado del ciclo de vida
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => onNavigateView && onNavigateView('events')}
+                className="btn btn-secondary text-xs"
+              >
+                <span>Ver todos los eventos</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto mt-2">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="text-[10px] text-[#99a4b2] font-bold uppercase tracking-wider border-b border-[#edf0f3]">
+                    <th className="py-3 px-3">EVENTO</th>
+                    <th className="py-3 px-3">FECHA</th>
+                    <th className="py-3 px-3">ESTADO</th>
+                    <th className="py-3 px-3">ASISTENCIA / CAPACIDAD</th>
+                    <th className="py-3 px-3 text-right">ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#edf0f3] text-[#617188]">
+                  {relevantEvents.slice(0, 5).map(evt => {
+                    const capacity = evt.capacity || 50;
+                    const count = evt.attendeesCount || 0;
+                    const percent = Math.min(100, Math.round((count / capacity) * 100));
+
+                    const getStatusBadge = (st) => {
+                      switch (st) {
+                        case 'publicado':
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eef9e6] text-[#568020]">Publicado</span>;
+                        case 'en_curso':
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 animate-pulse">En Curso</span>;
+                        case 'finalizado':
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600">Finalizado</span>;
+                        default:
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-500">Borrador</span>;
+                      }
+                    };
+
+                    return (
+                      <tr key={evt.id} className="hover:bg-[#fafbfc] transition-colors">
+                        <td className="py-3 px-3">
+                          <div className="flex items-center gap-3">
+                            <img 
+                              src={evt.image || 'https://images.unsplash.com/photo-1598588436316-1e65ffcffc0a?w=120&auto=format&fit=crop&q=80'} 
+                              alt={evt.title} 
+                              className="w-10 h-9 rounded-lg object-cover shrink-0"
+                            />
+                            <div>
+                              <strong className="block text-xs text-[#243b57] font-heading font-bold truncate max-w-[200px]">
+                                {evt.title}
+                              </strong>
+                              <small className="text-[10px] text-[#8c99a9] font-mono">
+                                Área: {evt.area}
+                              </small>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 font-mono text-[11px] text-[#64758b]">
+                          {evt.date}
+                        </td>
+                        <td className="py-3 px-3">
+                          {getStatusBadge(evt.status)}
+                        </td>
+                        <td className="py-3 px-3">
+                          <div className="w-32">
+                            <div className="flex items-baseline justify-between text-[11px] font-mono mb-1">
+                              <strong className="text-[#273e5a]">{count}</strong>
+                              <span className="text-[#9aa5b2]">/ {capacity}</span>
+                            </div>
+                            <div className="w-full h-1.5 rounded-full bg-[#edf0f3] overflow-hidden">
+                              <div 
+                                style={{ width: `${percent}%` }}
+                                className="h-full bg-[#b7dc4c] rounded-full"
+                              />
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-3 px-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
+                            className="p-1 rounded-lg text-[#8ba2be] hover:text-[#152e4f] hover:bg-[#edf2f7]"
+                            title="Ver detalle del evento"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Si ES vista de usuarios: mostrar Directorio de Encargados y Consulta de Aprendices */}
+      {isUsersView && currentUser.role === 'admin_general' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          
+          {/* Encabezado de Gestión de Encargados */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 rounded-2xl bg-white border border-[#e4e8ee] shadow-xs">
+            <div>
+              <h2 className="text-base font-bold text-[#162e50] font-heading">
+                Administradores de Área Registrados ({encargadosList.length})
+              </h2>
+              <p className="text-xs text-[#718098] mt-0.5">
+                Los encargados acceden exclusivamente por invitaciones multiuso generadas con token institucional.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onOpenInviteModal}
+              className="btn btn-primary"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Crear Enlace Exclusivo</span>
+            </button>
+          </div>
+
+          {/* Grid de Encargados estilo Functional Mockup */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {encargadosList.map(enc => {
+              const encEvents = events.filter(e => e.area === enc.area);
+
+              return (
+                <div key={enc.id} className="p-4 rounded-2xl bg-white border border-[#e4e8ee] shadow-xs space-y-3">
+                  <div className="flex items-center gap-3">
+                    <img src={enc.avatar} alt={enc.name} className="w-10 h-10 rounded-xl object-cover border border-[#e2e8f0]" />
+                    <div className="truncate">
+                      <h3 className="font-bold text-[#142b4d] text-xs font-heading truncate">{enc.name}</h3>
+                      <span className="font-mono text-[10px] text-[#16a34a] bg-[#eaf7ec] px-1.5 py-0.5 rounded font-bold">
+                        Área: {enc.area}
+                      </span>
                     </div>
                   </div>
-                  
-                  {/* Barra monocromática limpia */}
-                  <div className="w-full h-1.5 bg-zinc-100 rounded-full overflow-hidden flex">
-                    <div 
-                      className="h-full bg-zinc-900 rounded-full transition-all duration-500"
-                      style={{ width: `${pct}%` }}
-                    />
+
+                  <p className="text-[#718098] text-[11px] leading-relaxed line-clamp-2">
+                    {enc.description}
+                  </p>
+
+                  <div className="pt-2 border-t border-[#edf0f3] flex items-center justify-between text-[11px] font-mono">
+                    <span className="text-[#8492a5]">Actividades del área:</span>
+                    <strong className="text-[#142b4d] font-bold">{encEvents.length}</strong>
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] text-[#9aa5b2] pt-1">
+                    <span>Estado: Activo</span>
+                    <span className="text-[#568020] font-bold">Acceso por Token</span>
                   </div>
                 </div>
               );
             })}
           </div>
-        </div>
 
-        {/* Distribución de Estados */}
-        <div className="p-5 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col justify-between space-y-3">
-          <div className="border-b border-zinc-100 pb-2.5">
-            <h2 className="text-xs font-bold text-zinc-900 tracking-tight uppercase">
-              Ciclo de Vida Operativo
-            </h2>
-            <p className="text-[11px] text-zinc-500">Estado de convocatorias activas</p>
-          </div>
-
-          <div className="space-y-2 py-1">
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
-              <div className="flex items-center gap-2 font-medium text-zinc-800">
-                <span className="w-2 h-2 rounded-full bg-emerald-500" />
-                <span>Publicados</span>
+          {/* Consulta Individual de Aprendices */}
+          <div className="p-5 rounded-2xl bg-white border border-[#e4e8ee] shadow-xs space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-[#162e50] font-heading">
+                  Consulta Individual de Aprendices y Participaciones
+                </h3>
+                <p className="text-xs text-[#718098] mt-0.5">
+                  Auditoría institucional de registros con marcas de tiempo inmutables.
+                </p>
               </div>
-              <span className="font-mono font-bold text-zinc-900">
-                {visibleEvents.filter(e => e.status === 'published').length}
-              </span>
+
+              <div className="relative w-full sm:w-72">
+                <Search className="w-4 h-4 text-[#8492a5] absolute left-3 top-2.5" />
+                <input
+                  type="text"
+                  placeholder="Buscar cédula, nombre o ficha..."
+                  value={searchLearner}
+                  onChange={(e) => setSearchLearner(e.target.value)}
+                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#dbe1e9] text-xs bg-white text-[#203754] focus:outline-none focus:border-[#91b52c]"
+                />
+              </div>
             </div>
 
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
-              <div className="flex items-center gap-2 font-medium text-zinc-800">
-                <span className="w-2 h-2 rounded-full bg-amber-500" />
-                <span>Asistencia Habilitada</span>
-              </div>
-              <span className="font-mono font-bold text-zinc-900">
-                {visibleEvents.filter(e => e.attendanceEnabled).length}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
-              <div className="flex items-center gap-2 font-medium text-zinc-800">
-                <span className="w-2 h-2 rounded-full bg-zinc-400" />
-                <span>Borradores</span>
-              </div>
-              <span className="font-mono font-bold text-zinc-900">
-                {visibleEvents.filter(e => e.status === 'draft').length}
-              </span>
-            </div>
-
-            <div className="flex items-center justify-between p-2.5 rounded-lg bg-zinc-50/70 border border-zinc-200/80 text-xs">
-              <div className="flex items-center gap-2 font-medium text-zinc-800">
-                <span className="w-2 h-2 rounded-full bg-rose-500" />
-                <span>Cerrados</span>
-              </div>
-              <span className="font-mono font-bold text-zinc-900">
-                {visibleEvents.filter(e => e.status === 'closed').length}
-              </span>
+            <div className="border border-[#e4e8ee] rounded-xl overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-[#f8fafc] text-[#718098] font-bold border-b border-[#e4e8ee]">
+                  <tr>
+                    <th className="p-3">Documento</th>
+                    <th className="p-3">Nombre del Aprendiz</th>
+                    <th className="p-3">Ficha SENA</th>
+                    <th className="p-3">Programa</th>
+                    <th className="p-3">Actividades Acreditadas</th>
+                    <th className="p-3">Último Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#edf0f3] text-[#64758b]">
+                  {MOCK_PARTICIPANTS_DATABASE
+                    .filter(p => 
+                      !searchLearner ||
+                      p.name.toLowerCase().includes(searchLearner.toLowerCase()) ||
+                      p.documentNumber.includes(searchLearner) ||
+                      p.ficha.includes(searchLearner)
+                    )
+                    .map(p => (
+                      <tr key={p.id} className="hover:bg-[#fafbfc]">
+                        <td className="p-3 font-mono text-[11px] font-bold text-[#142b4d]">{p.documentNumber}</td>
+                        <td className="p-3 font-medium text-[#142b4d]">{p.name}</td>
+                        <td className="p-3 font-mono text-[11px]">{p.ficha}</td>
+                        <td className="p-3 truncate max-w-[200px]">{p.program}</td>
+                        <td className="p-3">
+                          <span className="font-mono text-[10px] bg-[#eaf7ec] text-[#16a34a] font-bold px-2 py-0.5 rounded">
+                            {p.historyCount || 3} asistencias
+                          </span>
+                        </td>
+                        <td className="p-3 font-mono text-[10px] text-[#8492a5]">
+                          {p.lastAttendanceTimestamp}
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div className="text-[10px] font-mono text-zinc-400 text-center pt-2 border-t border-zinc-100">
-            AUTO-SYNC CON LOCALSTORAGE
-          </div>
         </div>
-      </div>
+      )}
 
-      {/* Barra de Filtros Minimalista */}
-      <div className="p-3 rounded-xl bg-white border border-zinc-200 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-        <div className="relative flex-1">
-          <Search className="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" />
-          <input
-            type="text"
-            placeholder="Filtrar por código, título, propósito o ubicación..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-3 py-1.5 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900 transition-colors"
-          />
-        </div>
-
-        <div className="flex items-center gap-2">
-          {currentUser.role === 'admin_general' && (
-            <select
-              value={selectedArea}
-              onChange={(e) => setSelectedArea(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-700 bg-white focus:outline-none focus:border-zinc-900"
-            >
-              <option value="ALL">Todas las Áreas</option>
-              {AREAS.map(a => (
-                <option key={a} value={a}>Área: {a}</option>
-              ))}
-            </select>
-          )}
-
-          <select
-            value={selectedStatus}
-            onChange={(e) => setSelectedStatus(e.target.value)}
-            className="px-2.5 py-1.5 rounded-lg border border-zinc-200 text-xs font-medium text-zinc-700 bg-white focus:outline-none focus:border-zinc-900"
-          >
-            <option value="ALL">Todos los Estados</option>
-            <option value="published">Publicados</option>
-            <option value="draft">Borradores</option>
-            <option value="closed">Cerrados</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Tabla Maestra de Alta Densidad */}
-      <div className="bg-white rounded-xl border border-zinc-200 shadow-xs overflow-hidden">
-        <div className="px-5 py-3 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/50">
-          <div>
-            <h3 className="text-xs font-bold text-zinc-900 uppercase tracking-wider">
-              Registro de Operaciones
-            </h3>
-          </div>
-          <span className="font-mono text-[10px] text-zinc-500 bg-white px-2 py-0.5 rounded border border-zinc-200">
-            {filteredEvents.length} REGISTROS
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs text-zinc-700">
-            <thead className="bg-zinc-50/80 font-mono text-[10px] uppercase text-zinc-500 border-b border-zinc-200">
-              <tr>
-                <th className="px-4 py-2.5 font-medium">Evento // Propósito</th>
-                <th className="px-3 py-2.5 font-medium">Área</th>
-                <th className="px-3 py-2.5 font-medium">Fecha & Lugar</th>
-                <th className="px-3 py-2.5 font-medium">Asistencia</th>
-                <th className="px-3 py-2.5 font-medium">Estado</th>
-                <th className="px-4 py-2.5 text-center font-medium">Acciones Operativas</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {filteredEvents.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-10 text-zinc-400 font-mono">
-                    No se encontraron registros.
-                  </td>
-                </tr>
-              ) : (
-                filteredEvents.map((evt) => {
-                  const isClosed = evt.status === 'closed';
-
-                  return (
-                    <tr key={evt.id} className="hover:bg-zinc-50/70 transition-colors">
-                      {/* Evento & Propósito */}
-                      <td className="px-4 py-3 max-w-sm">
-                        <div className="flex items-start gap-3">
-                          <img
-                            src={evt.image}
-                            alt={evt.title}
-                            className="w-10 h-10 rounded-lg object-cover shrink-0 border border-zinc-200 mt-0.5"
-                          />
-                          <div className="min-w-0">
-                            <div className="flex items-center gap-1.5 mb-0.5">
-                              <span className="font-mono text-[10px] text-zinc-500 bg-zinc-100 px-1 rounded">
-                                {evt.code || 'EVT'}
-                              </span>
-                              <h4 className="font-semibold text-zinc-900 text-xs truncate">
-                                {evt.title}
-                              </h4>
-                            </div>
-                            <p className="text-[11px] text-zinc-500 line-clamp-1 leading-snug">
-                              {evt.purpose}
-                            </p>
-                          </div>
-                        </div>
-                      </td>
-
-                      {/* Área */}
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <span className="font-mono text-[10px] text-zinc-700 bg-zinc-100 px-2 py-0.5 rounded border border-zinc-200">
-                          {evt.area}
-                        </span>
-                      </td>
-
-                      {/* Fecha */}
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <div className="font-mono text-zinc-900 text-xs">{evt.date}</div>
-                        <div className="text-[10px] text-zinc-500 font-mono mt-0.5 truncate max-w-[140px]">
-                          {evt.location}
-                        </div>
-                      </td>
-
-                      {/* Asistencia */}
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <div className="font-mono text-xs">
-                          <strong className="text-zinc-950 font-bold">{evt.attendeesCount}</strong>
-                          <span className="text-zinc-400">/{evt.capacity}</span>
-                        </div>
-                        <div className="w-20 h-1 bg-zinc-100 rounded-full mt-1 overflow-hidden">
-                          <div
-                            className="h-full bg-zinc-900 rounded-full"
-                            style={{ width: `${Math.min(100, (evt.attendeesCount / evt.capacity) * 100)}%` }}
-                          />
-                        </div>
-                      </td>
-
-                      {/* Estado */}
-                      <td className="px-3 py-3 whitespace-nowrap">
-                        <div className="space-y-1">
-                          {evt.status === 'published' && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-800 border border-emerald-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
-                              Publicado
-                            </span>
-                          )}
-                          {evt.status === 'draft' && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-zinc-100 text-zinc-700 border border-zinc-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-zinc-400" />
-                              Borrador
-                            </span>
-                          )}
-                          {evt.status === 'closed' && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-800 border border-rose-200">
-                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-                              Cerrado
-                            </span>
-                          )}
-
-                          {evt.attendanceEnabled && (
-                            <div className="flex items-center gap-1 text-[10px] text-amber-700 font-mono font-medium">
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
-                              Asist. Abierta
-                            </div>
-                          )}
-                        </div>
-                      </td>
-
-                      {/* Los 4 Botones Operativos Minimalistas */}
-                      <td className="px-4 py-3 whitespace-nowrap text-center">
-                        <div className="inline-flex items-center gap-1 bg-zinc-100/70 p-1 rounded-lg border border-zinc-200">
-                          
-                          {/* 1. Publicar / Despublicar */}
-                          <button
-                            disabled={isClosed}
-                            onClick={() => togglePublishEvent(evt.id)}
-                            className={`btn-tactile px-2 py-1 rounded text-xs font-medium transition-all ${
-                              isClosed
-                                ? 'opacity-40 cursor-not-allowed text-zinc-400'
-                                : evt.status === 'published'
-                                ? 'bg-white text-zinc-800 shadow-xs border border-zinc-200 hover:bg-zinc-50'
-                                : 'bg-zinc-950 text-white hover:bg-zinc-800 shadow-xs'
-                            }`}
-                            title={evt.status === 'published' ? 'Despublicar evento' : 'Publicar evento'}
-                          >
-                            {evt.status === 'published' ? 'Despublicar' : 'Publicar'}
-                          </button>
-
-                          {/* 2. Habilitar Asistencia */}
-                          <button
-                            disabled={isClosed || evt.status !== 'published'}
-                            onClick={() => toggleAttendance(evt.id)}
-                            className={`btn-tactile px-2 py-1 rounded text-xs font-medium transition-all ${
-                              isClosed || evt.status !== 'published'
-                                ? 'opacity-40 cursor-not-allowed text-zinc-400'
-                                : evt.attendanceEnabled
-                                ? 'bg-amber-100 text-amber-900 border border-amber-300'
-                                : 'bg-white text-zinc-700 border border-zinc-200 hover:bg-zinc-50'
-                            }`}
-                            title="Habilitar o pausar asistencia de aprendices"
-                          >
-                            {evt.attendanceEnabled ? 'Pausar Asist.' : 'Habilitar Asist.'}
-                          </button>
-
-                          {/* 3. Editar Evento */}
-                          <button
-                            disabled={isClosed}
-                            onClick={() => onOpenModal(evt)}
-                            className={`btn-tactile p-1 rounded text-zinc-600 hover:text-zinc-950 hover:bg-white transition-colors ${
-                              isClosed ? 'opacity-40 cursor-not-allowed' : ''
-                            }`}
-                            title="Editar evento"
-                          >
-                            <Edit3 className="w-3.5 h-3.5" />
-                          </button>
-
-                          {/* 4. Cerrar Evento */}
-                          <button
-                            disabled={isClosed}
-                            onClick={() => {
-                              if (window.confirm(`¿Confirmas cerrar definitivamente el evento "${evt.title}"?`)) {
-                                closeEvent(evt.id);
-                              }
-                            }}
-                            className={`btn-tactile p-1 rounded transition-colors ${
-                              isClosed
-                                ? 'text-zinc-300 cursor-not-allowed'
-                                : 'text-zinc-400 hover:text-rose-600 hover:bg-white'
-                            }`}
-                            title={isClosed ? 'Evento cerrado' : 'Cerrar evento y congelar métricas'}
-                          >
-                            <Lock className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }
