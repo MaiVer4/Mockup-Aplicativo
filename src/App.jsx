@@ -1,20 +1,38 @@
 import React, { useState } from 'react';
 import { AppProvider, useApp } from './context/AppContext';
-import Navbar from './components/Navbar';
-import RoleBanner from './components/RoleBanner';
+import Sidebar from './components/Sidebar';
+import AdminHeader from './components/AdminHeader';
 import ToastContainer from './components/ToastContainer';
 import EventModal from './components/EventModal';
-import LoginModal from './components/LoginModal';
+import ExportValidationModal from './components/ExportValidationModal';
+import InviteLinkModal from './components/InviteLinkModal';
+import EventDetailModal from './components/EventDetailModal';
+import ApprenticeOnboardingModal from './components/ApprenticeOnboardingModal';
+import EmailNotificationDrawer from './components/EmailNotificationDrawer';
 import DashboardView from './views/DashboardView';
 import EventsView from './views/EventsView';
 import ExcelUploadView from './views/ExcelUploadView';
 import ApprenticePortal from './views/ApprenticePortal';
+import LoginView from './views/LoginView';
 
-function MainLayout() {
-  const { activeTab, setActiveTab } = useApp();
+function AdminShell() {
+  const { 
+    activeTab, 
+    setActiveTab, 
+    currentUser, 
+    isEmailDrawerOpen, 
+    setIsEmailDrawerOpen 
+  } = useApp();
+
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Modales
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [selectedEventForExport, setSelectedEventForExport] = useState(null);
+  const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
 
   const handleOpenEventModal = (event = null) => {
     setEventToEdit(event);
@@ -27,82 +45,236 @@ function MainLayout() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#fafafa] text-zinc-900 selection:bg-zinc-900 selection:text-white font-sans">
-      {/* Barra de navegación superior */}
-      <Navbar />
+    <div className="min-h-screen flex bg-[#f5f7fa] text-[#14213d] font-sans antialiased">
+      
+      {/* Sidebar de Navegación Fija estilo Functional Mockup */}
+      <Sidebar 
+        view={activeTab}
+        setView={setActiveTab}
+        open={mobileMenuOpen}
+        close={() => setMobileMenuOpen(false)}
+      />
 
-      {/* Banner de rol activo */}
-      <RoleBanner />
+      {/* Contenedor Principal (con margen izquierdo para dar espacio a la sidebar en desktop) */}
+      <div className="flex-1 min-w-0 lg:ml-60 flex flex-col min-h-screen">
+        
+        {/* Header Superior Administrativo */}
+        <AdminHeader 
+          onOpenMenu={() => setMobileMenuOpen(true)}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
 
-      {/* Contenedor Principal */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {activeTab === 'dashboard' && (
-          <DashboardView 
-            onOpenModal={handleOpenEventModal}
-            onOpenExcelUpload={() => setActiveTab('upload')}
-          />
-        )}
+        {/* Contenido de la Vista Activa */}
+        <main className="flex-1 p-5 md:p-8 max-w-7xl w-full mx-auto">
+          {activeTab === 'dashboard' && (
+            <DashboardView 
+              onOpenInviteModal={() => setIsInviteModalOpen(true)}
+              onNavigateView={setActiveTab}
+              onOpenEventDetail={setSelectedEventForDetail}
+            />
+          )}
 
-        {activeTab === 'events' && (
-          <EventsView 
-            onOpenModal={handleOpenEventModal} 
-          />
-        )}
+          {activeTab === 'events' && (
+            <EventsView 
+              onOpenModal={handleOpenEventModal}
+              onOpenExportModal={setSelectedEventForExport}
+              onOpenDetailModal={setSelectedEventForDetail}
+            />
+          )}
 
-        {activeTab === 'upload' && (
-          <ExcelUploadView 
-            onSuccessNavigate={() => setActiveTab('events')} 
-          />
-        )}
+          {activeTab === 'upload' && (
+            <ExcelUploadView 
+              onSuccessNavigate={() => setActiveTab('events')}
+            />
+          )}
 
-        {activeTab === 'apprentice' && (
-          <ApprenticePortal />
-        )}
+          {(activeTab === 'users' || activeTab === 'encargados' || activeTab === 'aprendices') && (
+            <DashboardView 
+              onOpenInviteModal={() => setIsInviteModalOpen(true)}
+              onNavigateView={setActiveTab}
+              onOpenEventDetail={setSelectedEventForDetail}
+            />
+          )}
+        </main>
+
+        {/* Footer Institucional */}
+        <footer className="border-t border-[#e6eaf0] bg-white py-4 px-6 text-xs text-[#8290a1] flex flex-col sm:flex-row items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <strong className="text-[#203754]">SENA — Bienestar al Aprendiz</strong>
+            <span>•</span>
+            <span>Sistema Institucional de Control de Asistencia y Aforo</span>
+          </div>
+          <div className="font-mono text-[11px] text-[#9aa5b2]">
+            Versión 2026.10 • GOR-F-013
+          </div>
+        </footer>
+
+      </div>
+
+      {/* MODALES GLOBALES */}
+
+      {/* 1. Modal para crear/editar evento (Solo Encargado) */}
+      {currentUser.role === 'admin_area' && (
+        <EventModal
+          isOpen={isEventModalOpen}
+          onClose={handleCloseEventModal}
+          eventToEdit={eventToEdit}
+        />
+      )}
+
+      {/* 2. Modal de exportación oficial GOR-F-013 */}
+      <ExportValidationModal
+        isOpen={Boolean(selectedEventForExport)}
+        onClose={() => setSelectedEventForExport(null)}
+        event={selectedEventForExport}
+      />
+
+      {/* 3. Modal para generar enlaces exclusivos de invitación a encargados */}
+      <InviteLinkModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+      />
+
+      {/* 4. Modal de detalle extendido para la ficha del evento */}
+      <EventDetailModal
+        isOpen={Boolean(selectedEventForDetail)}
+        onClose={() => setSelectedEventForDetail(null)}
+        event={selectedEventForDetail}
+      />
+
+      {/* 5. Buzón de notificaciones automáticas por correo */}
+      <EmailNotificationDrawer
+        isOpen={isEmailDrawerOpen}
+        onClose={() => setIsEmailDrawerOpen(false)}
+      />
+
+    </div>
+  );
+}
+
+function LearnerShell() {
+  const { 
+    currentUser, 
+    logout, 
+    isEmailDrawerOpen, 
+    setIsEmailDrawerOpen, 
+    sentEmails 
+  } = useApp();
+
+  return (
+    <div className="min-h-screen flex flex-col bg-[#f5f7fa] text-[#14213d] font-sans antialiased">
+      
+      {/* Header Superior del Aprendiz estilo Stitch + Functional Mockup */}
+      <header className="h-[74px] bg-white border-b border-[#e6eaf0] px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+        <div className="flex items-center gap-3">
+          <div className="logo-wrap">
+            <div className="logo-mark logo-dark">
+              <span>S</span>
+            </div>
+            <div className="logo-type text-[#122b4c]">
+              <strong>Bienestar SENA</strong>
+              <small className="text-[#16a34a]">Portal del Aprendiz</small>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* Campana de Notificaciones */}
+          <button
+            type="button"
+            onClick={() => setIsEmailDrawerOpen(true)}
+            className="relative w-10 h-10 rounded-xl border border-[#e1e6ed] bg-white text-[#5e7188] hover:text-[#142b4d] hover:bg-[#f8fafc] flex items-center justify-center transition-colors shadow-2xs"
+            title="Buzón de notificaciones automáticas"
+          >
+            <span className="w-2 h-2 rounded-full bg-[#16a34a] absolute top-2 right-2" />
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+          </button>
+
+          {/* Perfil del Aprendiz */}
+          <div className="flex items-center gap-3 pl-3 border-l border-[#e4e8ee]">
+            <img 
+              src={currentUser.avatar} 
+              alt={currentUser.name} 
+              className="w-9 h-9 rounded-xl object-cover border border-[#e2e8f0]"
+            />
+            <div className="hidden sm:flex flex-col text-left">
+              <strong className="text-xs font-bold text-[#273c57] font-heading truncate max-w-[140px]">
+                {currentUser.name}
+              </strong>
+              <small className="text-[#16a34a] font-bold text-[10px]">
+                Ficha {currentUser.ficha || '2687140'}
+              </small>
+            </div>
+            
+            <button
+              type="button"
+              onClick={logout}
+              className="p-2 rounded-xl text-[#8290a0] hover:text-rose-600 hover:bg-rose-50 transition-colors ml-1"
+              title="Cerrar sesión"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      {/* Contenido Principal del Aprendiz */}
+      <main className="flex-1 p-5 md:p-8 max-w-6xl w-full mx-auto">
+        <ApprenticePortal />
       </main>
 
-      {/* Pie de página minimalista */}
-      <footer className="border-t border-zinc-200 bg-white py-5 text-xs text-zinc-500">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-zinc-900">EventFlow Operations</span>
-            <span>—</span>
-            <span>Mockup Funcional para Demostración Corporativa</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsLoginModalOpen(true)}
-              className="text-xs text-zinc-700 hover:text-zinc-950 font-medium underline underline-offset-4"
-            >
-              Cambiar Perfil (Modal)
-            </button>
-            <span className="font-mono text-[11px] text-zinc-400">BUILD 2026.10</span>
-          </div>
+      {/* Footer del Aprendiz */}
+      <footer className="border-t border-[#e6eaf0] bg-white py-4 px-6 text-xs text-[#8290a1] flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="flex items-center gap-2">
+          <strong className="text-[#203754]">Servicio Nacional de Aprendizaje SENA</strong>
+          <span>•</span>
+          <span>Bienestar al Aprendiz</span>
+        </div>
+        <div className="font-mono text-[11px] text-[#9aa5b2]">
+          Complejo Paloquemao • 2026
         </div>
       </footer>
 
-      {/* Modales globales */}
-      <EventModal
-        isOpen={isEventModalOpen}
-        onClose={handleCloseEventModal}
-        eventToEdit={eventToEdit}
+      {/* Modal Bloqueante de Onboarding Institucional (12 campos oficiales) */}
+      <ApprenticeOnboardingModal />
+
+      {/* Buzón de Notificaciones por Correo */}
+      <EmailNotificationDrawer
+        isOpen={isEmailDrawerOpen}
+        onClose={() => setIsEmailDrawerOpen(false)}
       />
 
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
-
-      {/* Notificaciones flotantes */}
-      <ToastContainer />
     </div>
   );
+}
+
+function MainRouter() {
+  const { currentUser } = useApp();
+
+  // Si no hay usuario autenticado: Pantalla de Login con split-screen de Functional Mockup
+  if (!currentUser) {
+    return <LoginView />;
+  }
+
+  // Si el usuario es Aprendiz: Shell del Aprendiz estilo Stitch + Functional Mockup
+  if (currentUser.role === 'aprendiz') {
+    return <LearnerShell />;
+  }
+
+  // Si el usuario es Administrador (General o de Área): Shell Administrativa con Sidebar fija
+  return <AdminShell />;
 }
 
 export default function App() {
   return (
     <AppProvider>
-      <MainLayout />
+      <MainRouter />
+      <ToastContainer />
     </AppProvider>
   );
 }

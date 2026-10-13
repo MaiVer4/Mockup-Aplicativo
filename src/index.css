@@ -1,12 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  font-family: 'DM Sans', sans-serif;
+  color: #14213d;
+  background: #f5f7fa;
+  font-synthesis: none;
+}
+
 @layer base {
   body {
-    @apply antialiased text-zinc-900 bg-[#fafafa] min-h-screen font-sans;
+    @apply antialiased text-[#14213d] bg-[#f5f7fa] min-h-screen;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     letter-spacing: -0.011em;
+  }
+
+  h1, h2, h3, h4, .font-heading {
+    font-family: 'Manrope', sans-serif;
   }
 
   table {
@@ -33,9 +45,164 @@
   background: #a1a1aa;
 }
 
+/* Functional Mockup Core Buttons */
+.btn {
+  border: 0;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+}
+.btn:hover {
+  transform: translateY(-1px);
+}
+.btn:active {
+  transform: translateY(0px) scale(0.98);
+}
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+}
+
+/* Stitch & Eventia Colors */
+.btn-primary {
+  background: #c9f45a;
+  color: #10233f;
+  box-shadow: 0 4px 14px rgba(126, 166, 37, 0.22);
+}
+.btn-primary:hover {
+  background: #d5fa73;
+}
+.btn-sena {
+  background: #16a34a;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
+}
+.btn-sena:hover {
+  background: #15803d;
+}
+.btn-secondary {
+  background: #ffffff;
+  color: #1c3150;
+  border: 1px solid #dce2ea;
+  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.04);
+}
+.btn-secondary:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+.btn-ghost {
+  background: transparent;
+  color: #58708f;
+  padding-inline: 8px;
+}
+.btn-ghost:hover {
+  background: rgba(20, 43, 77, 0.05);
+  color: #142b4d;
+}
+.btn-danger {
+  background: #fff2f1;
+  color: #cb473f;
+  border: 1px solid #ffd8d5;
+}
+.btn-danger:hover {
+  background: #fee2e2;
+}
+
+/* Logo mark */
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px 10px 10px 3px;
+  background: #17345b;
+  color: #c9f45a;
+  display: grid;
+  place-items: center;
+  box-shadow: inset -8px -8px 0 rgba(201, 244, 90, 0.08);
+  transform: rotate(-3deg);
+}
+.logo-mark span {
+  font-family: 'Manrope', sans-serif;
+  font-size: 19px;
+  font-weight: 800;
+  transform: rotate(3deg);
+}
+.logo-dark {
+  background: #c9f45a;
+  color: #142b4d;
+}
+.logo-type {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  color: #183052;
+}
+.logo-type.text-white,
+.text-white .logo-type,
+.bg-\[\#122b4c\] .logo-type,
+.bg-\[\#102a4b\] .logo-type {
+  color: #ffffff;
+}
+.logo-type strong {
+  font-family: 'Manrope', sans-serif;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
+.logo-type small {
+  margin-top: 3px;
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+/* Visual decorations */
+.visual-orb {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 244, 90, 0.18);
+  pointer-events: none;
+}
+.orb-one {
+  width: 440px;
+  height: 440px;
+  right: -130px;
+  bottom: -100px;
+  box-shadow: 0 0 0 80px rgba(201, 244, 90, 0.025), 0 0 0 160px rgba(201, 244, 90, 0.02);
+}
+.orb-two {
+  width: 140px;
+  height: 140px;
+  background: rgba(201, 244, 90, 0.06);
+  right: 110px;
+  top: 140px;
+}
+.visual-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.06;
+  background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom right, transparent 15%, black);
+  pointer-events: none;
+}
+
 /* Tactile micro-transitions */
 .btn-tactile {
-  transition: all 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.14s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-tactile:active {
   transform: scale(0.98);
