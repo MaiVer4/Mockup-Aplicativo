@@ -22,3 +22,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local reference and preview assets
+functional_mockup_ref/
+stitch_preview.html
