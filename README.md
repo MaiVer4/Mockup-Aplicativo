@@ -1,87 +1,79 @@
-# EventFlow AI — Mockup Funcional Interactivo
+# SENA Bienestar al Aprendiz — Mockup Funcional Interactivo (v2.0)
 
-Mockup funcional y demostrativo de alta fidelidad para el flujo de trabajo de gestión de eventos institucionales, análisis y abstracción de hojas de cálculo Excel mediante un modelo de Inteligencia Artificial, y control de asistencia con accesos basados en roles.
+Prototipo interactivo de alta fidelidad para la gestión de actividades y control de asistencia de **Bienestar al Aprendiz del Servicio Nacional de Aprendizaje (SENA)**. Diseñado conforme a los **Requisitos Funcionales v2 (requisitos1.txt)**, los **Requisitos Depurados (requisitos2.txt)** y el **Levantamiento Base (requisitos3.txt)**.
 
 ---
 
 ## 🚀 Cómo Ejecutar la Aplicación
 
-El servidor de desarrollo ya se encuentra configurado y corriendo:
+El proyecto está construido con React 18, Vite y Tailwind CSS:
 
 ```bash
-# Para iniciar o reiniciar el servidor de desarrollo en cualquier momento:
+# Iniciar el servidor de desarrollo:
 npm run dev
+
+# Compilar para producción:
+npm run build
 ```
 
-Abre en tu navegador favorito:
-👉 **[http://localhost:3000](http://localhost:3000)**
+Acceso local: 👉 **[http://localhost:3000](http://localhost:3000)** (o el puerto asignado por Vite).
 
 ---
 
-## 🎯 Flujo de Trabajo y Características Implementadas
+## 🎯 Arquitectura de Roles y Módulos Implementados
 
-### 1. Autenticación y Control de Acceso por Roles
-En la barra superior encontrarás un **selector rápido de perfiles** y en el pie de página un **Modal de Login clásico**:
-- **Admin General** (*Ing. Carlos Mendoza*):
-  - Acceso total a todas las áreas (Música, Deportes, etc.).
-  - Capacidad de subir archivos Excel de cualquier categoría.
-  - Gestión completa de eventos (Publicar, Habilitar asistencia, Editar, Cerrar).
-  - Acceso a métricas globales consolidadas.
-- **Admin por Área - Música** (*Prof. Elena Ríos*):
-  - Visualización y gestión restringida exclusivamente a eventos y métricas de **Música**.
-- **Admin por Área - Deportes** (*Lic. Mateo Silva*):
-  - Visualización y gestión restringida exclusivamente a eventos y métricas de **Deportes**.
-- **Aprendiz** (*Sofía Castillo*):
-  - Acceso restringido exclusivamente a la cartelera de eventos programados para el **día de hoy** que estén en estado *Publicado*.
-  - Puede confirmar/marcar su asistencia en aquellos eventos donde el coordinador haya activado la opción *"Habilitar Asistencia"*.
+### 1. Administrador General (Coordinación de Bienestar)
+*Persona representativa: Ing. Carlos Mendoza*
+- **Panel Exclusivo de Supervisión**: Métricas consolidadas por área (Cultura, Prevención, Habilidades, Actividad Física, Arte, Liderazgo), comparativa de aforo y estado operacional de actividades.
+- **Gestión de Encargados (RF-ADM-04)**: Directorio de administradores de área con actividades asignadas y estado de cuenta.
+- **Generación de Enlaces Exclusivos (RF-ADM-03, RF-ENC-01)**: Generador y revocador de URLs con token para el registro exclusivo de encargados por área.
+- **Consulta de Aprendices (RF-ADM-05)**: Buscador individual de aprendices y su historial de participaciones auditadas.
+- **⛔ Restricciones Normativas**: No puede crear, editar ni eliminar eventos (`RF-ADM-02`), ni descargar reportes operativos (`RF-ADM-06`).
 
 ---
 
-### 2. Carga de Excel & Modelo de IA
-Ubicado en la pestaña **"Carga Excel & IA"**:
-- **Arrastrar y Soltar**: Admite archivos `.xlsx`, `.xls` y `.csv`.
-- **Plantilla Oficial**: Botón *"Descargar Plantilla .xlsx"* que genera al instante un archivo Excel de ejemplo en tu computadora con las columnas requeridas (*Título*, *Propósito*, *Área*, *Capacidad*, *Horario*, *Lugar*).
-- **Modo Demo con 1 Clic**: Botón para probar la experiencia completa sin necesidad de tener un archivo a mano.
-- **Pipeline Visual de IA**:
-  1. *Parseo Tabular*: Lectura de cabeceras y celdas.
-  2. *Inferencia Semántica*: El modelo analiza y abstrae puntualmente el **Título** y el **Propósito** del evento.
-  3. *Generación Visual*: Asignación automática de imágenes de alta resolución según la temática detectada (instrumentos musicales, canchas deportivas, etc.).
-- **Previsualización e Importación**: Se muestran las tarjetas abstraídas con puntuación de confianza de la IA antes de incorporarlas en modo Borrador al sistema.
+### 2. Administrador de Área (Encargado)
+*Personas representativas: Elena Ríos (Cultura), Lic. Mateo Silva (Actividad Física), Dra. Patricia Gómez (Prevención)*
+- **Ingesta del Plan Anual con IA (RF-ENC-08 a RF-ENC-16)**:
+  - Carga de archivo Excel multi-hoja (`Actividades 2026.xlsx`) o prueba demo con 1 clic.
+  - Selección de hoja de categoría institucional y trimestre.
+  - Detección de expresiones ambiguas (`RF-06`: *"por solicitud"*, *"todo el mes"*, *"según programación"*) con bloqueo preventivo de publicación hasta confirmación de fecha.
+  - Generación y regeneración de portadas temáticas con IA (`RF-ENC-14, 15`).
+  - Aprobación humana antes de incorporar actividades al catálogo en estado **Borrador**.
+- **Ciclo de Vida de 4 Estados (RF-ENC-17 a RF-ENC-28)**:
+  1. `Borrador`: Actividad creada o aprobada; solo visible para el encargado.
+  2. `Publicado`: Visible para los aprendices; habilita la opción de **Preasistencia**.
+  3. `En Curso`: Asistencia habilitada para confirmación presencial con 1 clic.
+  4. `Finalizado`: Asistencia deshabilitada; métricas congeladas y lista para exportar.
+- **Contadores Duales (RF-ENC-29)**: Conteo en tiempo real de aprendices preasistentes y asistentes confirmados.
+- **Exportación Oficial Formato GOR-F-013 (RF-ENC-30, RF-13, RF-14)**:
+  - Auditoría previa de integridad (valida campos obligatorios, documentos únicos y firmas temporales).
+  - Descarga real de archivo `.xlsx` estructurado con la cabecera institucional oficial del SENA y las filas de los participantes.
 
 ---
 
-### 3. Tarjeta y Ciclo de Vida del Evento (Los 4 Botones de Acción)
-Cada evento cuenta con:
-- **Título**, **Propósito formativo** e **Imagen representativa**.
-- **Área**, **Fecha**, **Horario**, **Lugar** y **Contador de Asistentes vs Aforo**.
-- **Controles Operativos**:
-  1. **Publicar Evento** / *Despublicar*: Cambia el estado entre Borrador y Publicado.
-  2. **Habilitar Asistencia** / *Pausar*: Abre o cierra la posibilidad de que los aprendices se registren.
-  3. **Editar Evento**: Abre un modal interactivo para modificar cualquier dato del evento.
-  4. **Cerrar Evento**: Finaliza el evento definitivamente y congela las métricas para histórico.
+### 3. Aprendiz SENA
+*Personas representativas: Sofía Castillo (Perfil Completo), Juan Pablo Duarte (Nuevo Ingreso)*
+- **Onboarding Obligatorio Bloqueante (RF-APR-02, RF-APR-08)**: Si el aprendiz ingresa por primera vez o con perfil incompleto, una ventana modal bloquea la pantalla exigiendo diligenciar los 12 datos institucionales (Documento, Género, Ficha, Modalidad, Programa, Jornada, Nivel, Centro, Teléfono). Incluye botón para autocompletar datos de prueba.
+- **Cartelera Pública (RF-APR-12)**: Acceso a todos los eventos en estado publicado o posterior, sin filtros restrictivos de centro ni programa.
+- **Preasistencia (RF-APR-15, 16, 17)**: Registro de reserva con un botón, cancelable antes del inicio del evento.
+- **Asistencia en 1 Clic con Firma Temporal Digital (RF-APR-18 a 21)**: Habilitada cuando el evento está *En Curso*. Genera un timestamp inmutable del servidor (`YYYY-MM-DD HH:mm:ss`), animación de confeti 🎉 e impide duplicados.
+- **Detalle Extendido (RF-APR-14)**: Modal de consulta rápida con metodología, propósito y aforo.
+- **Historial Personal (RF-APR-23)**: Bitácora de participaciones con estado (*Preasistió* / *Asistió*) y fecha de registro.
+- **Regla de Edición Mensual (RF-APR-10)**: Vista de configuración con bloqueo de cambios a una sola vez por mes por campo.
 
 ---
 
-### 4. Dashboard Informativo y Métricas en Tiempo Real
-Ubicado en la pestaña **"Dashboard & Métricas"**:
-- **KPIs Ejecutivos**: Total de Eventos, Total de Asistencias Acumuladas, Eventos con Asistencia Abierta en este instante, y Tasa de Ocupación global.
-- **Gráfico Comparativo**: Barras visuales dinámicas de asistencia vs capacidad por evento.
-- **Distribución de Estados**: Conteo de eventos Publicados, con Asistencia Abierta, Borradores y Cerrados.
-- **Filtros Avanzados**: Búsqueda por texto en tiempo real, filtro por área y filtro por estado.
-- **Tabla Maestra**: Permite ejecutar directamente los 4 botones de acción sobre cada fila.
+### 4. Notificaciones por Correo Electrónico Simuladas (RF-NOT-01 a RF-NOT-04)
+- Bandeja interactiva accesible desde el icono de sobre en la barra superior.
+- Muestra los correos generados automáticamente por el sistema:
+  - Notificación de preasistencia al aprendiz (`RF-NOT-01`).
+  - Notificación de asistencia presencial al aprendiz (`RF-NOT-02`).
+  - Notificación de publicación de evento al encargado del área (`RF-NOT-03`).
 
 ---
 
-### 5. Portal del Aprendiz (Simulación en Vivo)
-- Vista limpia y moderna diseñada para el estudiante.
-- Muestra el listado de eventos programados para la fecha actual.
-- Al hacer clic en **"Confirmar / Aceptar Asistencia"**:
-  - Se lanza una animación de confeti 🎉.
-  - La tarjeta cambia a *"Asistencia Confirmada ✓"*.
-  - El contador de asistentes se incrementa en vivo y se refleja inmediatamente en el Dashboard del Administrador.
+## 📂 Formatos y Archivos Institucionales Incluidos
 
----
-
-### 6. Persistencia y Restablecimiento
-- Todos los cambios (eventos creados, estados modificados, asistencias marcadas) se conservan en el `localStorage` del navegador para que no se pierdan al recargar.
-- En la barra superior hay un botón **"Restablecer"** que permite volver a los datos de fábrica en cualquier momento con un solo clic.
+1. **Plantilla Oficial Plan Anual (`Plan_Anual_Bienestar_SENA_2026.xlsx`)**: Descargable desde la vista de Carga Excel; contiene las 6 hojas de categorías SENA (*Cultura, Prevención, Habilidades, Actividad Física, Arte, Liderazgo*) con columnas oficiales y casos de prueba con expresiones ambiguas.
+2. **Plantilla Oficial de Asistencia GOR-F-013 (`Listado ejemplo.xlsx`)**: Exportable desde cualquier evento con asistentes; incluye metadatos institucionales (Ciudad/Fecha, Regional, Centro, Objetivos, Propósito) y las columnas normativas de participantes junto con su marca temporal digital inmutable.
