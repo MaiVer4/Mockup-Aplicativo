@@ -302,7 +302,7 @@ export function AppProvider({ children }) {
       shortRole: 'Aprendiz Nuevo',
       area: 'General',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-      description: 'Aprendiz registrado en plataforma. Requiere onboarding para activar su carnet.',
+      description: 'Aprendiz registrado en plataforma. Requiere onboarding para habilitar la cartelera institucional.',
       isProfileComplete: false,
       documentType: data.documentType,
       documentNumber: data.documentNumber.trim(),
@@ -386,7 +386,7 @@ export function AppProvider({ children }) {
 
     addToast(
       'Perfil Institucional Actualizado',
-      'Tus datos han quedado vinculados correctamente y tu carnet digital está activo.',
+      'Tus datos han quedado vinculados correctamente y tu perfil institucional está activo.',
       'success'
     );
   };
@@ -584,7 +584,7 @@ export function AppProvider({ children }) {
       title: item.title,
       purpose: item.purpose,
       objective: item.objective,
-      extendedDescription: `Actividad programada en el marco del Plan Anual de Bienestar 2026 para la línea de ${item.line}. Convocatoria dirigida a aprendices en etapa lectiva y productiva.`,
+      extendedDescription: `Actividad programada en el marco del Plan Anual de Bienestar 2026 para la línea de ${item.line}. Actividad abierta a aprendices en etapa lectiva y productiva.`,
       image: item.image,
       area: item.area,
       quarter: item.quarter,
