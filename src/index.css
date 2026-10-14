@@ -1,24 +1,53 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Manrope:wght@500;600;700;800&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  font-family: 'DM Sans', sans-serif;
-  color: #14213d;
-  background: #f5f7fa;
+  font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Sistema de Color Ergonómico Anti-Fatiga */
+  --bg-canvas: #f1f4f8;
+  --bg-canvas-subtle: #e8edf3;
+  --surface-card: #ffffff;
+  --surface-elevated: #f8fafc;
+  
+  /* Escala de texto suave (elimina el negro puro #000000) */
+  --text-main: #1e293b;        /* Slate 800: máxima legibilidad sin deslumbramiento */
+  --text-body: #334155;        /* Slate 700: descansado para lectura continua */
+  --text-secondary: #475569;   /* Slate 600 */
+  --text-muted: #64748b;       /* Slate 500 */
+  
+  /* Fronteras y sombras anti-reflejo */
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --shadow-ergonomic: 0 4px 16px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --shadow-elevated: 0 10px 25px -4px rgba(15, 23, 42, 0.08), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  
+  /* Identidad Institucional Cálida */
+  --sena-emerald: #15803d;     /* Verde institucional templado */
+  --sena-emerald-light: #22c55e;
+  --sena-sage-bg: #eafaf1;     /* Fondo salvia calmante */
+  --sena-petroleum: #0e2738;   /* Petróleo oscuro templado (no negro puro) */
+  --sena-lime-accent: #c4f246;  /* Acento lima controlado */
+  
+  color: var(--text-main);
+  background: var(--bg-canvas);
   font-synthesis: none;
 }
 
 @layer base {
   body {
-    @apply antialiased text-[#14213d] bg-[#f5f7fa] min-h-screen;
+    @apply antialiased text-[#1e293b] bg-[#f1f4f8] min-h-screen;
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     letter-spacing: -0.011em;
+    line-height: 1.6;
   }
 
   h1, h2, h3, h4, .font-heading {
-    font-family: 'Manrope', sans-serif;
+    font-family: 'Manrope', -apple-system, sans-serif;
+    color: #1e293b;
+    letter-spacing: -0.025em;
   }
 
   table {
@@ -26,38 +55,39 @@
   }
 }
 
-/* Minimalist scrollbars */
+/* Scrollbars ergonómicas con tonos neutros suaves */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 7px;
+  height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f4f8;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+  background: #cbd5e1;
   border-radius: 9999px;
+  border: 2px solid #f1f4f8;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: #94a3b8;
 }
 
-/* Functional Mockup Core Buttons */
+/* Botones con contrastes balanceados y tacto suave */
 .btn {
   border: 0;
   min-height: 40px;
-  padding: 0 16px;
-  border-radius: 10px;
+  padding: 0 18px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13px;
-  transition: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.16s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
 }
 .btn:hover {
@@ -72,52 +102,75 @@
   transform: none;
 }
 
-/* Stitch & Eventia Colors */
-.btn-primary {
-  background: #c9f45a;
-  color: #10233f;
-  box-shadow: 0 4px 14px rgba(126, 166, 37, 0.22);
-}
-.btn-primary:hover {
-  background: #d5fa73;
-}
-.btn-sena {
-  background: #16a34a;
-  color: #ffffff;
-  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.25);
-}
-.btn-sena:hover {
+/* Botón Primario: Verde Esmeralda SENA Ergonómico */
+.btn-primary, .btn-sena {
   background: #15803d;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(21, 128, 61, 0.25);
 }
+.btn-primary:hover, .btn-sena:hover {
+  background: #166534;
+  box-shadow: 0 4px 12px rgba(21, 128, 61, 0.3);
+}
+
+/* Botón Acento Lima Cálido (para llamadas a la acción secundarias) */
+.btn-accent {
+  background: #c4f246;
+  color: #0e2738;
+  font-weight: 700;
+  box-shadow: 0 2px 8px rgba(132, 204, 22, 0.2);
+}
+.btn-accent:hover {
+  background: #d4f768;
+}
+
+/* Botón Secundario con superficie mate suave */
 .btn-secondary {
   background: #ffffff;
-  color: #1c3150;
-  border: 1px solid #dce2ea;
-  box-shadow: 0 1px 2px rgba(20, 33, 61, 0.04);
+  color: #334155;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 .btn-secondary:hover {
   background: #f8fafc;
-  border-color: #cbd5e1;
+  color: #1e293b;
+  border-color: #94a3b8;
 }
+
 .btn-ghost {
   background: transparent;
-  color: #58708f;
-  padding-inline: 8px;
+  color: #475569;
+  padding-inline: 10px;
 }
 .btn-ghost:hover {
-  background: rgba(20, 43, 77, 0.05);
-  color: #142b4d;
+  background: #e2e8f0;
+  color: #0f172a;
 }
+
 .btn-danger {
-  background: #fff2f1;
-  color: #cb473f;
-  border: 1px solid #ffd8d5;
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
 }
 .btn-danger:hover {
   background: #fee2e2;
+  color: #991b1b;
 }
 
-/* Logo mark */
+/* Tarjetas Ergonómicas Anti-Deslumbramiento */
+.card-ergonomic {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 2px 10px -2px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+  transition: all 0.18s ease-in-out;
+}
+.card-ergonomic:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.07);
+}
+
+/* Logo mark SENA */
 .logo-wrap {
   display: flex;
   align-items: center;
@@ -127,11 +180,11 @@
   width: 36px;
   height: 36px;
   border-radius: 10px 10px 10px 3px;
-  background: #17345b;
-  color: #c9f45a;
+  background: #15803d;
+  color: #ffffff;
   display: grid;
   place-items: center;
-  box-shadow: inset -8px -8px 0 rgba(201, 244, 90, 0.08);
+  box-shadow: 0 2px 6px rgba(21, 128, 61, 0.25);
   transform: rotate(-3deg);
 }
 .logo-mark span {
@@ -141,39 +194,42 @@
   transform: rotate(3deg);
 }
 .logo-dark {
-  background: #c9f45a;
-  color: #142b4d;
+  background: #c4f246;
+  color: #0e2738;
 }
 .logo-type {
   display: flex;
   flex-direction: column;
-  line-height: 1.05;
-  color: #183052;
+  line-height: 1.1;
+  color: #1e293b;
 }
 .logo-type.text-white,
 .text-white .logo-type,
+.bg-\[\#0e2738\] .logo-type,
 .bg-\[\#122b4c\] .logo-type,
 .bg-\[\#102a4b\] .logo-type {
   color: #ffffff;
 }
 .logo-type strong {
   font-family: 'Manrope', sans-serif;
-  font-size: 18px;
+  font-size: 17px;
+  font-weight: 800;
   letter-spacing: -0.5px;
 }
 .logo-type small {
-  margin-top: 3px;
+  margin-top: 2px;
   font-size: 9px;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.1px;
   text-transform: uppercase;
-  opacity: 0.8;
+  font-weight: 600;
+  opacity: 0.85;
 }
 
-/* Visual decorations */
+/* Decoraciones visuales atenuadas para no fatigar la vista */
 .visual-orb {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid rgba(201, 244, 90, 0.18);
+  border: 1px solid rgba(196, 242, 70, 0.12);
   pointer-events: none;
 }
 .orb-one {
@@ -181,32 +237,29 @@
   height: 440px;
   right: -130px;
   bottom: -100px;
-  box-shadow: 0 0 0 80px rgba(201, 244, 90, 0.025), 0 0 0 160px rgba(201, 244, 90, 0.02);
+  box-shadow: 0 0 0 60px rgba(196, 242, 70, 0.02), 0 0 0 120px rgba(196, 242, 70, 0.015);
 }
 .orb-two {
   width: 140px;
   height: 140px;
-  background: rgba(201, 244, 90, 0.06);
+  background: rgba(196, 242, 70, 0.04);
   right: 110px;
   top: 140px;
 }
 .visual-grid {
   position: absolute;
   inset: 0;
-  opacity: 0.06;
+  opacity: 0.04;
   background-image: linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px);
-  background-size: 56px 56px;
+  background-size: 48px 48px;
   mask-image: linear-gradient(to bottom right, transparent 15%, black);
   pointer-events: none;
 }
 
-/* Tactile micro-transitions */
+/* Transiciones táctiles */
 .btn-tactile {
   transition: all 0.14s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .btn-tactile:active {
   transform: scale(0.98);
 }
-
-
-

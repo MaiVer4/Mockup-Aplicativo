@@ -1,20 +1,16 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
-  FileSpreadsheet, 
   Upload, 
-  Download, 
-  Check, 
-  ArrowRight, 
+  FileSpreadsheet, 
   Sparkles, 
   AlertTriangle, 
-  Calendar, 
-  Clock, 
-  MapPin, 
   CheckCircle2, 
-  RotateCcw,
-  RefreshCw,
-  FileText
+  Check, 
+  RotateCcw, 
+  ArrowRight,
+  Download,
+  Info
 } from 'lucide-react';
 import { 
   downloadSampleAnnualPlanTemplate, 
@@ -26,14 +22,14 @@ import { DEMO_ANNUAL_PLAN_SHEETS, AREAS, TRIMESTRES } from '../data/mockData';
 
 export default function ExcelUploadView({ onSuccessNavigate }) {
   const { currentUser, importEventsFromAI, addToast } = useApp();
-  const fileInputRef = useRef(null);
 
-  const [selectedSheet, setSelectedSheet] = useState(currentUser.area || 'Cultura');
+  const [step, setStep] = useState(1); // 1: Carga, 2: Revisión Inteligente, 3: Creados
+  const [selectedSheet, setSelectedSheet] = useState(currentUser?.area || 'Cultura');
   const [selectedQuarter, setSelectedQuarter] = useState('Trimestre 4');
-  const [fileName, setFileName] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [step, setStep] = useState(1); // 1: Carga, 2: Revisión de propuestas con IA, 3: Éxito
   const [extractedItems, setExtractedItems] = useState([]);
+  const [fileName, setFileName] = useState('');
+  const fileInputRef = useRef(null);
 
   // Ejecución de inferencia de IA
   const runAiExtraction = (rawRows, nameOfFile = 'Actividades_2026.xlsx') => {
@@ -44,7 +40,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
       const processed = processPlanRowsWithAI(rawRows, selectedSheet, selectedQuarter);
       setExtractedItems(processed);
       setProcessing(false);
-      setStep(2); // Pasar al paso de revisión de eventos
+      setStep(2);
 
       const ambCount = processed.filter(p => p.isAmbiguous).length;
       addToast(
@@ -52,10 +48,10 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
         `Se identificaron ${processed.length} actividades en el archivo. ${ambCount > 0 ? `${ambCount} requieren fijar fecha exacta.` : 'Listas para revisión.'}`,
         ambCount > 0 ? 'warning' : 'success'
       );
-    }, 1300);
+    }, 1100);
   };
 
-  // Carga de archivo real
+  // Carga manual de archivo
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -71,17 +67,17 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
       runAiExtraction(sheetData, file.name);
     } catch (err) {
       console.error(err);
-      addToast('Error al procesar', 'No fue posible leer el archivo Excel.', 'warning');
+      addToast('Error al procesar', 'No se pudo leer el archivo Excel.', 'warning');
     }
   };
 
-  // Cargar plantilla demo institucional
+  // Carga con 1 Clic usando datos de prueba de la hoja seleccionada
   const handleLoadDemoFile = () => {
     const demoRows = DEMO_ANNUAL_PLAN_SHEETS[selectedSheet] || DEMO_ANNUAL_PLAN_SHEETS['Cultura'];
     runAiExtraction(demoRows, `Plan_Bienestar_2026_${selectedSheet}.xlsx`);
   };
 
-  // Alternar selección
+  // Conmutar selección
   const toggleSelect = (tempId) => {
     setExtractedItems(prev => prev.map(item => 
       item.tempId === tempId ? { ...item, selected: !item.selected } : item
@@ -124,39 +120,39 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
     setStep(3); // Pasar a pantalla de éxito
   };
 
-  // PASO 3: PANTALLA DE ÉXITO estilo Functional Mockup
+  // PASO 3: PANTALLA DE ÉXITO Ergonómica
   if (step === 3) {
     const importedCount = extractedItems.filter(i => i.selected).length;
 
     return (
       <div className="max-w-2xl mx-auto py-8">
-        <div className="bg-white border border-[#e1e6ec] rounded-2xl p-8 text-center shadow-xs space-y-4">
-          <div className="w-16 h-16 rounded-full bg-[#effad9] text-[#638816] flex items-center justify-center mx-auto shadow-2xs">
+        <div className="card-ergonomic p-8 text-center space-y-4">
+          <div className="w-16 h-16 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center mx-auto shadow-2xs">
             <Check className="w-8 h-8 stroke-[2.5]" />
           </div>
 
-          <div className="text-[11px] font-extrabold tracking-[2px] uppercase text-[#638816]">
+          <div className="text-[11px] font-extrabold tracking-[2px] uppercase text-[#15803d] font-mono">
             PROCESO COMPLETADO
           </div>
-          <h2 className="text-2xl md:text-3xl font-extrabold text-[#1d3656] font-heading">
+          <h2 className="text-2xl md:text-3xl font-extrabold text-[#1e293b] font-heading">
             ¡{importedCount} actividades fueron creadas!
           </h2>
-          <p className="text-xs text-[#76869a] max-w-md mx-auto leading-relaxed">
+          <p className="text-xs text-[#64748b] max-w-md mx-auto leading-relaxed">
             El motor procesó el archivo y generó las propuestas con títulos, metodologías, imágenes temáticas y lugares. Están guardadas como <strong>Borrador</strong> para tu revisión y publicación.
           </p>
 
           {/* Resumen de propuestas creadas */}
-          <div className="border border-[#e6eaf0] rounded-xl overflow-hidden text-left divide-y divide-[#edf0f3] my-4">
+          <div className="border border-[#e2e8f0] rounded-xl overflow-hidden text-left divide-y divide-[#e2e8f0] my-4">
             {extractedItems.filter(i => i.selected).map(item => (
-              <div key={item.tempId} className="p-3 flex items-center justify-between gap-3 bg-[#fafbfc]">
+              <div key={item.tempId} className="p-3 flex items-center justify-between gap-3 bg-[#f8fafc]">
                 <div className="flex items-center gap-3 min-w-0">
-                  <img src={item.image} alt={item.title} className="w-11 h-9 rounded-lg object-cover shrink-0" />
+                  <img src={item.image} alt={item.title} className="w-11 h-9 rounded-lg object-cover shrink-0 border border-[#e2e8f0]" />
                   <div className="min-w-0">
-                    <strong className="block text-xs text-[#2c425d] font-heading truncate">{item.title}</strong>
-                    <small className="text-[10px] text-[#8b98a8] font-mono">{item.date} • {item.area}</small>
+                    <strong className="block text-xs text-[#1e293b] font-heading truncate">{item.title}</strong>
+                    <small className="text-[10px] text-[#64748b] font-mono">{item.date} • {item.area}</small>
                   </div>
                 </div>
-                <CheckCircle2 className="w-4 h-4 text-[#16a34a] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#15803d] shrink-0" />
               </div>
             ))}
           </div>
@@ -194,36 +190,38 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
       
       {/* Encabezado Principal */}
       <div className="text-center sm:text-left">
-        <h1 className="text-2xl md:text-3xl font-extrabold text-[#162e50] font-heading tracking-tight">
+        <h1 className="text-2xl md:text-3xl font-extrabold text-[#1e293b] font-heading tracking-tight">
           Importar desde Excel
         </h1>
-        <p className="text-xs md:text-sm text-[#77869a] mt-1">
+        <p className="text-xs md:text-sm text-[#64748b] mt-1">
           Convierte tu programación institucional en eventos listos para publicar mediante análisis inteligente.
         </p>
       </div>
 
-      {/* Indicador de 3 Pasos estilo Functional Mockup */}
+      {/* Indicador de 3 Pasos Ergonómico */}
       <div className="flex items-center justify-center gap-3 py-2">
-        <div className={`flex items-center gap-2 text-xs font-bold ${step === 1 ? 'text-[#213956]' : 'text-[#8c98a8]'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-            step === 1 ? 'bg-[#c9f45a] text-[#173150]' : 'bg-[#e5e9ee] text-[#718098]'
+        <div className={`flex items-center gap-2 text-xs font-bold ${step === 1 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            step === 1 ? 'bg-[#15803d] text-white shadow-xs' : 'bg-[#e2e8f0] text-[#64748b]'
           }`}>
             1
           </span>
           <span>Cargar archivo</span>
         </div>
-        <i className="w-12 h-px bg-[#dce2e9]" />
-        <div className={`flex items-center gap-2 text-xs font-bold ${step === 2 ? 'text-[#213956]' : 'text-[#8c98a8]'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
-            step === 2 ? 'bg-[#c9f45a] text-[#173150]' : 'bg-[#e5e9ee] text-[#718098]'
+        <i className="w-12 h-px bg-[#cbd5e1]" />
+        <div className={`flex items-center gap-2 text-xs font-bold ${step === 2 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            step === 2 ? 'bg-[#15803d] text-white shadow-xs' : 'bg-[#e2e8f0] text-[#64748b]'
           }`}>
             2
           </span>
           <span>Revisión inteligente</span>
         </div>
-        <i className="w-12 h-px bg-[#dce2e9]" />
-        <div className={`flex items-center gap-2 text-xs font-bold ${step === 3 ? 'text-[#213956]' : 'text-[#8c98a8]'}`}>
-          <span className="w-6 h-6 rounded-full bg-[#e5e9ee] text-[#718098] flex items-center justify-center text-xs">
+        <i className="w-12 h-px bg-[#cbd5e1]" />
+        <div className={`flex items-center gap-2 text-xs font-bold ${step === 3 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            step === 3 ? 'bg-[#15803d] text-white shadow-xs' : 'bg-[#e2e8f0] text-[#64748b]'
+          }`}>
             3
           </span>
           <span>Revisar creados</span>
@@ -232,56 +230,56 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
 
       {/* PASO 1: SUBIR ARCHIVO */}
       {step === 1 && (
-        <div className="bg-white border border-[#e0e5eb] rounded-2xl p-6 md:p-8 shadow-xs space-y-5">
+        <div className="card-ergonomic p-6 md:p-8 space-y-5">
           
           {/* Parámetros de Hoja y Trimestre */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-[#f8fafc] rounded-xl border border-[#e8ecf2]">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 bg-[#f8fafc] rounded-xl border border-[#e2e8f0]">
             <div>
-              <label className="block text-[11px] font-bold text-[#314865] mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Hoja del Plan Anual (Área)
               </label>
               <select
                 value={selectedSheet}
                 onChange={(e) => setSelectedSheet(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#dbe1e9] text-xs bg-white font-medium text-[#203754] focus:outline-none"
+                className="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs bg-white font-medium text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {AREAS.map(a => <option key={a} value={a}>Hoja: {a}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#314865] mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Filtro por Trimestre
               </label>
               <select
                 value={selectedQuarter}
                 onChange={(e) => setSelectedQuarter(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-[#dbe1e9] text-xs bg-white font-medium text-[#203754] focus:outline-none"
+                className="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs bg-white font-medium text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {TRIMESTRES.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
           </div>
 
-          {/* Intro de subida con icono X verde */}
+          {/* Intro de subida con icono institucional verde */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#eaf6e9] text-[#29864c] flex items-center justify-center font-black text-lg shrink-0 font-heading">
+            <div className="w-10 h-10 rounded-xl bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center font-black text-lg shrink-0 font-heading">
               X
             </div>
             <div>
-              <strong className="block text-sm text-[#213854] font-heading font-bold">
+              <strong className="block text-sm text-[#1e293b] font-heading font-bold">
                 Sube tu programación institucional
               </strong>
-              <p className="text-xs text-[#8090a3]">
+              <p className="text-xs text-[#64748b]">
                 El modelo identificará automáticamente títulos, propósitos formativos, fechas, lugares e imágenes sugeridas.
               </p>
             </div>
           </div>
 
-          {/* Dropzone estilo Functional Mockup */}
+          {/* Dropzone Ergonómico */}
           <div
             onClick={() => fileInputRef.current?.click()}
-            className="w-full min-h-[200px] border-2 border-dashed border-[#bfcbd8] hover:border-[#95b834] bg-[#f9fbfc] hover:bg-[#fcfef6] rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all group"
+            className="w-full min-h-[200px] border-2 border-dashed border-[#cbd5e1] hover:border-[#15803d] bg-[#f8fafc] hover:bg-white rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all group"
           >
             <input
               ref={fileInputRef}
@@ -291,31 +289,31 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
               hidden
             />
             
-            <div className="w-14 h-14 rounded-full bg-[#eff4f8] group-hover:bg-[#eafaD9] text-[#315678] group-hover:text-[#5f8613] flex items-center justify-center mb-3 transition-colors">
+            <div className="w-14 h-14 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
               <Upload className="w-6 h-6" />
             </div>
 
-            <strong className="text-xs sm:text-sm text-[#2b425e]">
-              Arrastra tu archivo aquí o <u className="text-[#65851b]">selecciónalo en tu equipo</u>
+            <strong className="text-xs sm:text-sm text-[#1e293b]">
+              Arrastra tu archivo aquí o <u className="text-[#15803d]">selecciónalo en tu equipo</u>
             </strong>
-            <span className="text-[11px] text-[#718098] mt-1">
+            <span className="text-[11px] text-[#64748b] mt-1">
               Formatos admitidos: XLSX multi-hoja, XLS y CSV
             </span>
-            <small className="text-[10px] text-[#a0aab7] mt-0.5">
+            <small className="text-[10px] text-[#94a3b8] mt-0.5">
               Tamaño máximo: 10 MB
             </small>
           </div>
 
-          {/* Nota de privacidad estilo Functional Mockup */}
-          <div className="p-3 rounded-xl bg-[#f2f6fa] border border-[#e2eaf2] flex items-center justify-between text-xs text-[#59708b]">
+          {/* Nota de privacidad */}
+          <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] flex items-center justify-between text-xs text-[#475569]">
             <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-[#8bb021] shrink-0" />
+              <Sparkles className="w-4 h-4 text-[#15803d] shrink-0" />
               <div>
-                <strong className="block text-[11px] text-[#38516e]">Procesamiento seguro e inteligente</strong>
-                <small className="text-[10px] text-[#8795a6]">Tu archivo se analiza en tu sesión para formular borradores sin alterar tus datos originales.</small>
+                <strong className="block text-[11px] text-[#1e293b]">Procesamiento seguro e inteligente</strong>
+                <small className="text-[10px] text-[#64748b]">Tu archivo se analiza en tu sesión para formular borradores sin alterar tus datos originales.</small>
               </div>
             </div>
-            <span className="font-mono text-[9px] font-bold bg-[#dfe9f3] text-[#1c385b] px-2 py-0.5 rounded">
+            <span className="font-mono text-[9px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2 py-0.5 rounded">
               IA SENA
             </span>
           </div>
@@ -330,25 +328,25 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             >
               {processing ? (
                 <>
-                  <div className="w-4 h-4 rounded-full border-2 border-[#122b4c] border-t-transparent animate-spin" />
+                  <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
                   <span>Analizando información con IA...</span>
                 </>
               ) : (
                 <>
-                  <Sparkles className="w-4 h-4 text-[#10233f]" />
+                  <Sparkles className="w-4 h-4 text-white" />
                   <span>Cargar Plan Demo de {selectedSheet}</span>
                 </>
               )}
             </button>
           </div>
 
-          {/* Fila de Plantilla Oficial estilo Functional Mockup */}
-          <div className="p-3.5 rounded-xl border border-[#e2e7ed] bg-white flex items-center justify-between gap-3">
+          {/* Fila de Plantilla Oficial */}
+          <div className="p-3.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <FileSpreadsheet className="w-5 h-5 text-[#29864c]" />
+              <FileSpreadsheet className="w-5 h-5 text-[#15803d]" />
               <div>
-                <strong className="block text-xs text-[#354c68]">¿No tienes la plantilla oficial?</strong>
-                <small className="text-[10px] text-[#8c99a9]">Descarga el formato recomendado con pestañas para las 6 áreas institucionales.</small>
+                <strong className="block text-xs text-[#1e293b]">¿No tienes la plantilla oficial?</strong>
+                <small className="text-[10px] text-[#64748b]">Descarga el formato recomendado con pestañas para las 6 áreas institucionales.</small>
               </div>
             </div>
             <button
@@ -366,18 +364,18 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
 
       {/* PASO 2: REVISIÓN DE PROPUESTAS GENERADAS */}
       {step === 2 && (
-        <div className="bg-white border border-[#e0e5eb] rounded-2xl p-6 md:p-8 shadow-xs space-y-6">
+        <div className="card-ergonomic p-6 md:p-8 space-y-6">
           
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#edf0f3]">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e2e8f0]">
             <div>
-              <span className="text-[10px] font-bold tracking-wider uppercase text-[#16a34a] font-mono">
+              <span className="text-[10px] font-bold tracking-wider uppercase text-[#15803d] font-mono">
                 PASO 2 • REVISIÓN DE INFERENCIAS
               </span>
-              <h2 className="text-lg font-bold text-[#142b4d] font-heading">
+              <h2 className="text-lg font-bold text-[#1e293b] font-heading">
                 Propuestas detectadas en "{fileName}" ({extractedItems.length})
               </h2>
-              <p className="text-xs text-[#718098]">
-                Selecciona las actividades que deseas aprobar hacia el catálogo en estado <strong>Borrador</strong>.
+              <p className="text-xs text-[#64748b]">
+                Selecciona las actividades que deseas incorporar al catálogo en estado <strong>Borrador</strong>.
               </p>
             </div>
 
@@ -400,15 +398,15 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             </div>
           </div>
 
-          {/* Lista de propuestas con tarjetas de Functional Mockup */}
+          {/* Lista de propuestas con tarjetas ergonómicas */}
           <div className="space-y-3">
             {extractedItems.map(item => (
               <div 
                 key={item.tempId}
                 className={`p-4 rounded-xl border transition-all ${
                   item.selected 
-                    ? 'border-[#9fc52f] bg-[#f9fdec]' 
-                    : 'border-[#e2e7ee] bg-white opacity-70'
+                    ? 'border-[#86efac] bg-[#f0fdf4]' 
+                    : 'border-[#e2e8f0] bg-white opacity-70'
                 }`}
               >
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
@@ -419,30 +417,30 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                       type="checkbox"
                       checked={item.selected}
                       onChange={() => toggleSelect(item.tempId)}
-                      className="mt-1 w-4 h-4 rounded text-[#16a34a] focus:ring-[#9fc52f]"
+                      className="mt-1 w-4 h-4 rounded text-[#15803d] focus:ring-[#15803d]"
                     />
 
                     <img 
                       src={item.image} 
                       alt={item.title} 
-                      className="w-16 h-14 rounded-lg object-cover shrink-0 border border-[#e2e7ee]"
+                      className="w-16 h-14 rounded-lg object-cover shrink-0 border border-[#e2e8f0]"
                     />
 
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <strong className="text-xs text-[#142b4d] font-heading font-bold truncate">
+                        <strong className="text-xs text-[#1e293b] font-heading font-bold truncate">
                           {item.title}
                         </strong>
-                        <span className="text-[10px] font-mono bg-[#122b4c]/10 text-[#122b4c] px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[10px] font-mono bg-slate-100 text-[#0e2738] border border-slate-200 px-1.5 py-0.2 rounded font-bold">
                           {item.area}
                         </span>
                       </div>
 
-                      <p className="text-[11px] text-[#718098] mt-0.5 line-clamp-1">
+                      <p className="text-[11px] text-[#475569] mt-0.5 line-clamp-1">
                         {item.purpose}
                       </p>
 
-                      <div className="flex items-center gap-3 text-[10px] text-[#8492a5] font-mono mt-1">
+                      <div className="flex items-center gap-3 text-[10px] text-[#64748b] font-mono mt-1">
                         <span>Fecha: {item.date}</span>
                         <span>•</span>
                         <span>Horario: {item.schedule}</span>
@@ -466,7 +464,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                         />
                       </div>
                     ) : (
-                      <span className="text-[10px] text-[#16a34a] bg-[#eaf7ec] px-2 py-0.5 rounded font-bold">
+                      <span className="text-[10px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-2 py-0.5 rounded font-bold">
                         Válido ✓
                       </span>
                     )}
@@ -474,7 +472,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                     <button
                       type="button"
                       onClick={() => handleRegenerateImage(item.tempId, item.area, item.title)}
-                      className="btn-ghost text-[10px] text-[#58708f] hover:text-[#142b4d]"
+                      className="btn-ghost text-[10px] text-[#64748b] hover:text-[#1e293b]"
                       title="Regenerar portada temática con IA"
                     >
                       <Sparkles className="w-3.5 h-3.5" />
@@ -486,8 +484,8 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             ))}
           </div>
 
-          <div className="pt-3 border-t border-[#edf0f3] flex justify-between items-center">
-            <span className="text-xs text-[#718098]">
+          <div className="pt-3 border-t border-[#e2e8f0] flex justify-between items-center">
+            <span className="text-xs text-[#64748b]">
               {extractedItems.filter(i => i.selected).length} de {extractedItems.length} seleccionadas
             </span>
             <button

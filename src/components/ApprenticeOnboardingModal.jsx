@@ -61,26 +61,26 @@ export default function ApprenticeOnboardingModal() {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-zinc-950/70 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl shadow-2xl border border-zinc-200 w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
         {/* Cabecera institucional de bloqueo */}
-        <div className="p-5 border-b border-zinc-200 bg-amber-50/70">
+        <div className="p-5 border-b border-amber-200/70 bg-amber-50/70">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-800 flex items-center justify-center shrink-0 border border-amber-300">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-800 flex items-center justify-center shrink-0 border border-amber-300/80">
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] text-amber-800 bg-amber-100 px-2 py-0.5 rounded border border-amber-300 font-bold uppercase">
+                <span className="font-mono text-[10px] text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded border border-amber-300 font-bold uppercase">
                   REGISTRO OBLIGATORIO // PRIMER INGRESO
                 </span>
                 <span className="text-[10px] text-amber-700 font-medium">Bloqueo de Primer Ingreso</span>
               </div>
-              <h2 className="text-base font-bold text-zinc-950 mt-1">
+              <h2 className="text-base font-bold text-[#1e293b] mt-1">
                 Completa tu Perfil Institucional SENA
               </h2>
-              <p className="text-xs text-zinc-600 mt-0.5">
+              <p className="text-xs text-[#475569] mt-0.5">
                 Para garantizar la validez legal del registro de asistencia y la firma temporal inmutable, debes diligenciar tus datos oficiales antes de acceder a la cartelera.
               </p>
             </div>
@@ -88,12 +88,12 @@ export default function ApprenticeOnboardingModal() {
         </div>
 
         {/* Formulario de los 12 campos normativos */}
-        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto overscroll-contain space-y-4 flex-1 text-xs">
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Nombres y Apellidos */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Nombres y Apellidos *
               </label>
               <input
@@ -103,13 +103,13 @@ export default function ApprenticeOnboardingModal() {
                 value={formData.name}
                 onChange={handleChange}
                 placeholder="Nombre completo"
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               />
             </div>
 
             {/* Correo Personal (Obligatorio) */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Correo Personal (Obligatorio) *
               </label>
               <input
@@ -119,13 +119,13 @@ export default function ApprenticeOnboardingModal() {
                 value={formData.personalEmail}
                 onChange={handleChange}
                 placeholder="ejemplo@gmail.com"
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               />
             </div>
 
             {/* Correo Institucional Misena (Opcional) */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Correo Institucional Misena (Opcional)
               </label>
               <input
@@ -134,13 +134,13 @@ export default function ApprenticeOnboardingModal() {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="usuario@misena.edu.co"
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               />
             </div>
 
             {/* Teléfono */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Teléfono de Contacto *
               </label>
               <input
@@ -150,20 +150,20 @@ export default function ApprenticeOnboardingModal() {
                 value={formData.phone}
                 onChange={handleChange}
                 placeholder="3101234567"
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               />
             </div>
 
             {/* Tipo de Documento */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Tipo de Documento *
               </label>
               <select
                 name="documentType"
                 value={formData.documentType}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs bg-white focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-white text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {TIPOS_DOCUMENTO.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -171,7 +171,7 @@ export default function ApprenticeOnboardingModal() {
 
             {/* Número de Documento (Cédula) */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Número de Documento (Cédula) *
               </label>
               <input
@@ -181,20 +181,20 @@ export default function ApprenticeOnboardingModal() {
                 value={formData.documentNumber}
                 onChange={handleChange}
                 placeholder="1014238910"
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs font-mono text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               />
             </div>
 
             {/* Género */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Género *
               </label>
               <select
                 name="gender"
                 value={formData.gender}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs bg-white focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-white text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {GENEROS.map(g => <option key={g} value={g}>{g}</option>)}
               </select>
@@ -202,7 +202,7 @@ export default function ApprenticeOnboardingModal() {
 
             {/* Número de Ficha o Grupo */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Número de Ficha o Grupo *
               </label>
               <input
@@ -212,20 +212,20 @@ export default function ApprenticeOnboardingModal() {
                 value={formData.ficha}
                 onChange={handleChange}
                 placeholder="Ej. 2670192"
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs focus:outline-none focus:border-zinc-900 font-mono font-medium"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs focus:outline-none focus:border-[#15803d] font-mono font-medium text-[#1e293b]"
               />
             </div>
 
             {/* Modalidad de Formación */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Modalidad de Formación *
               </label>
               <select
                 name="modality"
                 value={formData.modality}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs bg-white focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-white text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {MODALIDADES.map(m => <option key={m} value={m}>{m}</option>)}
               </select>
@@ -233,14 +233,14 @@ export default function ApprenticeOnboardingModal() {
 
             {/* Jornada */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Jornada *
               </label>
               <select
                 name="jornada"
                 value={formData.jornada}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs bg-white focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-white text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {JORNADAS.map(j => <option key={j} value={j}>{j}</option>)}
               </select>
@@ -248,14 +248,14 @@ export default function ApprenticeOnboardingModal() {
 
             {/* Nivel de Formación */}
             <div>
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Nivel de Formación *
               </label>
               <select
                 name="level"
                 value={formData.level}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs bg-white focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-white text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {NIVELES_FORMACION.map(n => <option key={n} value={n}>{n}</option>)}
               </select>
@@ -263,14 +263,14 @@ export default function ApprenticeOnboardingModal() {
 
             {/* Programa de Formación */}
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Programa de Formación *
               </label>
               <select
                 name="program"
                 value={formData.program}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs bg-white focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-white text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {PROGRAMAS_FORMACION.map(p => <option key={p} value={p}>{p}</option>)}
               </select>
@@ -278,14 +278,14 @@ export default function ApprenticeOnboardingModal() {
 
             {/* Centro de Formación */}
             <div className="sm:col-span-2">
-              <label className="block text-[11px] font-semibold text-zinc-700 mb-1">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Centro de Formación / Sede *
               </label>
               <select
                 name="trainingCenter"
                 value={formData.trainingCenter}
                 onChange={handleChange}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 text-xs bg-white focus:outline-none focus:border-zinc-900"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-white text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 {CENTROS_FORMACION.map(c => <option key={c} value={c}>{c}</option>)}
               </select>
@@ -293,11 +293,11 @@ export default function ApprenticeOnboardingModal() {
           </div>
 
           {/* Botones de acción */}
-          <div className="pt-4 border-t border-zinc-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="pt-4 border-t border-[#e2e8f0] flex flex-col sm:flex-row items-center justify-between gap-3">
             <button
               type="button"
               onClick={quickFillApprenticeProfile}
-              className="btn-tactile text-xs text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 px-3 py-2 rounded-lg inline-flex items-center gap-1.5 font-medium transition-colors w-full sm:w-auto justify-center"
+              className="text-xs text-[#15803d] bg-[#eafaf1] hover:bg-[#d4f4e2] border border-[#bbf7d0] px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 font-medium transition-colors w-full sm:w-auto justify-center"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Autocompletar con Datos de Prueba SENA</span>
@@ -305,9 +305,9 @@ export default function ApprenticeOnboardingModal() {
 
             <button
               type="submit"
-              className="btn-tactile text-xs bg-zinc-950 text-white hover:bg-zinc-800 px-5 py-2 rounded-lg font-medium inline-flex items-center gap-2 shadow-xs transition-colors w-full sm:w-auto justify-center"
+              className="text-xs bg-[#15803d] text-white hover:bg-[#166534] px-5 py-2.5 rounded-xl font-medium inline-flex items-center gap-2 shadow-sm transition-colors w-full sm:w-auto justify-center"
             >
-              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-200" />
               <span>Guardar Perfil y Desbloquear Cartelera</span>
             </button>
           </div>

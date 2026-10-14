@@ -21,21 +21,21 @@ export default function LoginModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-xl shadow-xl border border-zinc-200 w-full max-w-md overflow-hidden flex flex-col">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-md overflow-hidden flex flex-col">
         {/* Cabecera */}
-        <div className="px-5 py-3.5 border-b border-zinc-200 flex items-center justify-between bg-zinc-50/50">
+        <div className="px-5 py-3.5 border-b border-[#e2e8f0] flex items-center justify-between bg-[#f8fafc]">
           <div>
-            <h3 className="text-sm font-semibold text-zinc-950">
+            <h3 className="text-sm font-bold text-[#1e293b] font-heading">
               Cambiar Perfil // Control de Acceso
             </h3>
-            <p className="text-[11px] text-zinc-500">
+            <p className="text-[11px] text-[#64748b]">
               Selecciona un rol para simular sus permisos de plataforma.
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1 rounded-md text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+            className="p-1.5 rounded-lg text-[#64748b] hover:text-[#1e293b] hover:bg-[#f1f5f9] transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -49,42 +49,42 @@ export default function LoginModal({ isOpen, onClose }) {
               <div
                 key={u.id}
                 onClick={() => handleQuickSelect(u.id)}
-                className={`p-3 rounded-lg border transition-all cursor-pointer flex items-center justify-between group hover:border-zinc-400 ${
+                className={`p-3.5 rounded-xl border transition-all cursor-pointer flex items-center justify-between group ${
                   isSelected
-                    ? 'border-zinc-950 bg-zinc-50'
-                    : 'border-zinc-200 bg-white hover:bg-zinc-50/50'
+                    ? 'border-[#15803d] bg-[#f0fdf4] shadow-xs'
+                    : 'border-[#e2e8f0] bg-white hover:bg-[#f8fafc] hover:border-[#cbd5e1]'
                 }`}
               >
                 <div className="flex items-center gap-3">
                   <img
                     src={u.avatar}
                     alt={u.name}
-                    className="w-8 h-8 rounded-md object-cover border border-zinc-200"
+                    className="w-8 h-8 rounded-lg object-cover border border-[#e2e8f0]"
                   />
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-zinc-900 group-hover:text-zinc-950">
+                      <span className="font-bold text-[#1e293b] group-hover:text-[#0e2738]">
                         {u.name}
                       </span>
-                      <span className="font-mono text-[9px] text-zinc-500 bg-zinc-100 px-1.5 py-0.2 rounded border border-zinc-200">
+                      <span className="font-mono text-[9px] text-[#475569] bg-[#f1f5f9] px-1.5 py-0.5 rounded-md border border-[#cbd5e1] font-semibold">
                         {u.shortRole}
                       </span>
                     </div>
-                    <p className="text-[11px] text-zinc-500 line-clamp-1 mt-0.5">
+                    <p className="text-[11px] text-[#64748b] line-clamp-1 mt-0.5">
                       {u.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="text-zinc-400 group-hover:text-zinc-900 transition-colors">
-                  <ArrowRight className="w-3.5 h-3.5" />
+                <div className="text-[#64748b] group-hover:text-[#15803d] transition-colors">
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
             );
           })}
         </div>
 
-        <div className="p-3 border-t border-zinc-100 text-center font-mono text-[10px] text-zinc-400 bg-zinc-50/50">
+        <div className="p-3 border-t border-[#e2e8f0] text-center font-mono text-[10px] text-[#64748b] bg-[#f8fafc] font-semibold">
           CAMBIO DE ROL INSTANTÁNEO EN UN CLIC
         </div>
       </div>

@@ -42,13 +42,13 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
   const percent = Math.min(100, Math.round((attendeesCount / capacity) * 100));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#09182b]/70 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl shadow-2xl border border-[#e4e8ee] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] relative">
         
         {/* Botón Cerrar flotante con blur */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-[#0d2039]/70 hover:bg-[#0d2039] text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-md"
+          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-[#0e2738]/80 hover:bg-[#0e2738] text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-md"
         >
           <X className="w-4 h-4" />
         </button>
@@ -60,18 +60,18 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
             alt={event.title}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#071528]/95 via-[#071528]/40 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0c2f3a]/95 via-[#0c2f3a]/40 to-transparent" />
           
           <div className="absolute bottom-5 left-6 right-6 text-white space-y-2">
             <div className="flex items-center gap-2">
-              <span className="bg-[#c9f45a] text-[#15304f] text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg font-mono">
+              <span className="bg-[#c4f246] text-[#0e2738] text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg font-mono">
                 {event.area}
               </span>
               <span className="bg-white/20 text-white backdrop-blur-xs text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
                 {event.quarter || 'Trimestre 4'}
               </span>
               {isEnCurso && (
-                <span className="bg-emerald-500 text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg animate-pulse">
+                <span className="bg-[#15803d] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg animate-pulse">
                   EN CURSO
                 </span>
               )}
@@ -80,7 +80,7 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
             <h2 className="text-xl md:text-2xl font-extrabold font-heading text-white tracking-tight">
               {event.title}
             </h2>
-            <p className="text-xs text-[#cbd5e1] line-clamp-1">
+            <p className="text-xs text-slate-200 line-clamp-1">
               {event.purpose}
             </p>
           </div>
@@ -91,79 +91,79 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
           
           {/* Métricas clave estilo Functional Mockup */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-2xl bg-[#f4f7fa] border border-[#e8ecf2]">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#8290a1] font-mono block">
+            <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
                 ASISTENTES
               </span>
-              <strong className="text-2xl font-extrabold text-[#1d3758] font-heading block mt-1">
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
                 {attendeesCount}
               </strong>
-              <small className="text-[#8592a3] text-[10px]">de {capacity} cupos</small>
+              <small className="text-[#64748b] text-[10px]">de {capacity} cupos</small>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#f4f7fa] border border-[#e8ecf2]">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#8290a1] font-mono block">
+            <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
                 CONFIRMADOS
               </span>
-              <strong className="text-2xl font-extrabold text-[#1d3758] font-heading block mt-1">
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
                 {preattendanceCount}
               </strong>
-              <small className="text-[#8592a3] text-[10px]">preasistencias</small>
+              <small className="text-[#64748b] text-[10px]">preasistencias</small>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#f4f7fa] border border-[#e8ecf2]">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#8290a1] font-mono block">
+            <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
                 OCUPACIÓN
               </span>
-              <strong className="text-2xl font-extrabold text-[#1d3758] font-heading block mt-1">
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
                 {percent}%
               </strong>
-              <small className="text-[#8592a3] text-[10px]">del aforo oficial</small>
+              <small className="text-[#64748b] text-[10px]">del aforo oficial</small>
             </div>
           </div>
 
           {/* Información y Parámetros con Iconos */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e8ecf2]">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
             <div className="flex items-center gap-2.5">
-              <Calendar className="w-4 h-4 text-[#7890aa] shrink-0" />
+              <Calendar className="w-4 h-4 text-[#64748b] shrink-0" />
               <div>
-                <small className="text-[10px] text-[#8e9aaa] block">Fecha y Horario</small>
-                <strong className="text-xs text-[#314966] font-mono block">{event.date} • {event.schedule || '14:00'}</strong>
+                <small className="text-[10px] text-[#64748b] block">Fecha y Horario</small>
+                <strong className="text-xs text-[#334155] font-mono block">{event.date} • {event.schedule || '14:00'}</strong>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <MapPin className="w-4 h-4 text-[#7890aa] shrink-0" />
+              <MapPin className="w-4 h-4 text-[#64748b] shrink-0" />
               <div className="truncate">
-                <small className="text-[10px] text-[#8e9aaa] block">Ubicación</small>
-                <strong className="text-xs text-[#314966] block truncate">{event.location}</strong>
+                <small className="text-[10px] text-[#64748b] block">Ubicación</small>
+                <strong className="text-xs text-[#334155] block truncate">{event.location}</strong>
               </div>
             </div>
 
             <div className="flex items-center gap-2.5">
-              <Users className="w-4 h-4 text-[#7890aa] shrink-0" />
+              <Users className="w-4 h-4 text-[#64748b] shrink-0" />
               <div>
-                <small className="text-[10px] text-[#8e9aaa] block">Responsable</small>
-                <strong className="text-xs text-[#314966] block">Bienestar • {event.area}</strong>
+                <small className="text-[10px] text-[#64748b] block">Responsable</small>
+                <strong className="text-xs text-[#334155] block">Bienestar • {event.area}</strong>
               </div>
             </div>
           </div>
 
           {/* Descripción Extendida y Metodología */}
           <div className="space-y-2">
-            <h4 className="text-xs font-bold text-[#142b4d] font-heading">
+            <h4 className="text-xs font-bold text-[#1e293b] font-heading">
               Metodología y Objetivos Formativos
             </h4>
-            <div className="p-3.5 rounded-xl bg-white border border-[#e4e8ee] text-[#556987] leading-relaxed text-xs">
+            <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#334155] leading-relaxed text-xs">
               {event.extendedDescription || event.purpose}
             </div>
           </div>
 
           {/* Acciones para el Aprendiz */}
           {isLearner && (
-            <div className="pt-2 border-t border-[#edf0f3]">
+            <div className="pt-2 border-t border-[#e2e8f0]">
               {isAttended ? (
-                <div className="p-3.5 rounded-xl bg-[#eaf7ec] border border-[#bbf7d0] text-[#16a34a] font-bold flex items-center justify-center gap-2 text-xs">
+                <div className="p-3.5 rounded-xl bg-[#eafaf1] border border-[#bbf7d0] text-[#15803d] font-bold flex items-center justify-center gap-2 text-xs">
                   <CheckCircle2 className="w-4 h-4" />
                   <span>Tu asistencia presencial está certificada en acta con firma digital</span>
                 </div>
@@ -174,9 +174,9 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
                     registerAttendance(event.id);
                     onClose();
                   }}
-                  className="btn btn-primary w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm"
+                  className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm bg-[#15803d] text-white hover:bg-[#166534] transition-colors"
                 >
-                  <Sparkles className="w-4 h-4 text-[#10233f]" />
+                  <Sparkles className="w-4 h-4 text-emerald-200" />
                   <span>Confirmar Asistencia Presencial (1 Clic)</span>
                 </button>
               ) : (
@@ -188,8 +188,8 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
                   }}
                   className={`w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
                     isPreRegistered
-                      ? 'bg-[#edf4fc] text-[#245486] border border-[#bfdbfe] hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200'
-                      : 'btn btn-primary'
+                      ? 'bg-[#f1f5f9] text-[#1e293b] border border-[#cbd5e1] hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200'
+                      : 'bg-[#15803d] text-white hover:bg-[#166534] shadow-sm'
                   }`}
                 >
                   {isPreRegistered ? (

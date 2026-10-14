@@ -1,41 +1,42 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
-  Users, 
   Calendar, 
   Clock, 
-  CheckCircle2, 
+  Users, 
   TrendingUp, 
-  Plus, 
-  ArrowRight, 
-  MapPin, 
-  MoreHorizontal, 
-  Search, 
-  Link as LinkIcon, 
-  Sparkles,
-  BarChart3,
+  ChevronRight, 
+  CheckCircle2, 
+  Sparkles, 
+  FileSpreadsheet, 
+  ExternalLink,
+  Plus,
+  Link as LinkIcon,
   Shield,
-  FileSpreadsheet
+  ArrowRight,
+  MoreHorizontal,
+  MapPin,
+  Search,
+  Filter
 } from 'lucide-react';
-import { AREAS, MOCK_PARTICIPANTS_DATABASE } from '../data/mockData';
 
 export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpenEventDetail }) {
   const { 
     currentUser, 
     events, 
+    visibleEvents, 
     users, 
-    inviteLinks, 
     activeTab, 
-    setActiveTab 
+    setActiveTab, 
+    getApprenticeAuditData 
   } = useApp();
 
-  const [searchLearner, setSearchLearner] = useState('');
   const [selectedWeekFilter, setSelectedWeekFilter] = useState('Últimas 5 semanas');
+  const [apprenticeSearchDoc, setApprenticeSearchDoc] = useState('');
+  const [searchedAuditResult, setSearchedAuditResult] = useState(null);
 
-  // Filtrado de eventos según rol
-  const relevantEvents = currentUser.role === 'admin_area'
-    ? events.filter(e => e.area === currentUser.area)
-    : events;
+  // Filtrar eventos relevantes según el rol
+  const relevantEvents = visibleEvents;
 
   // Métricas Consolidadas
   const totalEvents = relevantEvents.length;
@@ -62,16 +63,16 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
   return (
     <div className="space-y-6">
       
-      {/* Encabezado Principal estilo Functional Mockup */}
+      {/* Encabezado Principal Ergonómico */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
-          <h1 className="text-2xl md:text-3xl font-extrabold text-[#162e50] font-heading tracking-tight">
+          <h1 className="text-2xl md:text-3xl font-extrabold text-[#1e293b] font-heading tracking-tight">
             Buenos días, {currentUser.name.split(' ')[0]} 👋
           </h1>
-          <p className="text-xs md:text-sm text-[#77869a] mt-1">
+          <p className="text-xs md:text-sm text-[#64748b] mt-1">
             {currentUser.role === 'admin_general'
               ? 'Supervisión global de las 6 áreas de Bienestar al Aprendiz y gestión de accesos.'
-              : `Aquí tienes el estado operativo y rendimiento de tus eventos del Área de ${currentUser.area}.`}
+              : `Aquí tienes el estado operativo y rendimiento de tus actividades del Área de ${currentUser.area}.`}
           </p>
         </div>
 
@@ -82,7 +83,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               onClick={onOpenInviteModal}
               className="btn btn-primary"
             >
-              <LinkIcon className="w-4 h-4 text-[#10233f]" />
+              <LinkIcon className="w-4 h-4 text-white" />
               <span>Generar Enlace Encargado</span>
             </button>
           ) : (
@@ -91,7 +92,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               onClick={() => onNavigateView && onNavigateView('upload')}
               className="btn btn-primary"
             >
-              <Plus className="w-4 h-4 text-[#10233f]" />
+              <Plus className="w-4 h-4 text-white" />
               <span>Crear desde Excel</span>
             </button>
           )}
@@ -101,65 +102,65 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
       {/* Si NO es vista de usuarios: mostrar Dashboard completo */}
       {!isUsersView && (
         <>
-          {/* Grid de 4 StatCards estilo Functional Mockup */}
+          {/* Grid de 4 StatCards Ergonómicas Anti-Fatiga */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             {/* StatCard 1: Eventos Activos */}
-            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
-              <div className="w-9 h-9 rounded-xl bg-[#edf5ff] text-[#2d6bbb] flex items-center justify-center absolute right-4 top-4">
-                <Calendar className="w-4 h-4" />
+            <div className="card-ergonomic p-5 relative">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center absolute right-4 top-4 border border-blue-100">
+                <Calendar className="w-5 h-5" />
               </div>
-              <div className="text-xs text-[#748397] font-semibold">Eventos activos</div>
-              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+              <div className="text-xs text-[#64748b] font-semibold">Eventos activos</div>
+              <div className="font-heading text-3xl font-extrabold text-[#1e293b] my-2">
                 {publishedEvents + inProgressEvents}
               </div>
-              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
-                <span className="text-[#5c8515] font-bold">↗ +18%</span>
+              <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
+                <span className="text-[#15803d] font-bold">↗ +18%</span>
                 <span>vs. mes anterior</span>
               </div>
             </div>
 
             {/* StatCard 2: Preasistencias */}
-            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
-              <div className="w-9 h-9 rounded-xl bg-[#f4fadf] text-[#6e9210] flex items-center justify-center absolute right-4 top-4">
-                <Clock className="w-4 h-4" />
+            <div className="card-ergonomic p-5 relative">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center absolute right-4 top-4 border border-emerald-100">
+                <Clock className="w-5 h-5" />
               </div>
-              <div className="text-xs text-[#748397] font-semibold">Preasistencias (Reservas)</div>
-              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+              <div className="text-xs text-[#64748b] font-semibold">Preasistencias (Reservas)</div>
+              <div className="font-heading text-3xl font-extrabold text-[#1e293b] my-2">
                 {totalPreAttendees}
               </div>
-              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
-                <span className="text-[#5c8515] font-bold">↗ +24%</span>
+              <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
+                <span className="text-[#15803d] font-bold">↗ +24%</span>
                 <span>aprendices registrados</span>
               </div>
             </div>
 
             {/* StatCard 3: Asistencias Acreditadas */}
-            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
-              <div className="w-9 h-9 rounded-xl bg-[#f4effc] text-[#7b5bb1] flex items-center justify-center absolute right-4 top-4">
-                <Users className="w-4 h-4" />
+            <div className="card-ergonomic p-5 relative">
+              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center absolute right-4 top-4 border border-purple-100">
+                <Users className="w-5 h-5" />
               </div>
-              <div className="text-xs text-[#748397] font-semibold">Asistencias confirmadas</div>
-              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+              <div className="text-xs text-[#64748b] font-semibold">Asistencias confirmadas</div>
+              <div className="font-heading text-3xl font-extrabold text-[#1e293b] my-2">
                 {totalAttendees}
               </div>
-              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
-                <span className="text-[#5c8515] font-bold">↗ +12%</span>
+              <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
+                <span className="text-[#15803d] font-bold">↗ +12%</span>
                 <span>con firma digital</span>
               </div>
             </div>
 
             {/* StatCard 4: Tasa de Asistencia */}
-            <div className="bg-white border border-[#e6eaf0] rounded-2xl p-5 relative shadow-xs">
-              <div className="w-9 h-9 rounded-xl bg-[#fff4e8] text-[#b47331] flex items-center justify-center absolute right-4 top-4">
-                <TrendingUp className="w-4 h-4" />
+            <div className="card-ergonomic p-5 relative">
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center absolute right-4 top-4 border border-amber-100">
+                <TrendingUp className="w-5 h-5" />
               </div>
-              <div className="text-xs text-[#748397] font-semibold">Tasa de cumplimiento</div>
-              <div className="font-heading text-3xl font-extrabold text-[#183050] my-2">
+              <div className="text-xs text-[#64748b] font-semibold">Tasa de cumplimiento</div>
+              <div className="font-heading text-3xl font-extrabold text-[#1e293b] my-2">
                 {attendanceRate}%
               </div>
-              <div className="text-[11px] text-[#9aa6b5] flex items-center gap-1">
-                <span className="text-[#5c8515] font-bold">↗ +6,2%</span>
+              <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
+                <span className="text-[#15803d] font-bold">↗ +6,2%</span>
                 <span>promedio general</span>
               </div>
             </div>
@@ -170,20 +171,20 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
           <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4">
             
             {/* Panel de Gráfico: Asistencia por semana */}
-            <div className="bg-white border border-[#e4e8ee] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+            <div className="card-ergonomic p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between pb-3">
                 <div>
-                  <strong className="text-sm font-heading font-bold text-[#203754]">
+                  <strong className="text-sm font-heading font-bold text-[#1e293b]">
                     Asistencia por semana
                   </strong>
-                  <p className="text-[11px] text-[#8b98a9]">
+                  <p className="text-[11px] text-[#64748b]">
                     Comparativo de aprendices preasistentes y asistentes confirmados
                   </p>
                 </div>
                 <select 
                   value={selectedWeekFilter}
                   onChange={(e) => setSelectedWeekFilter(e.target.value)}
-                  className="text-xs text-[#5f7187] border border-[#e0e5ec] rounded-lg px-2.5 py-1 bg-white focus:outline-none"
+                  className="text-xs text-[#475569] border border-[#cbd5e1] rounded-lg px-2.5 py-1 bg-[#f8fafc] focus:outline-none focus:border-[#15803d]"
                 >
                   <option>Últimas 5 semanas</option>
                   <option>Trimestre I</option>
@@ -192,19 +193,19 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </div>
 
               {/* Leyenda del Gráfico */}
-              <div className="flex items-center justify-end gap-4 text-[11px] text-[#7b899b] my-2">
+              <div className="flex items-center justify-end gap-4 text-[11px] text-[#64748b] my-2">
                 <span className="flex items-center gap-1.5">
-                  <i className="w-2.5 h-2.5 rounded-xs bg-[#c9f45a] inline-block" />
+                  <i className="w-2.5 h-2.5 rounded-xs bg-[#22c55e] inline-block" />
                   <span>Preasistencias (Reservas)</span>
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <i className="w-2.5 h-2.5 rounded-xs bg-[#183a65] inline-block" />
+                  <i className="w-2.5 h-2.5 rounded-xs bg-[#0e2738] inline-block" />
                   <span>Asistencias (Firma 1 Clic)</span>
                 </span>
               </div>
 
-              {/* Área de Barras Simuladas con CSS */}
-              <div className="h-44 border-b border-[#e7ebf0] pt-2 flex items-end justify-around gap-2 px-4 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_40px,#f4f6f8_41px)]">
+              {/* Área de Barras con Tonos Calmantes */}
+              <div className="h-44 border-b border-[#e2e8f0] pt-2 flex items-end justify-around gap-2 px-4 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_40px,#f1f5f9_41px)]">
                 {[
                   { label: 'Sem 1', pre: 75, att: 62 },
                   { label: 'Sem 2', pre: 85, att: 70 },
@@ -216,36 +217,36 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     <div className="flex items-end gap-1.5 h-[80%]">
                       <div 
                         style={{ height: `${item.pre}%` }} 
-                        className="w-3.5 bg-[#c9f45a] rounded-t-md transition-all duration-300" 
+                        className="w-3.5 bg-[#22c55e] rounded-t-md transition-all duration-300 shadow-2xs" 
                         title={`Preasistencias: ${item.pre}`}
                       />
                       <div 
                         style={{ height: `${item.att}%` }} 
-                        className="w-3.5 bg-[#183a65] rounded-t-md transition-all duration-300" 
-                        title={`Asistencias: ${item.att}`}
+                        className="w-3.5 bg-[#0e2738] rounded-t-md transition-all duration-300 shadow-2xs" 
+                        title={`Asistencias Confirmadas: ${item.att}`}
                       />
                     </div>
-                    <span className="text-[10px] text-[#929dac] font-mono">{item.label}</span>
+                    <span className="text-[10px] text-[#64748b] font-mono font-medium">{item.label}</span>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Panel de Agenda de Hoy estilo Functional Mockup */}
-            <div className="bg-white border border-[#e4e8ee] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
+            {/* Panel de Agenda de Hoy */}
+            <div className="card-ergonomic p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between pb-3">
                 <div>
-                  <strong className="text-sm font-heading font-bold text-[#203754]">
+                  <strong className="text-sm font-heading font-bold text-[#1e293b]">
                     Agenda de hoy
                   </strong>
-                  <p className="text-[11px] text-[#8b98a9]">
+                  <p className="text-[11px] text-[#64748b]">
                     Viernes, 14 de marzo • {todayEvents.length} actividades programadas
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => onNavigateView && onNavigateView('events')}
-                  className="btn-ghost text-xs text-[#58708f] hover:text-[#142b4d]"
+                  className="btn-ghost text-xs text-[#475569] hover:text-[#1e293b]"
                 >
                   Ver todos
                 </button>
@@ -257,11 +258,11 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     key={evt.id}
                     type="button"
                     onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
-                    className="w-full text-left p-2.5 rounded-xl border border-[#ebedf1] hover:border-[#c9d5e2] hover:shadow-xs transition-all grid grid-cols-[48px_52px_1fr_20px] items-center gap-2.5 group bg-white"
+                    className="w-full text-left p-2.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] hover:bg-white hover:border-[#cbd5e1] hover:shadow-sm transition-all grid grid-cols-[48px_52px_1fr_20px] items-center gap-2.5 group"
                   >
                     {/* Chip de Hora */}
                     <div className={`h-11 rounded-lg flex flex-col items-center justify-center text-center ${
-                      idx === 1 ? 'bg-[#f4fadf] text-[#648213]' : 'bg-[#edf4fc] text-[#245486]'
+                      idx === 1 ? 'bg-emerald-50 text-emerald-800 border border-emerald-100' : 'bg-slate-100 text-slate-700 border border-slate-200'
                     }`}>
                       <strong className="text-xs font-bold font-mono leading-none">
                         {evt.schedule?.split(' - ')[0] || '14:00'}
@@ -273,24 +274,24 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     <img 
                       src={evt.image || 'https://images.unsplash.com/photo-1598588436316-1e65ffcffc0a?w=120&auto=format&fit=crop&q=80'} 
                       alt={evt.title} 
-                      className="w-[52px] h-11 object-cover rounded-lg"
+                      className="w-[52px] h-11 object-cover rounded-lg border border-[#e2e8f0]"
                     />
 
                     {/* Texto del Evento */}
                     <div className="min-w-0">
-                      <strong className="block text-xs text-[#253c58] font-heading font-bold truncate group-hover:text-[#16a34a] transition-colors">
+                      <strong className="block text-xs text-[#1e293b] font-heading font-bold truncate group-hover:text-[#15803d] transition-colors">
                         {evt.title}
                       </strong>
-                      <span className="flex items-center gap-1 text-[10px] text-[#7f8da0] mt-0.5 truncate">
-                        <MapPin className="w-3 h-3 text-[#7f8da0] shrink-0" />
+                      <span className="flex items-center gap-1 text-[10px] text-[#64748b] mt-0.5 truncate">
+                        <MapPin className="w-3 h-3 text-[#94a3b8] shrink-0" />
                         <span className="truncate">{evt.location}</span>
                       </span>
-                      <small className="text-[10px] text-[#6f8f20] font-bold block mt-0.5 font-mono">
+                      <small className="text-[10px] text-[#15803d] font-bold block mt-0.5 font-mono">
                         {evt.preattendanceCount || 0} preasistentes
                       </small>
                     </div>
 
-                    <ArrowRight className="w-4 h-4 text-[#8ba2be] group-hover:translate-x-0.5 transition-transform shrink-0" />
+                    <ArrowRight className="w-4 h-4 text-[#94a3b8] group-hover:text-[#15803d] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </button>
                 ))}
               </div>
@@ -298,14 +299,14 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
 
           </div>
 
-          {/* Tabla de Eventos Recientes estilo Functional Mockup */}
-          <div className="bg-white border border-[#e4e8ee] rounded-2xl p-5 shadow-xs">
-            <div className="flex items-center justify-between pb-3 border-b border-[#edf0f3]">
+          {/* Tabla de Eventos Recientes Ergonómica */}
+          <div className="card-ergonomic p-5">
+            <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
               <div>
-                <strong className="text-sm font-heading font-bold text-[#203754]">
+                <strong className="text-sm font-heading font-bold text-[#1e293b]">
                   Eventos recientes
                 </strong>
-                <p className="text-[11px] text-[#8b98a9]">
+                <p className="text-[11px] text-[#64748b]">
                   Supervisión de aforo y estado del ciclo de vida
                 </p>
               </div>
@@ -322,7 +323,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
             <div className="overflow-x-auto mt-2">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
-                  <tr className="text-[10px] text-[#99a4b2] font-bold uppercase tracking-wider border-b border-[#edf0f3]">
+                  <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
                     <th className="py-3 px-3">EVENTO</th>
                     <th className="py-3 px-3">FECHA</th>
                     <th className="py-3 px-3">ESTADO</th>
@@ -330,7 +331,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     <th className="py-3 px-3 text-right">ACCIÓN</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#edf0f3] text-[#617188]">
+                <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
                   {relevantEvents.slice(0, 5).map(evt => {
                     const capacity = evt.capacity || 50;
                     const count = evt.attendeesCount || 0;
@@ -339,51 +340,38 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     const getStatusBadge = (st) => {
                       switch (st) {
                         case 'publicado':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eef9e6] text-[#568020]">Publicado</span>;
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">Publicado</span>;
                         case 'en_curso':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 animate-pulse">En Curso</span>;
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">En Curso</span>;
                         case 'finalizado':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-600">Finalizado</span>;
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Finalizado</span>;
                         default:
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-500">Borrador</span>;
+                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200">Borrador</span>;
                       }
                     };
 
                     return (
-                      <tr key={evt.id} className="hover:bg-[#fafbfc] transition-colors">
+                      <tr key={evt.id} className="hover:bg-[#f8fafc] transition-colors">
                         <td className="py-3 px-3">
-                          <div className="flex items-center gap-3">
-                            <img 
-                              src={evt.image || 'https://images.unsplash.com/photo-1598588436316-1e65ffcffc0a?w=120&auto=format&fit=crop&q=80'} 
-                              alt={evt.title} 
-                              className="w-10 h-9 rounded-lg object-cover shrink-0"
-                            />
-                            <div>
-                              <strong className="block text-xs text-[#243b57] font-heading font-bold truncate max-w-[200px]">
-                                {evt.title}
-                              </strong>
-                              <small className="text-[10px] text-[#8c99a9] font-mono">
-                                Área: {evt.area}
-                              </small>
-                            </div>
-                          </div>
+                          <div className="font-heading font-bold text-[#1e293b]">{evt.title}</div>
+                          <div className="text-[11px] text-[#64748b]">{evt.location}</div>
                         </td>
-                        <td className="py-3 px-3 font-mono text-[11px] text-[#64758b]">
-                          {evt.date}
+                        <td className="py-3 px-3 font-mono text-[11px] text-[#475569]">
+                          {evt.date} • {evt.schedule?.split(' - ')[0] || '14:00'}
                         </td>
                         <td className="py-3 px-3">
                           {getStatusBadge(evt.status)}
                         </td>
                         <td className="py-3 px-3">
-                          <div className="w-32">
-                            <div className="flex items-baseline justify-between text-[11px] font-mono mb-1">
-                              <strong className="text-[#273e5a]">{count}</strong>
-                              <span className="text-[#9aa5b2]">/ {capacity}</span>
+                          <div className="w-36 space-y-1">
+                            <div className="flex justify-between text-[11px]">
+                              <strong className="text-[#1e293b]">{count}</strong>
+                              <span className="text-[#64748b]">/ {capacity}</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-[#edf0f3] overflow-hidden">
+                            <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
                               <div 
                                 style={{ width: `${percent}%` }}
-                                className="h-full bg-[#b7dc4c] rounded-full"
+                                className="h-full bg-[#15803d] rounded-full"
                               />
                             </div>
                           </div>
@@ -392,7 +380,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                           <button
                             type="button"
                             onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
-                            className="p-1 rounded-lg text-[#8ba2be] hover:text-[#152e4f] hover:bg-[#edf2f7]"
+                            className="p-1 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0]"
                             title="Ver detalle del evento"
                           >
                             <MoreHorizontal className="w-4 h-4" />
@@ -413,12 +401,12 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
         <div className="space-y-6 animate-in fade-in duration-150">
           
           {/* Encabezado de Gestión de Encargados */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 rounded-2xl bg-white border border-[#e4e8ee] shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 card-ergonomic">
             <div>
-              <h2 className="text-base font-bold text-[#162e50] font-heading">
+              <h2 className="text-base font-bold text-[#1e293b] font-heading">
                 Administradores de Área Registrados ({encargadosList.length})
               </h2>
-              <p className="text-xs text-[#718098] mt-0.5">
+              <p className="text-xs text-[#64748b] mt-0.5">
                 Los encargados acceden exclusivamente por invitaciones multiuso generadas con token institucional.
               </p>
             </div>
@@ -427,40 +415,40 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               onClick={onOpenInviteModal}
               className="btn btn-primary"
             >
-              <Plus className="w-4 h-4" />
+              <Plus className="w-4 h-4 text-white" />
               <span>Crear Enlace Exclusivo</span>
             </button>
           </div>
 
-          {/* Grid de Encargados estilo Functional Mockup */}
+          {/* Grid de Encargados */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {encargadosList.map(enc => {
               const encEvents = events.filter(e => e.area === enc.area);
 
               return (
-                <div key={enc.id} className="p-4 rounded-2xl bg-white border border-[#e4e8ee] shadow-xs space-y-3">
+                <div key={enc.id} className="p-4 card-ergonomic space-y-3">
                   <div className="flex items-center gap-3">
                     <img src={enc.avatar} alt={enc.name} className="w-10 h-10 rounded-xl object-cover border border-[#e2e8f0]" />
                     <div className="truncate">
-                      <h3 className="font-bold text-[#142b4d] text-xs font-heading truncate">{enc.name}</h3>
-                      <span className="font-mono text-[10px] text-[#16a34a] bg-[#eaf7ec] px-1.5 py-0.5 rounded font-bold">
+                      <h3 className="font-bold text-[#1e293b] text-xs font-heading truncate">{enc.name}</h3>
+                      <span className="font-mono text-[10px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-1.5 py-0.5 rounded font-bold">
                         Área: {enc.area}
                       </span>
                     </div>
                   </div>
 
-                  <p className="text-[#718098] text-[11px] leading-relaxed line-clamp-2">
+                  <p className="text-[#475569] text-[11px] leading-relaxed line-clamp-2">
                     {enc.description}
                   </p>
 
-                  <div className="pt-2 border-t border-[#edf0f3] flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-[#8492a5]">Actividades del área:</span>
-                    <strong className="text-[#142b4d] font-bold">{encEvents.length}</strong>
+                  <div className="pt-2 border-t border-[#e2e8f0] flex items-center justify-between text-[11px] font-mono">
+                    <span className="text-[#64748b]">Actividades del área:</span>
+                    <strong className="text-[#1e293b] font-bold">{encEvents.length}</strong>
                   </div>
 
-                  <div className="flex items-center justify-between text-[10px] text-[#9aa5b2] pt-1">
+                  <div className="flex items-center justify-between text-[10px] text-[#64748b] pt-1">
                     <span>Estado: Activo</span>
-                    <span className="text-[#568020] font-bold">Acceso por Token</span>
+                    <span className="text-[#15803d] font-bold">Acceso por Token</span>
                   </div>
                 </div>
               );
@@ -468,68 +456,86 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
           </div>
 
           {/* Consulta Individual de Aprendices */}
-          <div className="p-5 rounded-2xl bg-white border border-[#e4e8ee] shadow-xs space-y-4">
+          <div className="p-5 card-ergonomic space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm font-bold text-[#162e50] font-heading">
+                <h3 className="text-sm font-bold text-[#1e293b] font-heading">
                   Consulta Individual de Aprendices y Participaciones
                 </h3>
-                <p className="text-xs text-[#718098] mt-0.5">
+                <p className="text-xs text-[#64748b] mt-0.5">
                   Auditoría institucional de registros con marcas de tiempo inmutables.
                 </p>
               </div>
 
-              <div className="relative w-full sm:w-72">
-                <Search className="w-4 h-4 text-[#8492a5] absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Buscar cédula, nombre o ficha..."
-                  value={searchLearner}
-                  onChange={(e) => setSearchLearner(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#dbe1e9] text-xs bg-white text-[#203754] focus:outline-none focus:border-[#91b52c]"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-[#94a3b8] absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Documento aprendiz (ej. 1020495821)"
+                    value={apprenticeSearchDoc}
+                    onChange={(e) => setApprenticeSearchDoc(e.target.value)}
+                    className="pl-9 pr-3 py-1.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d] w-64 font-mono"
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const res = getApprenticeAuditData(apprenticeSearchDoc.trim());
+                    setSearchedAuditResult(res);
+                  }}
+                  className="btn btn-secondary text-xs py-1.5"
+                >
+                  Consultar
+                </button>
               </div>
             </div>
 
-            <div className="border border-[#e4e8ee] rounded-xl overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-[#f8fafc] text-[#718098] font-bold border-b border-[#e4e8ee]">
-                  <tr>
-                    <th className="p-3">Documento</th>
-                    <th className="p-3">Nombre del Aprendiz</th>
-                    <th className="p-3">Ficha SENA</th>
-                    <th className="p-3">Programa</th>
-                    <th className="p-3">Actividades Acreditadas</th>
-                    <th className="p-3">Último Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#edf0f3] text-[#64758b]">
-                  {MOCK_PARTICIPANTS_DATABASE
-                    .filter(p => 
-                      !searchLearner ||
-                      p.name.toLowerCase().includes(searchLearner.toLowerCase()) ||
-                      p.documentNumber.includes(searchLearner) ||
-                      p.ficha.includes(searchLearner)
-                    )
-                    .map(p => (
-                      <tr key={p.id} className="hover:bg-[#fafbfc]">
-                        <td className="p-3 font-mono text-[11px] font-bold text-[#142b4d]">{p.documentNumber}</td>
-                        <td className="p-3 font-medium text-[#142b4d]">{p.name}</td>
-                        <td className="p-3 font-mono text-[11px]">{p.ficha}</td>
-                        <td className="p-3 truncate max-w-[200px]">{p.program}</td>
-                        <td className="p-3">
-                          <span className="font-mono text-[10px] bg-[#eaf7ec] text-[#16a34a] font-bold px-2 py-0.5 rounded">
-                            {p.historyCount || 3} asistencias
-                          </span>
-                        </td>
-                        <td className="p-3 font-mono text-[10px] text-[#8492a5]">
-                          {p.lastAttendanceTimestamp}
-                        </td>
+            {searchedAuditResult && (
+              <div className="p-4 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] font-bold flex items-center justify-center text-xs">
+                      {searchedAuditResult.name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div>
+                      <strong className="text-xs text-[#1e293b] font-heading block">{searchedAuditResult.name}</strong>
+                      <span className="text-[10px] text-[#64748b] font-mono">Ficha: {searchedAuditResult.ficha} • Doc: {searchedAuditResult.documentNumber}</span>
+                    </div>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">
+                    Total Asistencias: {searchedAuditResult.history?.length || 0}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-[11px] border-collapse">
+                    <thead>
+                      <tr className="text-[#64748b] border-b border-[#e2e8f0]">
+                        <th className="py-2">EVENTO</th>
+                        <th className="py-2">TIPO REGISTRO</th>
+                        <th className="py-2">TIMESTAMP INMUTABLE</th>
+                        <th className="py-2">ESTADO</th>
                       </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
+                    </thead>
+                    <tbody className="divide-y divide-[#e2e8f0]">
+                      {searchedAuditResult.history?.map((h, i) => (
+                        <tr key={i} className="text-[#334155]">
+                          <td className="py-2 font-medium">{h.title}</td>
+                          <td className="py-2 font-mono text-[#15803d]">{h.recordType}</td>
+                          <td className="py-2 font-mono text-[#64748b]">{h.timestamp}</td>
+                          <td className="py-2">
+                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                              Acreditado
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
           </div>
 
         </div>

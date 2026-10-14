@@ -9,21 +9,21 @@ export default function RoleBanner() {
     switch (currentUser.role) {
       case 'admin_general':
         return {
-          icon: <Shield className="w-3.5 h-3.5 text-zinc-950" />,
+          icon: <Shield className="w-3.5 h-3.5 text-[#15803d]" />,
           title: 'Rol Activo: Administrador General (Coordinación SENA)',
           badge: 'SUPERVISIÓN // ACCESO GLOBAL',
           desc: 'Supervisión de métricas globales, directorio de encargados y emisión de enlaces de invitación institucionales.'
         };
       case 'admin_area':
         return {
-          icon: <Sparkles className="w-3.5 h-3.5 text-zinc-950" />,
+          icon: <Sparkles className="w-3.5 h-3.5 text-[#d97706]" />,
           title: `Rol Activo: Encargado de Área (${currentUser.area})`,
           badge: `ENCARGADO // ${currentUser.area?.toUpperCase()}`,
           desc: 'Carga del plan anual Excel con IA, revisión de ambigüedades, publicación, habilitación de asistencia y exportación oficial GOR-F-013.'
         };
       case 'aprendiz':
         return {
-          icon: <User className="w-3.5 h-3.5 text-zinc-950" />,
+          icon: <User className="w-3.5 h-3.5 text-[#0284c7]" />,
           title: `Rol Activo: Aprendiz SENA (${currentUser.name})`,
           badge: currentUser.isProfileComplete ? 'PERFIL OFICIAL ACTIVO' : 'REGISTRO INICIAL PENDIENTE',
           desc: 'Consulta de eventos, preasistencia (hasta 1h antes), asistencia presencial en 1 clic con firma temporal digital e historial personal.'
@@ -37,22 +37,22 @@ export default function RoleBanner() {
   if (!config) return null;
 
   return (
-    <div className="bg-zinc-100/80 border-b border-zinc-200 px-4 py-2 text-xs">
+    <div className="bg-[#f8fafc] border-b border-[#e2e8f0] px-4 py-2 text-xs">
       <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <div className="w-5 h-5 rounded bg-white border border-zinc-200 flex items-center justify-center shrink-0 shadow-2xs">
+          <div className="w-6 h-6 rounded-lg bg-white border border-[#cbd5e1] flex items-center justify-center shrink-0 shadow-2xs">
             {config.icon}
           </div>
           <div className="flex items-center flex-wrap gap-2">
-            <span className="font-bold text-zinc-900 text-xs">{config.title}</span>
-            <span className="font-mono text-[9px] text-zinc-700 bg-white px-1.5 py-0.5 rounded border border-zinc-200 font-semibold">
+            <span className="font-bold text-[#1e293b] text-xs font-heading">{config.title}</span>
+            <span className="font-mono text-[9px] text-[#15803d] bg-[#eafaf1] px-2 py-0.5 rounded-md border border-[#bbf7d0] font-bold">
               {config.badge}
             </span>
-            <span className="text-zinc-600 hidden md:inline text-[11px]">— {config.desc}</span>
+            <span className="text-[#475569] hidden md:inline text-[11px]">— {config.desc}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-500 self-end sm:self-auto">
+        <div className="flex items-center gap-2 font-mono text-[10px] text-[#64748b] self-end sm:self-auto font-medium">
           <span>BIENESTAR AL APRENDIZ</span>
         </div>
       </div>

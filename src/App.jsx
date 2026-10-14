@@ -45,7 +45,7 @@ function AdminShell() {
   };
 
   return (
-    <div className="min-h-screen flex bg-[#f5f7fa] text-[#14213d] font-sans antialiased">
+    <div className="min-h-screen flex bg-[#f1f4f8] text-[#1e293b] font-sans antialiased">
       
       {/* Sidebar de Navegación Fija estilo Functional Mockup */}
       <Sidebar 
@@ -163,18 +163,18 @@ function LearnerShell() {
   } = useApp();
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#f5f7fa] text-[#14213d] font-sans antialiased">
+    <div className="min-h-screen flex flex-col bg-[#f1f4f8] text-[#1e293b] font-sans antialiased">
       
-      {/* Header Superior del Aprendiz estilo Stitch + Functional Mockup */}
-      <header className="h-[74px] bg-white border-b border-[#e6eaf0] px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+      {/* Header Superior del Aprendiz */}
+      <header className="h-[74px] bg-white border-b border-[#e2e8f0] px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
         <div className="flex items-center gap-3">
           <div className="logo-wrap">
             <div className="logo-mark logo-dark">
               <span>S</span>
             </div>
-            <div className="logo-type text-[#122b4c]">
+            <div className="logo-type text-[#1e293b]">
               <strong>Bienestar SENA</strong>
-              <small className="text-[#16a34a]">Portal del Aprendiz</small>
+              <small className="text-[#15803d]">Portal del Aprendiz</small>
             </div>
           </div>
         </div>
@@ -184,27 +184,27 @@ function LearnerShell() {
           <button
             type="button"
             onClick={() => setIsEmailDrawerOpen(true)}
-            className="relative w-10 h-10 rounded-xl border border-[#e1e6ed] bg-white text-[#5e7188] hover:text-[#142b4d] hover:bg-[#f8fafc] flex items-center justify-center transition-colors shadow-2xs"
+            className="relative w-10 h-10 rounded-xl border border-[#cbd5e1] bg-white text-[#475569] hover:text-[#0f172a] hover:bg-[#f8fafc] flex items-center justify-center transition-colors shadow-2xs"
             title="Buzón de notificaciones automáticas"
           >
-            <span className="w-2 h-2 rounded-full bg-[#16a34a] absolute top-2 right-2" />
+            <span className="w-2 h-2 rounded-full bg-[#15803d] absolute top-2 right-2" />
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
           </button>
 
           {/* Perfil del Aprendiz */}
-          <div className="flex items-center gap-3 pl-3 border-l border-[#e4e8ee]">
+          <div className="flex items-center gap-3 pl-3 border-l border-[#e2e8f0]">
             <img 
               src={currentUser.avatar} 
               alt={currentUser.name} 
-              className="w-9 h-9 rounded-xl object-cover border border-[#e2e8f0]"
+              className="w-9 h-9 rounded-xl object-cover border border-[#cbd5e1]"
             />
             <div className="hidden sm:flex flex-col text-left">
-              <strong className="text-xs font-bold text-[#273c57] font-heading truncate max-w-[140px]">
+              <strong className="text-xs font-bold text-[#1e293b] font-heading truncate max-w-[140px]">
                 {currentUser.name}
               </strong>
-              <small className="text-[#16a34a] font-bold text-[10px]">
+              <small className="text-[#15803d] font-bold text-[10px]">
                 Ficha {currentUser.ficha || '2687140'}
               </small>
             </div>
@@ -212,7 +212,7 @@ function LearnerShell() {
             <button
               type="button"
               onClick={logout}
-              className="p-2 rounded-xl text-[#8290a0] hover:text-rose-600 hover:bg-rose-50 transition-colors ml-1"
+              className="p-2 rounded-xl text-[#64748b] hover:text-rose-600 hover:bg-rose-50 transition-colors ml-1"
               title="Cerrar sesión"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -229,13 +229,13 @@ function LearnerShell() {
       </main>
 
       {/* Footer del Aprendiz */}
-      <footer className="border-t border-[#e6eaf0] bg-white py-4 px-6 text-xs text-[#8290a1] flex flex-col sm:flex-row items-center justify-between gap-2">
+      <footer className="border-t border-[#e2e8f0] bg-white py-4 px-6 text-xs text-[#64748b] flex flex-col sm:flex-row items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <strong className="text-[#203754]">Servicio Nacional de Aprendizaje SENA</strong>
+          <strong className="text-[#1e293b]">Servicio Nacional de Aprendizaje SENA</strong>
           <span>•</span>
           <span>Bienestar al Aprendiz</span>
         </div>
-        <div className="font-mono text-[11px] text-[#9aa5b2]">
+        <div className="font-mono text-[11px] text-[#94a3b8]">
           Complejo Paloquemao • 2026
         </div>
       </footer>
