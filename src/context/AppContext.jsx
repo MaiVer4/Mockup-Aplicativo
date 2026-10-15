@@ -444,7 +444,7 @@ export function AppProvider({ children }) {
     if (publishedEvent) {
       addToast(
         'Evento Publicado con Éxito',
-        `"${publishedEvent.title}" ya es visible para los aprendices. La preasistencia está abierta.`,
+        `"${publishedEvent.title}" ya es visible en la cartelera de Bienestar al Aprendiz.`,
         'success'
       );
 
@@ -453,7 +453,7 @@ export function AppProvider({ children }) {
       triggerSimulatedEmail({
         to: encargadoUser.email,
         subject: `[SENA Bienestar] Evento Publicado: ${publishedEvent.title}`,
-        body: `Se ha publicado formalmente la actividad "${publishedEvent.title}" programada para ${publishedEvent.date}. Los aprendices ya pueden registrar su preasistencia.`,
+        body: `Se ha publicado formalmente la actividad "${publishedEvent.title}" programada para ${publishedEvent.date}. El evento ya se encuentra disponible en la cartelera de Bienestar al Aprendiz.`,
         type: 'publicacion'
       });
       return true;
@@ -553,9 +553,7 @@ export function AppProvider({ children }) {
       location: newEventData.location || 'Centro de Formación - Auditorio',
       status: 'borrador', // Nace estrictamente en borrador (RF-ENC-18)
       capacity: Number(newEventData.capacity) || 60,
-      preattendanceCount: 0,
       attendeesCount: 0,
-      preattendedByUserIds: [],
       attendedByUserIds: [],
       responsibleId: currentUser.id,
       responsibleName: currentUser.name,
@@ -594,9 +592,7 @@ export function AppProvider({ children }) {
       location: item.location,
       status: 'borrador', // Siempre borrador hasta aprobación humana (RF-ENC-12, RF-ENC-18)
       capacity: Number(item.capacity) || 60,
-      preattendanceCount: 0,
       attendeesCount: 0,
-      preattendedByUserIds: [],
       attendedByUserIds: [],
       responsibleId: currentUser.id,
       responsibleName: item.responsibleName || currentUser.name,
@@ -614,53 +610,9 @@ export function AppProvider({ children }) {
     );
   };
 
-  // PREASISTENCIA Y ASISTENCIA DEL APRENDIZ
+  // ASISTENCIA DIRECTA DEL APRENDIZ
 
-  // 1. Registrar Preasistencia (RF-APR-15, RF-APR-16, RF-NOT-01)
-  const registerPreAttendance = (eventId) => {
-    let targetEvent = null;
-
-    setEvents(prev => prev.map(evt => {
-      if (evt.id === eventId) {
-        if (evt.status !== 'publicado') {
-          addToast('Preasistencia no disponible', 'La preasistencia solo se permite en eventos publicados antes de iniciar.', 'warning');
-          return evt;
-        }
-
-        const alreadyPre = evt.preattendedByUserIds?.includes(currentUser.id);
-        if (alreadyPre) {
-          // Cancelar preasistencia (RF-APR-17)
-          addToast('Preasistencia Cancelada', `Has cancelado tu preasistencia a "${evt.title}".`, 'info');
-          return {
-            ...evt,
-            preattendanceCount: Math.max(0, evt.preattendanceCount - 1),
-            preattendedByUserIds: evt.preattendedByUserIds.filter(id => id !== currentUser.id)
-          };
-        } else {
-          targetEvent = evt;
-          addToast('¡Preasistencia Confirmada!', `Has reservado tu lugar para "${evt.title}".`, 'success');
-          return {
-            ...evt,
-            preattendanceCount: evt.preattendanceCount + 1,
-            preattendedByUserIds: [...(evt.preattendedByUserIds || []), currentUser.id]
-          };
-        }
-      }
-      return evt;
-    }));
-
-    // RF-NOT-01: Notificar al aprendiz por correo al preasistir
-    if (targetEvent) {
-      triggerSimulatedEmail({
-        to: currentUser.personalEmail || currentUser.email,
-        subject: `[SENA Bienestar] Confirmación de Preasistencia: ${targetEvent.title}`,
-        body: `Hola ${currentUser.name}, confirmamos tu preasistencia a la actividad "${targetEvent.title}" programada para el ${targetEvent.date} a las ${targetEvent.time}. Recuerda confirmar tu asistencia presencial con 1 clic cuando el encargado habilite el ingreso.`,
-        type: 'preasistencia'
-      });
-    }
-  };
-
-  // 2. Registrar Asistencia en 1 Clic con Timestamp Inmutable (RF-APR-18 a RF-APR-21, RF-NOT-02)
+  // Registrar Asistencia en 1 Clic con Timestamp Inmutable (RF-APR-18 a RF-APR-21, RF-NOT-02)
   const registerAttendance = (eventId) => {
     let targetEvent = null;
     let alreadyAttended = false;
@@ -844,7 +796,6 @@ export function AppProvider({ children }) {
         createEvent,
         deleteEvent,
         importEventsFromAI,
-        registerPreAttendance,
         registerAttendance,
         inviteLinks,
         generateInviteLink,

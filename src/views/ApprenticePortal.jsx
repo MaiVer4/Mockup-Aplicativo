@@ -27,7 +27,6 @@ export default function ApprenticePortal() {
     currentUser, 
     visibleEvents, 
     events, 
-    registerPreAttendance, 
     registerAttendance, 
     activeTab, 
     setActiveTab,
@@ -52,12 +51,8 @@ export default function ApprenticePortal() {
     return matchesSearch && matchesArea;
   });
 
-  // Historial de asistencias personales
-  const myHistory = events.filter(evt => {
-    const pre = evt.preattendedByUserIds?.includes(currentUser.id);
-    const att = evt.attendedByUserIds?.includes(currentUser.id);
-    return pre || att;
-  });
+  // Historial de asistencias personales acreditadas
+  const myHistory = events.filter(evt => evt.attendedByUserIds?.includes(currentUser.id));
 
   // Configuración de las 6 Áreas de Bienestar con tonos suaves y descansados
   const stitchAreas = [
@@ -137,7 +132,7 @@ export default function ApprenticePortal() {
                 Hay experiencias esperando por ti.
               </h1>
               <p className="text-xs md:text-sm text-[#bfd3df] leading-relaxed">
-                Explora las actividades de Bienestar al Aprendiz, preasiste hasta 1 hora antes y acredita tu asistencia en 1 clic.
+                Explora las actividades de Bienestar al Aprendiz y acredita tu asistencia presencial en 1 clic.
               </p>
             </div>
 
@@ -228,9 +223,9 @@ export default function ApprenticePortal() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {filteredEvents.map(evt => {
-                  const hasPreattended = evt.preattendedByUserIds?.includes(currentUser.id);
                   const hasAttended = evt.attendedByUserIds?.includes(currentUser.id);
                   const isInProgress = evt.status === 'en_curso';
+                  const isFinished = evt.status === 'finalizado';
 
                   return (
                     <article 
@@ -252,7 +247,7 @@ export default function ApprenticePortal() {
                         <div className="absolute left-3 bottom-3 bg-white/95 text-[#1e293b] rounded-xl px-2.5 py-1.5 flex items-center gap-1.5 shadow-md border border-[#cbd5e1]/60">
                           <Clock className="w-3.5 h-3.5 text-[#15803d]" />
                           <strong className="text-xs font-bold font-mono">
-                            {evt.schedule?.split(' - ')[0] || '14:00'}
+                            {evt.time?.split(' - ')[0] || evt.schedule?.split(' - ')[0] || '14:00'}
                           </strong>
                           <small className="text-[8px] text-[#64748b] font-semibold">horas</small>
                         </div>
@@ -275,19 +270,17 @@ export default function ApprenticePortal() {
                           <span className="truncate">{evt.location}</span>
                         </div>
 
-                        {/* Avatares de confirmados */}
+                        {/* Avatares y aforo de asistentes */}
                         <div className="flex items-center gap-2 text-[11px] text-[#64748b]">
                           <div className="flex -space-x-1.5">
-                            <span className="w-6 h-6 rounded-full bg-[#eafaf1] text-[#15803d] border-2 border-white flex items-center justify-center font-bold text-[9px]">AM</span>
-                            <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 border-2 border-white flex items-center justify-center font-bold text-[9px]">JS</span>
-                            <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 border-2 border-white flex items-center justify-center font-bold text-[8px]">
-                              +{(evt.preattendanceCount || 10) - 2}
+                            <span className="w-6 h-6 rounded-full bg-[#eafaf1] text-[#15803d] border-2 border-white flex items-center justify-center font-bold text-[9px]">
+                              {evt.attendeesCount > 0 ? evt.attendeesCount : '0'}
                             </span>
                           </div>
-                          <span>{evt.preattendanceCount || 15} aprendices asistirán</span>
+                          <span>{evt.attendeesCount || 0} de {evt.capacity || 60} cupos oficiales</span>
                         </div>
 
-                        {/* Botón de Acción Dual */}
+                        {/* Botón de Acción Presencial */}
                         <div>
                           {hasAttended ? (
                             <button
@@ -307,28 +300,15 @@ export default function ApprenticePortal() {
                               <Sparkles className="w-4 h-4 text-white" />
                               <span>Confirmar Asistencia Presencial (1 Clic)</span>
                             </button>
+                          ) : isFinished ? (
+                            <div className="w-full py-2.5 rounded-xl text-xs font-semibold bg-[#f8fafc] text-[#64748b] border border-[#e2e8f0] flex items-center justify-center gap-2">
+                              <span>Actividad Finalizada</span>
+                            </div>
                           ) : (
-                            <button
-                              type="button"
-                              onClick={() => registerPreAttendance(evt.id)}
-                              className={`w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                                hasPreattended
-                                  ? 'bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd] hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200'
-                                  : 'btn btn-secondary'
-                              }`}
-                            >
-                              {hasPreattended ? (
-                                <>
-                                  <Check className="w-4 h-4" />
-                                  <span>Preasistencia Registrada (Cancelar)</span>
-                                </>
-                              ) : (
-                                <>
-                                  <span>Registrar Preasistencia</span>
-                                  <ArrowRight className="w-3.5 h-3.5" />
-                                </>
-                              )}
-                            </button>
+                            <div className="w-full py-2.5 px-3 rounded-xl text-xs font-semibold bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd] flex items-center justify-center gap-2">
+                              <Clock className="w-3.5 h-3.5 text-[#0284c7]" />
+                              <span>Programado · Se habilita al iniciar</span>
+                            </div>
                           )}
                         </div>
 
@@ -350,7 +330,7 @@ export default function ApprenticePortal() {
                 Tu asistencia cuenta
               </strong>
               <p className="text-[11px] text-[#166534] mt-0.5">
-                Al preasistir o confirmar, ayudas a los organizadores a preparar los cupos, materiales y refrigerios para una mejor experiencia comunitaria.
+                Al confirmar tu asistencia presencial en 1 clic, dejas constancia oficial en el formato institucional GOR-F-013 con firma digital inmutable del servidor.
               </p>
             </div>
           </div>
@@ -366,14 +346,14 @@ export default function ApprenticePortal() {
               Historial Personal de Participaciones ({myHistory.length})
             </h2>
             <p className="text-xs text-[#64748b] mt-0.5">
-              Certificación de actividades en las que has reservado cupo o acreditado asistencia presencial.
+              Certificación de actividades en las que has acreditado asistencia presencial.
             </p>
           </div>
 
           {myHistory.length === 0 ? (
             <div className="p-12 text-center border border-[#e2e8f0] rounded-xl space-y-2">
               <History className="w-8 h-8 text-[#94a3b8] mx-auto stroke-1" />
-              <p className="text-xs text-[#64748b]">Aún no has registrado preasistencia o asistencia en ningún evento.</p>
+              <p className="text-xs text-[#64748b]">Aún no has acreditado asistencia presencial en ningún evento.</p>
             </div>
           ) : (
             <div className="border border-[#e2e8f0] rounded-xl overflow-x-auto">
@@ -383,38 +363,28 @@ export default function ApprenticePortal() {
                     <th className="p-3">Código</th>
                     <th className="p-3">Actividad</th>
                     <th className="p-3">Área</th>
-                    <th className="p-3">Fecha Programada</th>
+                    <th className="p-3">Fecha Realizada</th>
                     <th className="p-3">Estado</th>
-                    <th className="p-3">Firma Digital</th>
+                    <th className="p-3">Firma Digital (Servidor)</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
-                  {myHistory.map(evt => {
-                    const attended = evt.attendedByUserIds?.includes(currentUser.id);
-
-                    return (
-                      <tr key={evt.id} className="hover:bg-[#f8fafc]">
-                        <td className="p-3 font-mono text-[11px] font-bold text-[#1e293b]">{evt.code}</td>
-                        <td className="p-3 font-medium text-[#1e293b]">{evt.title}</td>
-                        <td className="p-3 font-mono text-[11px] text-[#475569]">{evt.area}</td>
-                        <td className="p-3 font-mono text-[11px] text-[#475569]">{evt.date}</td>
-                        <td className="p-3">
-                          {attended ? (
-                            <span className="font-mono text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2 py-0.5 rounded font-bold">
-                              Asistió (Certificado)
-                            </span>
-                          ) : (
-                            <span className="font-mono text-[10px] bg-[#e0f2fe] text-[#0369a1] border border-[#bae6fd] px-2 py-0.5 rounded font-bold">
-                              Preasistió (Reservado)
-                            </span>
-                          )}
-                        </td>
-                        <td className="p-3 font-mono text-[10px] text-[#64748b]">
-                          {attended ? `${evt.date} 14:05:12` : 'Pendiente firma presencial'}
-                        </td>
-                      </tr>
-                    );
-                  })}
+                  {myHistory.map(evt => (
+                    <tr key={evt.id} className="hover:bg-[#f8fafc]">
+                      <td className="p-3 font-mono text-[11px] font-bold text-[#1e293b]">{evt.code}</td>
+                      <td className="p-3 font-medium text-[#1e293b]">{evt.title}</td>
+                      <td className="p-3 font-mono text-[11px] text-[#475569]">{evt.area}</td>
+                      <td className="p-3 font-mono text-[11px] text-[#475569]">{evt.date}</td>
+                      <td className="p-3">
+                        <span className="font-mono text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2 py-0.5 rounded font-bold">
+                          Asistió (Certificado)
+                        </span>
+                      </td>
+                      <td className="p-3 font-mono text-[10px] text-[#64748b]">
+                        {evt.date} 14:05:12 (COT)
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>

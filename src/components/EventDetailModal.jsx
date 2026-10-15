@@ -18,7 +18,6 @@ import {
 export default function EventDetailModal({ isOpen, onClose, event }) {
   const { 
     currentUser, 
-    registerPreAttendance, 
     registerAttendance,
     publishEvent,
     startEventAttendance,
@@ -29,7 +28,6 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
 
   const isLearner = currentUser.role === 'aprendiz';
   const isEncargado = currentUser.role === 'admin_area';
-  const isPreRegistered = event.preattendedByUserIds?.includes(currentUser.id);
   const isAttended = event.attendedByUserIds?.includes(currentUser.id);
   const isEnCurso = event.status === 'en_curso';
   const isPublicado = event.status === 'publicado';
@@ -38,7 +36,6 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
 
   const capacity = event.capacity || 50;
   const attendeesCount = event.attendeesCount || 0;
-  const preattendanceCount = event.preattendanceCount || 0;
   const percent = Math.min(100, Math.round((attendeesCount / capacity) * 100));
 
   return (
@@ -98,17 +95,17 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
               <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
                 {attendeesCount}
               </strong>
-              <small className="text-[#64748b] text-[10px]">de {capacity} cupos</small>
+              <small className="text-[#64748b] text-[10px]">asistencias en sala</small>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
               <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
-                CONFIRMADOS
+                CUPO META
               </span>
               <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
-                {preattendanceCount}
+                {capacity}
               </strong>
-              <small className="text-[#64748b] text-[10px]">preasistencias</small>
+              <small className="text-[#64748b] text-[10px]">cupos programados</small>
             </div>
 
             <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
@@ -179,31 +176,15 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
                   <Sparkles className="w-4 h-4 text-emerald-200" />
                   <span>Confirmar Asistencia Presencial (1 Clic)</span>
                 </button>
+              ) : isFinalizado ? (
+                <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] text-center text-xs font-semibold">
+                  Evento finalizado · Acreditación presencial cerrada
+                </div>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => {
-                    registerPreAttendance(event.id);
-                    onClose();
-                  }}
-                  className={`w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all ${
-                    isPreRegistered
-                      ? 'bg-[#f1f5f9] text-[#1e293b] border border-[#cbd5e1] hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200'
-                      : 'bg-[#15803d] text-white hover:bg-[#166534] shadow-sm'
-                  }`}
-                >
-                  {isPreRegistered ? (
-                    <>
-                      <Check className="w-4 h-4" />
-                      <span>Preasistencia Registrada (Cancelar Reserva)</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Registrar Preasistencia a esta Actividad</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
+                <div className="p-3.5 rounded-xl bg-[#f0f9ff] border border-[#bae6fd] text-[#0369a1] text-xs font-medium flex items-center justify-center gap-2">
+                  <Clock className="w-4 h-4 text-[#0284c7] shrink-0" />
+                  <span>Programado · La acreditación presencial se habilitará al iniciar la actividad</span>
+                </div>
               )}
             </div>
           )}

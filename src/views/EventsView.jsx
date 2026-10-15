@@ -269,14 +269,12 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                   <div className="flex items-center justify-between text-xs pt-1">
                     <div className="flex items-center gap-2">
                       <div className="flex -space-x-1.5">
-                        <span className="w-6 h-6 rounded-full bg-[#eafaf1] text-[#15803d] border-2 border-white flex items-center justify-center font-bold text-[9px]">AM</span>
-                        <span className="w-6 h-6 rounded-full bg-blue-100 text-blue-700 border-2 border-white flex items-center justify-center font-bold text-[9px]">JS</span>
-                        <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 border-2 border-white flex items-center justify-center font-bold text-[8px]">
-                          +{(evt.preattendanceCount || 10) - 2}
+                        <span className="w-6 h-6 rounded-full bg-[#eafaf1] text-[#15803d] border-2 border-white flex items-center justify-center font-bold text-[9px]">
+                          {evt.attendeesCount > 0 ? evt.attendeesCount : '0'}
                         </span>
                       </div>
                       <span className="text-[11px] text-[#64748b] font-mono">
-                        {evt.attendeesCount || 0} / {evt.capacity || 50}
+                        {evt.attendeesCount || 0} / {evt.capacity || 50} asistentes
                       </span>
                     </div>
 

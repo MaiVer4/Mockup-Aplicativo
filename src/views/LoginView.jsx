@@ -291,7 +291,7 @@ export default function LoginView() {
                         Aprendiz SENA (Sofia Arango)
                       </strong>
                       <small className="text-[#64748b] text-[11px]">
-                        Cartelera de actividades, preasistencia y acreditación en 1 clic
+                        Cartelera de actividades y acreditación presencial en 1 clic
                       </small>
                     </div>
                   </div>

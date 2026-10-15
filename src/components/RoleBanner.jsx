@@ -26,7 +26,7 @@ export default function RoleBanner() {
           icon: <User className="w-3.5 h-3.5 text-[#0284c7]" />,
           title: `Rol Activo: Aprendiz SENA (${currentUser.name})`,
           badge: currentUser.isProfileComplete ? 'PERFIL OFICIAL ACTIVO' : 'REGISTRO INICIAL PENDIENTE',
-          desc: 'Consulta de eventos, preasistencia (hasta 1h antes), asistencia presencial en 1 clic con firma temporal digital e historial personal.'
+          desc: 'Consulta de cartelera institucional, acreditación presencial de asistencia en 1 clic con firma digital de servidor e historial personal.'
         };
       default:
         return null;

@@ -18,8 +18,8 @@ export default function EmailNotificationDrawer({ isOpen, onClose }) {
 
   const getTypeBadge = (type) => {
     switch (type) {
-      case 'preasistencia':
-        return { label: 'CONFIRMACIÓN PREASISTENCIA', color: 'bg-[#e0f2fe] text-[#0369a1] border-[#bae6fd]' };
+      case 'invitacion':
+        return { label: 'INVITACIÓN ENCARGADO', color: 'bg-[#e0f2fe] text-[#0369a1] border-[#bae6fd]' };
       case 'asistencia':
         return { label: 'REGISTRO DE ASISTENCIA', color: 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]' };
       case 'publicacion':

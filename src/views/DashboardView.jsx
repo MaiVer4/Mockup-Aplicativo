@@ -4,6 +4,7 @@ import {
   Calendar, 
   Clock, 
   Users, 
+  UserCheck,
   TrendingUp, 
   ChevronRight, 
   CheckCircle2, 
@@ -46,11 +47,11 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
   const finishedEvents = relevantEvents.filter(e => e.status === 'finalizado').length;
 
   const totalAttendees = relevantEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
-  const totalPreAttendees = relevantEvents.reduce((acc, curr) => acc + (curr.preattendanceCount || 0), 0);
   const totalCapacity = relevantEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
-  const attendanceRate = totalPreAttendees > 0 
-    ? Math.min(100, Math.round((totalAttendees / totalPreAttendees) * 100)) 
-    : 86.4;
+  const totalRegisteredLearners = 1248; // Base activa de aprendices con perfil oficial completo
+  const attendanceRate = totalCapacity > 0 
+    ? Math.min(100, Math.round((totalAttendees / totalCapacity) * 100)) 
+    : 84.5;
 
   const encargadosList = users.filter(u => u.role === 'admin_area');
 
@@ -120,18 +121,18 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </div>
             </div>
 
-            {/* StatCard 2: Preasistencias */}
+            {/* StatCard 2: Aprendices Registrados */}
             <div className="card-ergonomic p-5 relative">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center absolute right-4 top-4 border border-emerald-100">
-                <Clock className="w-5 h-5" />
+                <UserCheck className="w-5 h-5" />
               </div>
-              <div className="text-xs text-[#64748b] font-semibold">Preasistencias (Reservas)</div>
+              <div className="text-xs text-[#64748b] font-semibold">Aprendices registrados</div>
               <div className="font-heading text-3xl font-extrabold text-[#1e293b] my-2">
-                {totalPreAttendees}
+                {totalRegisteredLearners.toLocaleString()}
               </div>
               <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
                 <span className="text-[#15803d] font-bold">↗ +24%</span>
-                <span>aprendices registrados</span>
+                <span>perfiles institucionales activos</span>
               </div>
             </div>
 
@@ -170,15 +171,15 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
           {/* Grid de 2 Columnas: Gráfico Comparativo + Agenda de Hoy */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4">
             
-            {/* Panel de Gráfico: Asistencia por semana */}
+            {/* Panel de Gráfico: Asistencias vs Cupo Planificado */}
             <div className="card-ergonomic p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between pb-3">
                 <div>
                   <strong className="text-sm font-heading font-bold text-[#1e293b]">
-                    Asistencia por semana
+                    Asistencia vs. Meta Planificada (Excel)
                   </strong>
                   <p className="text-[11px] text-[#64748b]">
-                    Comparativo de aprendices preasistentes y asistentes confirmados
+                    Comparativo de asistencias efectivas en sala vs. cupo proyectado
                   </p>
                 </div>
                 <select 
@@ -195,34 +196,34 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               {/* Leyenda del Gráfico */}
               <div className="flex items-center justify-end gap-4 text-[11px] text-[#64748b] my-2">
                 <span className="flex items-center gap-1.5">
-                  <i className="w-2.5 h-2.5 rounded-xs bg-[#22c55e] inline-block" />
-                  <span>Preasistencias (Reservas)</span>
+                  <i className="w-2.5 h-2.5 rounded-xs bg-[#cbd5e1] inline-block" />
+                  <span>Cupo Planificado (Meta)</span>
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <i className="w-2.5 h-2.5 rounded-xs bg-[#0e2738] inline-block" />
-                  <span>Asistencias (Firma 1 Clic)</span>
+                  <i className="w-2.5 h-2.5 rounded-xs bg-[#15803d] inline-block" />
+                  <span>Asistencias Confirmadas</span>
                 </span>
               </div>
 
               {/* Área de Barras con Tonos Calmantes */}
               <div className="h-44 border-b border-[#e2e8f0] pt-2 flex items-end justify-around gap-2 px-4 bg-[repeating-linear-gradient(to_bottom,transparent_0,transparent_40px,#f1f5f9_41px)]">
                 {[
-                  { label: 'Sem 1', pre: 75, att: 62 },
-                  { label: 'Sem 2', pre: 85, att: 70 },
-                  { label: 'Sem 3', pre: 65, att: 58 },
-                  { label: 'Sem 4', pre: 95, att: 88 },
-                  { label: 'Sem 5', pre: 90, att: 82 }
+                  { label: 'Sem 1', cap: 80, att: 62 },
+                  { label: 'Sem 2', cap: 90, att: 70 },
+                  { label: 'Sem 3', cap: 75, att: 58 },
+                  { label: 'Sem 4', cap: 100, att: 88 },
+                  { label: 'Sem 5', cap: 95, att: 82 }
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col items-center gap-1.5 h-full justify-end flex-1">
                     <div className="flex items-end gap-1.5 h-[80%]">
                       <div 
-                        style={{ height: `${item.pre}%` }} 
-                        className="w-3.5 bg-[#22c55e] rounded-t-md transition-all duration-300 shadow-2xs" 
-                        title={`Preasistencias: ${item.pre}`}
+                        style={{ height: `${item.cap}%` }} 
+                        className="w-3.5 bg-[#cbd5e1] rounded-t-md transition-all duration-300 shadow-2xs" 
+                        title={`Cupo Planificado (Excel): ${item.cap}`}
                       />
                       <div 
                         style={{ height: `${item.att}%` }} 
-                        className="w-3.5 bg-[#0e2738] rounded-t-md transition-all duration-300 shadow-2xs" 
+                        className="w-3.5 bg-[#15803d] rounded-t-md transition-all duration-300 shadow-2xs" 
                         title={`Asistencias Confirmadas: ${item.att}`}
                       />
                     </div>
@@ -287,7 +288,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                         <span className="truncate">{evt.location}</span>
                       </span>
                       <small className="text-[10px] text-[#15803d] font-bold block mt-0.5 font-mono">
-                        {evt.preattendanceCount || 0} preasistentes
+                        {evt.attendeesCount || 0} / {evt.capacity || 50} asistentes
                       </small>
                     </div>
 
