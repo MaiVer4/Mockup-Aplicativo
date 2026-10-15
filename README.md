@@ -42,10 +42,10 @@ Acceso local: 👉 **[http://localhost:3000](http://localhost:3000)** (o el puer
   - Aprobación humana antes de incorporar actividades al catálogo en estado **Borrador**.
 - **Ciclo de Vida de 4 Estados (RF-ENC-17 a RF-ENC-28)**:
   1. `Borrador`: Actividad creada o aprobada; solo visible para el encargado.
-  2. `Publicado`: Visible para los aprendices; habilita la opción de **Preasistencia**.
+  2. `Publicado`: Visible para los aprendices en cartelera institucional; muestra información logística y estado programado.
   3. `En Curso`: Asistencia habilitada para confirmación presencial con 1 clic.
   4. `Finalizado`: Asistencia deshabilitada; métricas congeladas y lista para exportar.
-- **Contadores Duales (RF-ENC-29)**: Conteo en tiempo real de aprendices preasistentes y asistentes confirmados.
+- **Control de Aforo y Asistencias (RF-ENC-29)**: Monitoreo en tiempo real de asistencias efectivas confirmadas en sala respecto al cupo proyectado en Excel.
 - **Exportación Oficial Formato GOR-F-013 (RF-ENC-30, RF-13, RF-14)**:
   - Auditoría previa de integridad (valida campos obligatorios, documentos únicos y firmas temporales).
   - Descarga real de archivo `.xlsx` estructurado con la cabecera institucional oficial del SENA y las filas de los participantes.
@@ -56,18 +56,16 @@ Acceso local: 👉 **[http://localhost:3000](http://localhost:3000)** (o el puer
 *Personas representativas: Sofía Castillo (Perfil Completo), Juan Pablo Duarte (Nuevo Ingreso)*
 - **Onboarding Obligatorio Bloqueante (RF-APR-02, RF-APR-08)**: Si el aprendiz ingresa por primera vez o con perfil incompleto, una ventana modal bloquea la pantalla exigiendo diligenciar los 12 datos institucionales (Documento, Género, Ficha, Modalidad, Programa, Jornada, Nivel, Centro, Teléfono). Incluye botón para autocompletar datos de prueba.
 - **Cartelera Pública (RF-APR-12)**: Acceso a todos los eventos en estado publicado o posterior, sin filtros restrictivos de centro ni programa.
-- **Preasistencia (RF-APR-15, 16, 17)**: Registro de reserva con un botón, cancelable antes del inicio del evento.
-- **Asistencia en 1 Clic con Firma Temporal Digital (RF-APR-18 a 21)**: Habilitada cuando el evento está *En Curso*. Genera un timestamp inmutable del servidor (`YYYY-MM-DD HH:mm:ss`), animación de confeti 🎉 e impide duplicados.
+- **Asistencia Presencial en 1 Clic con Firma Temporal Digital (RF-APR-18 a 21, RF-05)**: Habilitada cuando el evento está *En Curso*. Genera un timestamp inmutable del servidor (`YYYY-MM-DD HH:mm:ss`), animación de confeti 🎉 e impide duplicados.
 - **Detalle Extendido (RF-APR-14)**: Modal de consulta rápida con metodología, propósito y aforo.
-- **Historial Personal (RF-APR-23)**: Bitácora de participaciones con estado (*Preasistió* / *Asistió*) y fecha de registro.
+- **Historial Personal (RF-APR-23)**: Bitácora de participaciones con estado (*Asistió*) y fecha de registro con firma temporal de servidor.
 - **Regla de Edición Mensual (RF-APR-10)**: Vista de configuración con bloqueo de cambios a una sola vez por mes por campo.
 
 ---
 
-### 4. Notificaciones por Correo Electrónico Simuladas (RF-NOT-01 a RF-NOT-04)
+### 4. Notificaciones por Correo Electrónico Simuladas (RF-NOT-02 a RF-NOT-04)
 - Bandeja interactiva accesible desde el icono de sobre en la barra superior.
 - Muestra los correos generados automáticamente por el sistema:
-  - Notificación de preasistencia al aprendiz (`RF-NOT-01`).
   - Notificación de asistencia presencial al aprendiz (`RF-NOT-02`).
   - Notificación de publicación de evento al encargado del área (`RF-NOT-03`).
 
