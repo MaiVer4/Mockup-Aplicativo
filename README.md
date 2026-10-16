@@ -24,10 +24,14 @@ Acceso local: 👉 **[http://localhost:3000](http://localhost:3000)** (o el puer
 
 ### 1. Administrador General (Coordinación de Bienestar)
 *Persona representativa: Ing. Carlos Mendoza*
-- **Panel Exclusivo de Supervisión**: Métricas consolidadas por área (Cultura, Prevención, Habilidades, Actividad Física, Arte, Liderazgo), comparativa de aforo y estado operacional de actividades.
-- **Gestión de Encargados (RF-ADM-04)**: Directorio de administradores de área con actividades asignadas y estado de cuenta.
+- **Panel Exclusivo de Supervisión y Métricas (RF-15)**:
+  - **Ver Todas las Actividades**: Supervisión transversal centralizada de todas las actividades institucionales generadas por cualquier encargado o área, con filtros por categoría y estado de ciclo de vida (*Borrador, Publicado, En Curso, Finalizado*).
+  - **Métricas de Cada Encargado**: Tabla comparativa y KPIs individuales por administrador de área (volumen de actividades creadas/gestionadas, asistencias totales convocadas, promedio de aprendices por evento y tasa de cumplimiento frente a metas Excel).
+  - **Métricas de Asistencias a las Actividades**: Acreditaciones efectivas registradas con marca temporal inmutable, comparativa de cupo proyectado vs. real y evolución temporal/semanal.
+  - **Métricas de Usuarios de la Plataforma**: Censo institucional con aprendices con perfil oficial completo vs. pendientes de onboarding inicial (RF-01, RF-02), distribución de usuarios por programa formativo, modalidad y aprendices únicos auditados.
+- **Gestión de Encargados (RF-14, RF-16)**: Directorio de administradores de área con actividades asignadas y estado de cuenta.
 - **Generación de Enlaces Exclusivos (RF-ADM-03, RF-ENC-01)**: Generador y revocador de URLs con token para el registro exclusivo de encargados por área.
-- **Consulta de Aprendices (RF-ADM-05)**: Buscador individual de aprendices y su historial de participaciones auditadas.
+- **Consulta de Aprendices y Auditoría (RF-ADM-05, RF-05)**: Buscador individual de aprendices y su historial de participaciones auditadas con marcas temporales inmutables de servidor.
 - **⛔ Restricciones Normativas**: No puede crear, editar ni eliminar eventos (`RF-ADM-02`), ni descargar reportes operativos (`RF-ADM-06`).
 
 ---
