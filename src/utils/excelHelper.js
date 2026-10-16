@@ -97,6 +97,31 @@ const COLUMN_SYNONYMS = {
   ],
   code: [
     'código', 'codigo', 'cod', 'id', 'consecutivo', 'item', 'n°', 'num', 'numero'
+  ],
+  description: [
+    'descripcion', 'descripción', 'detalle', 'descripcion de la actividad', 
+    'alcance', 'metodologia', 'metodología', 'justificacion', 'justificación', 
+    'contenido', 'temario', 'resumen'
+  ],
+  objective: [
+    'objetivo', 'objetivo general', 'objetivos', 'proposito', 'propósito', 
+    'finalidad', 'meta formativa', 'logro esperado'
+  ],
+  targetAudience: [
+    'poblacion objetivo', 'población objetivo', 'dirigido a', 'fichas', 
+    'aprendices convocados', 'programa', 'poblacion', 'destinatarios', 
+    'fichas convocadas', 'beneficiarios', 'grupo', 'poblacion beneficiaria'
+  ],
+  cost: [
+    'costo estimado (cop)', 'costo estimado', 'costo', 'presupuesto', 
+    'inversion', 'inversión', 'valor', 'recursos'
+  ],
+  time: [
+    'horario', 'hora', 'hora inicio', 'hora de realizacion', 
+    'franja horaria', 'jornada', 'duracion', 'duración'
+  ],
+  observations: [
+    'observaciones', 'observacion', 'notas', 'comentarios', 'requisitos'
   ]
 };
 
@@ -335,6 +360,31 @@ export function detectHeaderAndRows(matrix = []) {
     validRows.push(rowObj);
   }
 
+  // 5. Propagación jerárquica (Forward-Fill) para columnas de Área, Línea y Trimestre
+  let currentArea = '';
+  let currentLine = '';
+  let currentQuarter = '';
+
+  validRows.forEach(row => {
+    if (columnMap.area && row[columnMap.area] && String(row[columnMap.area]).trim() !== '') {
+      currentArea = String(row[columnMap.area]).trim();
+    } else if (columnMap.area && currentArea && (!row[columnMap.area] || String(row[columnMap.area]).trim() === '')) {
+      row[columnMap.area] = currentArea;
+    }
+
+    if (columnMap.line && row[columnMap.line] && String(row[columnMap.line]).trim() !== '') {
+      currentLine = String(row[columnMap.line]).trim();
+    } else if (columnMap.line && currentLine && (!row[columnMap.line] || String(row[columnMap.line]).trim() === '')) {
+      row[columnMap.line] = currentLine;
+    }
+
+    if (columnMap.quarter && row[columnMap.quarter] && String(row[columnMap.quarter]).trim() !== '') {
+      currentQuarter = String(row[columnMap.quarter]).trim();
+    } else if (columnMap.quarter && currentQuarter && (!row[columnMap.quarter] || String(row[columnMap.quarter]).trim() === '')) {
+      row[columnMap.quarter] = currentQuarter;
+    }
+  });
+
   return {
     headerRowIndex: bestRowIndex,
     headers,
@@ -400,7 +450,25 @@ export async function parseMultiSheetExcelFile(file) {
 
         workbook.SheetNames.forEach(sheetName => {
           const worksheet = workbook.Sheets[sheetName];
-          // Leer matriz cruda de celdas
+
+          // 1. Propagar automáticamente celdas combinadas institucionales (!merges)
+          if (worksheet['!merges'] && Array.isArray(worksheet['!merges'])) {
+            worksheet['!merges'].forEach(range => {
+              const startAddress = XLSX.utils.encode_cell(range.s);
+              const startCell = worksheet[startAddress];
+              if (startCell && startCell.v !== undefined) {
+                for (let R = range.s.r; R <= range.e.r; ++R) {
+                  for (let C = range.s.c; C <= range.e.c; ++C) {
+                    if (R === range.s.r && C === range.s.c) continue;
+                    const cellAddress = XLSX.utils.encode_cell({ r: R, c: C });
+                    worksheet[cellAddress] = { ...startCell };
+                  }
+                }
+              }
+            });
+          }
+
+          // 2. Leer matriz cruda de celdas con encabezados dinámicos
           const matrix = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false });
           
           if (matrix && matrix.length > 0) {
@@ -489,9 +557,41 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       row['Lugar Sugerido'] || row['Lugar'] || row.location || 'Centro de Formación - Auditorio / Ambientes de Bienestar'
     ).toString().trim();
 
-    // 9. Síntesis pedagógica de propósito formativo y objetivo
-    const purpose = `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación activa y convivencia comunitaria.`;
-    const objective = `Desarrollar competencias socioemocionales e incentivar la integración y permanencia de las fichas de formación en el centro.`;
+    // 9. Propósito y Objetivo (Prioridad al texto real del Excel)
+    const rawPurpose = (
+      (columnMap.description && row[columnMap.description]) ||
+      row['Descripción'] || row['Descripcion'] || row['Detalle'] || row['Metodología'] || row['Metodologia'] || row['Justificación'] || ''
+    ).toString().trim();
+
+    const rawObjective = (
+      (columnMap.objective && row[columnMap.objective]) ||
+      row['Objetivo'] || row['Objetivo General'] || row['Propósito'] || row['Proposito'] || ''
+    ).toString().trim();
+
+    const purpose = rawPurpose || `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación activa y convivencia comunitaria.`;
+    const objective = rawObjective || `Desarrollar competencias socioemocionales e incentivar la integración y permanencia de las fichas de formación en el centro.`;
+
+    // 10. Población objetivo / Fichas convocadas
+    const targetAudience = (
+      (columnMap.targetAudience && row[columnMap.targetAudience]) ||
+      row['Población Objetivo'] || row['Poblacion Objetivo'] || row['Dirigido a'] || row['Fichas'] || row['Programa'] || 'Todos los aprendices'
+    ).toString().trim();
+
+    // 11. Costo / Presupuesto
+    const cost = (columnMap.cost && row[columnMap.cost]) || row['Costo Estimado (COP)'] || row['Costo'] || row['Presupuesto'] || 0;
+
+    // 12. Observaciones
+    const observations = (
+      (columnMap.observations && row[columnMap.observations]) ||
+      row['Observaciones'] || row['Observacion'] || row['Notas'] || ''
+    ).toString().trim();
+
+    // 13. Horario real
+    const rawTime = (
+      (columnMap.time && row[columnMap.time]) ||
+      row['Horario'] || row['Hora'] || row['Jornada'] || ''
+    ).toString().trim();
+    const time = rawTime || '14:00 - 17:00';
 
     const image = getSemanticImage(assignedArea, title + ' ' + line);
 
@@ -504,6 +604,9 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       line,
       purpose,
       objective,
+      targetAudience,
+      cost,
+      observations,
       capacity: estimatedCapacity,
       date: dateParsed.dateStr,
       rawDateValue: rawDateValue !== undefined ? String(rawDateValue) : '',
@@ -512,11 +615,12 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       responsibleName: responsible,
       image,
       duration: '3 horas',
-      time: '14:00 - 17:00',
+      time,
       location,
       status: 'borrador', // Nace siempre en borrador para revisión humana
       selected: true,
-      confidenceScore: dateParsed.isAmbiguous ? 82 : 99
+      confidenceScore: dateParsed.isAmbiguous ? 82 : 99,
+      originalRow: row // Preservar fila completa para auditoría celda a celda
     };
   });
 }
