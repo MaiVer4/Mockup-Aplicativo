@@ -156,15 +156,24 @@ export async function parseMultiSheetExcelFile(file) {
 // 3. Procesamiento semántico del modelo de IA sobre filas del Plan Anual
 export function processPlanRowsWithAI(rawRows, area = 'Cultura', quarter = 'Trimestre 4') {
   return rawRows.map((row, index) => {
-    const title = row['Evento / Actividad'] || row['Evento'] || row['Titulo'] || row['Actividad'] || `Actividad ${index + 1}`;
-    const code = row['Código'] || row['Codigo'] || `ACT-${area.substring(0, 3).toUpperCase()}-${index + 1}`;
-    const line = row['Línea de Acción'] || row['Linea'] || 'Formación y Bienestar Integral';
-    const estimatedCapacity = Number(row['Aprendices Estimados'] || row['Capacidad'] || row['Cupo'] || 60);
-    const dateValue = String(row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || '');
-    const responsible = row['Responsable Sugerido'] || row['Responsable'] || 'Coordinación de Área';
+    const title = row['Evento / Actividad'] || row['Evento'] || row['Titulo'] || row['Actividad'] || row.evento || `Actividad ${index + 1}`;
+    const code = row['Código'] || row['Codigo'] || row.codigo || `ACT-${area.substring(0, 3).toUpperCase()}-${index + 1}`;
+    const line = row['Línea de Acción'] || row['Linea'] || row.linea || 'Formación y Bienestar Integral';
+    const estimatedCapacity = Number(row['Aprendices Estimados'] || row['Capacidad'] || row['Cupo'] || row.aprendicesEstimados || 60);
+    const dateValue = String(row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || row.mesFecha || '');
+    const responsible = row['Responsable Sugerido'] || row['Responsable'] || row.responsable || 'Coordinación de Área';
 
     // Evaluación de ambigüedad
-    const ambiguityCheck = checkIsAmbiguousDate(dateValue);
+    let isAmbiguous = false;
+    let ambiguityReason = null;
+    if (typeof row.esAmbiguo === 'boolean') {
+      isAmbiguous = row.esAmbiguo;
+      ambiguityReason = row.motivoAmbiguedad || (isAmbiguous ? 'Fecha o datos pendientes de confirmación.' : null);
+    } else {
+      const ambiguityCheck = checkIsAmbiguousDate(dateValue);
+      isAmbiguous = ambiguityCheck.isAmbiguous;
+      ambiguityReason = ambiguityCheck.reason;
+    }
 
     // Síntesis de propósito formativo y objetivo según el contexto
     const purpose = `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación y convivencia.`;
@@ -177,15 +186,15 @@ export function processPlanRowsWithAI(rawRows, area = 'Cultura', quarter = 'Trim
       code,
       title,
       area,
-      quarter: row['Trimestre'] || quarter,
+      quarter: row['Trimestre'] || row.trimestre || quarter,
       line,
       purpose,
       objective,
       capacity: estimatedCapacity,
-      date: ambiguityCheck.isAmbiguous ? '2026-10-25' : dateValue, // Sugerencia si es ambigua
+      date: isAmbiguous ? (dateValue && /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? dateValue : '2026-10-25') : dateValue,
       rawDateValue: dateValue,
-      isAmbiguous: ambiguityCheck.isAmbiguous,
-      ambiguityReason: ambiguityCheck.reason,
+      isAmbiguous,
+      ambiguityReason,
       responsibleName: responsible,
       image,
       duration: '3 horas',
@@ -193,12 +202,12 @@ export function processPlanRowsWithAI(rawRows, area = 'Cultura', quarter = 'Trim
       location: 'Centro de Formación - Auditorio / Canchas',
       status: 'borrador', // Nace siempre en borrador
       selected: true,
-      confidenceScore: ambiguityCheck.isAmbiguous ? 76 : 98
+      confidenceScore: isAmbiguous ? 76 : 98
     };
   });
 }
 
-// 4. Validación de inconsistencias pre-exportación según RF-14
+// 4. Validación de inconsistencias pre-exportación
 export function validateParticipantsBeforeExport(participantsList = []) {
   const errors = [];
   const warnings = [];

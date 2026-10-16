@@ -292,13 +292,31 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                   {isEncargado && (
                     <div className="pt-2 border-t border-[#e2e8f0] flex items-center justify-between gap-1.5">
                       {isDraft && (
-                        <button
-                          type="button"
-                          onClick={() => publishEvent(evt.id)}
-                          className="btn btn-primary flex-1 py-1.5 text-xs font-bold"
-                        >
-                          <span>Publicar Evento</span>
-                        </button>
+                        evt.isAmbiguous ? (
+                          <div className="flex-1 flex items-center justify-between gap-1.5 p-1 bg-amber-50 border border-amber-200 rounded-lg">
+                            <div className="flex items-center gap-1.5 min-w-0 pl-1">
+                              <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                              <span className="text-[11px] text-amber-900 font-semibold truncate">
+                                Fecha por confirmar
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => onOpenDetailModal && onOpenDetailModal(evt)}
+                              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-[11px] font-bold shrink-0 transition-colors"
+                            >
+                              Revisar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => publishEvent(evt.id)}
+                            className="btn btn-primary flex-1 py-1.5 text-xs font-bold"
+                          >
+                            <span>Publicar Evento</span>
+                          </button>
+                        )
                       )}
 
                       {isPublished && (

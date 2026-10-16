@@ -408,56 +408,53 @@ export function AppProvider({ children }) {
     });
   };
 
-  // CICLO DE VIDA DE 4 ESTADOS (RF-ENC-17 a RF-ENC-28)
+  // CICLO DE VIDA DE 4 ESTADOS
 
   // 1. Pasar de Borrador a Publicado (Publicar)
-  const publishEvent = (eventId) => {
-    let publishedEvent = null;
-    let blockedByAmbiguity = false;
+  const publishEvent = (eventId, options = {}) => {
+    const targetEvent = events.find(evt => evt.id === eventId);
+    if (!targetEvent) {
+      addToast('Error al Publicar', 'No se encontró la actividad seleccionada.', 'error');
+      return false;
+    }
 
-    setEvents(prev => prev.map(evt => {
-      if (evt.id === eventId) {
-        // Bloqueo por ambigüedad según RF-06
-        if (evt.isAmbiguous) {
-          blockedByAmbiguity = true;
-          return evt;
-        }
-
-        publishedEvent = {
-          ...evt,
-          status: 'publicado'
-        };
-        return publishedEvent;
-      }
-      return evt;
-    }));
-
-    if (blockedByAmbiguity) {
+    // Bloqueo por ambigüedad si no se ha confirmado expresamente
+    if (targetEvent.isAmbiguous && !options.confirmAmbiguity) {
       addToast(
-        'Publicación Bloqueada por Ambigüedad',
-        'Esta actividad tiene fechas o responsables ambiguos pendientes de decisión humana. Edita el evento antes de publicar.',
+        'Publicación en Pausa: Fecha por Confirmar',
+        targetEvent.ambiguityReason || 'Esta actividad tiene una fecha o programación pendiente por definir. Confirma la fecha en el detalle antes de publicar.',
         'warning'
       );
       return false;
     }
 
-    if (publishedEvent) {
-      addToast(
-        'Evento Publicado con Éxito',
-        `"${publishedEvent.title}" ya es visible en la cartelera de Bienestar al Aprendiz.`,
-        'success'
-      );
+    setEvents(prev => prev.map(evt => {
+      if (evt.id === eventId) {
+        return {
+          ...evt,
+          status: 'publicado',
+          isAmbiguous: false,
+          ambiguityReason: null
+        };
+      }
+      return evt;
+    }));
 
-      // RF-NOT-03: Notificar por correo únicamente al encargado del área
-      const encargadoUser = usersList.find(u => u.id === publishedEvent.responsibleId) || currentUser;
-      triggerSimulatedEmail({
-        to: encargadoUser.email,
-        subject: `[SENA Bienestar] Evento Publicado: ${publishedEvent.title}`,
-        body: `Se ha publicado formalmente la actividad "${publishedEvent.title}" programada para ${publishedEvent.date}. El evento ya se encuentra disponible en la cartelera de Bienestar al Aprendiz.`,
-        type: 'publicacion'
-      });
-      return true;
-    }
+    addToast(
+      'Evento Publicado con Éxito',
+      `"${targetEvent.title}" ya es visible en la cartelera de Bienestar al Aprendiz.`,
+      'success'
+    );
+
+    // Notificar por correo únicamente al encargado del área
+    const encargadoUser = usersList.find(u => u.id === targetEvent.responsibleId) || currentUser;
+    triggerSimulatedEmail({
+      to: encargadoUser.email,
+      subject: `[SENA Bienestar] Evento Publicado: ${targetEvent.title}`,
+      body: `Se ha publicado formalmente la actividad "${targetEvent.title}" programada para ${targetEvent.date}. El evento ya se encuentra disponible en la cartelera de Bienestar al Aprendiz.`,
+      type: 'publicacion'
+    });
+    return true;
   };
 
   // 2. Despublicar (volver a Borrador)
@@ -478,7 +475,7 @@ export function AppProvider({ children }) {
     }));
   };
 
-  // 3. Habilitar Asistencia (Pasa a 'en_curso') (RF-ENC-26)
+  // 3. Habilitar Asistencia (Pasa a 'en_curso')
   const startEventAttendance = (eventId) => {
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
@@ -487,7 +484,7 @@ export function AppProvider({ children }) {
           return evt;
         }
         addToast(
-          'Asistencia Habilitada // Evento En Curso',
+          'Asistencia Habilitada · Evento En Curso',
           `Los aprendices ya pueden confirmar su asistencia en 1 clic para "${evt.title}".`,
           'success'
         );
@@ -500,13 +497,13 @@ export function AppProvider({ children }) {
     }));
   };
 
-  // 4. Finalizar Evento / Deshabilitar Asistencia (Pasa a 'finalizado') (RF-ENC-28)
+  // 4. Finalizar Evento / Deshabilitar Asistencia (Pasa a 'finalizado')
   const closeEventAttendance = (eventId) => {
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
         addToast(
           'Evento Finalizado',
-          `Se ha cerrado la toma de asistencia en "${evt.title}". Métricas congeladas y listo para exportación oficial GOR-F-013.`,
+          `Se ha cerrado la toma de asistencia en "${evt.title}". Métricas consolidadas y listo para la exportación de asistencia.`,
           'info'
         );
         return {

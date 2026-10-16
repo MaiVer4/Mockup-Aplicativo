@@ -1,25 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Calendar, 
   Clock, 
   Users, 
-  UserCheck,
+  UserCheck, 
   TrendingUp, 
   ChevronRight, 
   CheckCircle2, 
   Sparkles, 
   FileSpreadsheet, 
-  ExternalLink,
-  Plus,
-  Link as LinkIcon,
-  Shield,
-  ArrowRight,
-  MoreHorizontal,
-  MapPin,
-  Search,
-  Filter
+  ExternalLink, 
+  Plus, 
+  Link as LinkIcon, 
+  Shield, 
+  ArrowRight, 
+  MoreHorizontal, 
+  MapPin, 
+  Search, 
+  Filter,
+  Layers,
+  BarChart3,
+  Award,
+  ShieldCheck,
+  AlertCircle
 } from 'lucide-react';
+import { AREAS } from '../data/mockData';
 
 export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpenEventDetail }) {
   const { 
@@ -35,11 +41,30 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
   const [selectedWeekFilter, setSelectedWeekFilter] = useState('Últimas 5 semanas');
   const [apprenticeSearchDoc, setApprenticeSearchDoc] = useState('');
   const [searchedAuditResult, setSearchedAuditResult] = useState(null);
+  
+  // Pestañas de supervisión RF-15 para Admin General
+  const [adminMetricTab, setAdminMetricTab] = useState(activeTab === 'users' ? 'usuarios' : 'global');
+  const [selectedAreaFilter, setSelectedAreaFilter] = useState('Todas');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState('Todos');
+
+  // Sincronizar pestaña si activeTab cambia desde el menú lateral
+  useEffect(() => {
+    if (activeTab === 'users') {
+      setAdminMetricTab('usuarios');
+    }
+  }, [activeTab]);
 
   // Filtrar eventos relevantes según el rol
   const relevantEvents = visibleEvents;
 
-  // Métricas Consolidadas
+  // Filtro dinámico para la tabla de eventos en Visión Global
+  const filteredEvents = relevantEvents.filter(evt => {
+    const matchesArea = selectedAreaFilter === 'Todas' || evt.area === selectedAreaFilter;
+    const matchesStatus = selectedStatusFilter === 'Todos' || evt.status === selectedStatusFilter;
+    return matchesArea && matchesStatus;
+  });
+
+  // Métricas Consolidadas Globales (RF-15)
   const totalEvents = relevantEvents.length;
   const draftEvents = relevantEvents.filter(e => e.status === 'borrador').length;
   const publishedEvents = relevantEvents.filter(e => e.status === 'publicado').length;
@@ -55,8 +80,55 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
 
   const encargadosList = users.filter(u => u.role === 'admin_area');
 
-  // Sub-sección activa para admin general: si activeTab es 'users' muestra directorio
-  const isUsersView = activeTab === 'users';
+  // 1. Métricas de cada Encargado (RF-15)
+  const encargadosMetrics = encargadosList.map(enc => {
+    const encEvents = events.filter(e => e.area === enc.area);
+    const encCapacity = encEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
+    const encAttendees = encEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
+    const avgAttendees = encEvents.length > 0 ? Math.round(encAttendees / encEvents.length) : 0;
+    const rate = encCapacity > 0 ? Math.min(100, Math.round((encAttendees / encCapacity) * 100)) : 0;
+    const published = encEvents.filter(e => e.status === 'publicado').length;
+    const inProgress = encEvents.filter(e => e.status === 'en_curso').length;
+    const finished = encEvents.filter(e => e.status === 'finalizado').length;
+    const draft = encEvents.filter(e => e.status === 'borrador').length;
+
+    return {
+      ...enc,
+      totalEvents: encEvents.length,
+      published,
+      inProgress,
+      finished,
+      draft,
+      totalCapacity: encCapacity,
+      totalAttendees: encAttendees,
+      avgAttendees,
+      complianceRate: rate
+    };
+  });
+
+  // 2. Métricas de Usuarios de la Plataforma (RF-15)
+  const userStats = {
+    totalUsers: 1253, // 1249 aprendices + 3 encargados + 1 admin
+    totalApprentices: 1249,
+    completeApprentices: 1248, // Con perfil institucional diligenciado (RF-01, RF-02)
+    incompleteApprentices: 1, // Aprendiz nuevo pendiente de onboarding
+    activeEncargados: encargadosList.length,
+    activeAdmins: 1,
+    uniqueParticipatingApprentices: 892, // Con al menos 1 asistencia confirmada
+    participationCoverageRate: Math.round((892 / 1248) * 100), // 71%
+    onboardingComplianceRate: ((1248 / 1249) * 100).toFixed(1), // 99.9%
+    programsDistribution: [
+      { name: 'Análisis y Desarrollo de Software (ADSO)', count: 524, pct: 42 },
+      { name: 'Gestión Empresarial', count: 350, pct: 28 },
+      { name: 'Contabilización de Operaciones', count: 224, pct: 18 },
+      { name: 'Otras Especialidades Técnicas', count: 150, pct: 12 }
+    ],
+    modalityDistribution: [
+      { name: 'Presencial', count: 948, pct: 76 },
+      { name: 'Virtual', count: 225, pct: 18 },
+      { name: 'Mixta (A Distancia)', count: 75, pct: 6 }
+    ]
+  };
 
   // Eventos para la agenda de hoy
   const todayEvents = relevantEvents.slice(0, 3);
@@ -72,7 +144,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
           </h1>
           <p className="text-xs md:text-sm text-[#64748b] mt-1">
             {currentUser.role === 'admin_general'
-              ? 'Supervisión global de las 6 áreas de Bienestar al Aprendiz y gestión de accesos.'
+              ? 'Supervisión centralizada de actividades, métricas por área y censo de usuarios.'
               : `Aquí tienes el estado operativo y rendimiento de tus actividades del Área de ${currentUser.area}.`}
           </p>
         </div>
@@ -100,9 +172,66 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
         </div>
       </div>
 
-      {/* Si NO es vista de usuarios: mostrar Dashboard completo */}
-      {!isUsersView && (
-        <>
+      {/* Selector de Pestañas de Métricas (Solo Admin General) */}
+      {currentUser.role === 'admin_general' && (
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#e2e8f0] pb-3">
+          <div className="flex items-center gap-1.5 p-1 bg-[#e8edf3] rounded-xl border border-[#cbd5e1]/60">
+            <button
+              type="button"
+              onClick={() => {
+                setAdminMetricTab('global');
+                if (activeTab === 'users') setActiveTab('dashboard');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer ${
+                adminMetricTab === 'global'
+                  ? 'bg-white text-[#1e293b] shadow-xs'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              Visión Global y Actividades
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAdminMetricTab('encargados');
+                if (activeTab === 'users') setActiveTab('dashboard');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer ${
+                adminMetricTab === 'encargados'
+                  ? 'bg-white text-[#1e293b] shadow-xs'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              Métricas por Encargado
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAdminMetricTab('usuarios');
+              }}
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-heading font-bold transition-all cursor-pointer ${
+                adminMetricTab === 'usuarios'
+                  ? 'bg-white text-[#1e293b] shadow-xs'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              Métricas de Usuarios
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 text-xs text-[#64748b]">
+            <span className="w-2 h-2 rounded-full bg-[#15803d] inline-block animate-pulse" />
+            <span className="font-medium font-heading">Supervisión en Tiempo Real</span>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* PESTAÑA 1: VISIÓN GLOBAL Y TODAS LAS ACTIVIDADES (RF-15) */}
+      {/* ========================================================= */}
+      {(currentUser.role !== 'admin_general' || adminMetricTab === 'global') && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          
           {/* Grid de 4 StatCards Ergonómicas Anti-Fatiga */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
@@ -117,7 +246,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </div>
               <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
                 <span className="text-[#15803d] font-bold">↗ +18%</span>
-                <span>vs. mes anterior</span>
+                <span>de {totalEvents} actividades totales</span>
               </div>
             </div>
 
@@ -131,8 +260,8 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                 {totalRegisteredLearners.toLocaleString()}
               </div>
               <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
-                <span className="text-[#15803d] font-bold">↗ +24%</span>
-                <span>perfiles institucionales activos</span>
+                <span className="text-[#15803d] font-bold">↗ {userStats.onboardingComplianceRate}%</span>
+                <span>perfiles oficiales completos</span>
               </div>
             </div>
 
@@ -147,7 +276,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </div>
               <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
                 <span className="text-[#15803d] font-bold">↗ +12%</span>
-                <span>con firma digital</span>
+                <span>con firma digital inmutable</span>
               </div>
             </div>
 
@@ -162,7 +291,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </div>
               <div className="text-[11px] text-[#64748b] flex items-center gap-1 font-medium">
                 <span className="text-[#15803d] font-bold">↗ +6,2%</span>
-                <span>promedio general</span>
+                <span>promedio vs cupo Excel</span>
               </div>
             </div>
 
@@ -247,7 +376,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                 <button
                   type="button"
                   onClick={() => onNavigateView && onNavigateView('events')}
-                  className="btn-ghost text-xs text-[#475569] hover:text-[#1e293b]"
+                  className="btn-ghost text-xs text-[#475569] hover:text-[#1e293b] cursor-pointer"
                 >
                   Ver todos
                 </button>
@@ -259,7 +388,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     key={evt.id}
                     type="button"
                     onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
-                    className="w-full text-left p-2.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] hover:bg-white hover:border-[#cbd5e1] hover:shadow-sm transition-all grid grid-cols-[48px_52px_1fr_20px] items-center gap-2.5 group"
+                    className="w-full text-left p-2.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] hover:bg-white hover:border-[#cbd5e1] hover:shadow-sm transition-all grid grid-cols-[48px_52px_1fr_20px] items-center gap-2.5 group cursor-pointer"
                   >
                     {/* Chip de Hora */}
                     <div className={`h-11 rounded-lg flex flex-col items-center justify-center text-center ${
@@ -300,40 +429,65 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
 
           </div>
 
-          {/* Tabla de Eventos Recientes Ergonómica */}
+          {/* Tabla de Todas las Actividades con Filtros Centralizados (RF-15: Ver todas las actividades) */}
           <div className="card-ergonomic p-5">
-            <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e2e8f0] gap-3">
               <div>
                 <strong className="text-sm font-heading font-bold text-[#1e293b]">
-                  Eventos recientes
+                  Supervisión de Actividades Institucionales ({filteredEvents.length})
                 </strong>
                 <p className="text-[11px] text-[#64748b]">
-                  Supervisión de aforo y estado del ciclo de vida
+                  Control de ciclo de vida de 4 estados, asistencia acumulada y cupo planificado en Excel.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => onNavigateView && onNavigateView('events')}
-                className="btn btn-secondary text-xs"
-              >
-                <span>Ver todos los eventos</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+
+              {/* Filtros rápidos de Área y Estado */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <select
+                  value={selectedAreaFilter}
+                  onChange={(e) => setSelectedAreaFilter(e.target.value)}
+                  className="text-xs text-[#334155] border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-[#f8fafc] focus:outline-none focus:border-[#15803d] font-medium"
+                >
+                  <option value="Todas">Todas las Áreas</option>
+                  {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+
+                <select
+                  value={selectedStatusFilter}
+                  onChange={(e) => setSelectedStatusFilter(e.target.value)}
+                  className="text-xs text-[#334155] border border-[#cbd5e1] rounded-lg px-2.5 py-1.5 bg-[#f8fafc] focus:outline-none focus:border-[#15803d] font-medium"
+                >
+                  <option value="Todos">Todos los Estados</option>
+                  <option value="publicado">Publicado</option>
+                  <option value="en_curso">En Curso</option>
+                  <option value="finalizado">Finalizado</option>
+                  <option value="borrador">Borrador</option>
+                </select>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigateView && onNavigateView('events')}
+                  className="btn btn-secondary text-xs py-1.5"
+                >
+                  <span>Ver en Cartelera</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
 
             <div className="overflow-x-auto mt-2">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
-                    <th className="py-3 px-3">EVENTO</th>
-                    <th className="py-3 px-3">FECHA</th>
+                    <th className="py-3 px-3">ACTIVIDAD / ÁREA</th>
+                    <th className="py-3 px-3">FECHA Y HORA</th>
                     <th className="py-3 px-3">ESTADO</th>
                     <th className="py-3 px-3">ASISTENCIA / CAPACIDAD</th>
                     <th className="py-3 px-3 text-right">ACCIÓN</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
-                  {relevantEvents.slice(0, 5).map(evt => {
+                  {filteredEvents.map(evt => {
                     const capacity = evt.capacity || 50;
                     const count = evt.attendeesCount || 0;
                     const percent = Math.min(100, Math.round((count / capacity) * 100));
@@ -354,8 +508,13 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     return (
                       <tr key={evt.id} className="hover:bg-[#f8fafc] transition-colors">
                         <td className="py-3 px-3">
-                          <div className="font-heading font-bold text-[#1e293b]">{evt.title}</div>
-                          <div className="text-[11px] text-[#64748b]">{evt.location}</div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[9px] bg-slate-100 text-[#475569] px-1.5 py-0.5 rounded border border-[#cbd5e1] font-bold">
+                              {evt.area}
+                            </span>
+                            <span className="font-heading font-bold text-[#1e293b]">{evt.title}</span>
+                          </div>
+                          <div className="text-[11px] text-[#64748b] mt-0.5">{evt.location}</div>
                         </td>
                         <td className="py-3 px-3 font-mono text-[11px] text-[#475569]">
                           {evt.date} • {evt.schedule?.split(' - ')[0] || '14:00'}
@@ -367,11 +526,11 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                           <div className="w-36 space-y-1">
                             <div className="flex justify-between text-[11px]">
                               <strong className="text-[#1e293b]">{count}</strong>
-                              <span className="text-[#64748b]">/ {capacity}</span>
+                              <span className="text-[#64748b]">/ {capacity} meta</span>
                             </div>
                             <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
                               <div 
-                                style={{ width: `${percent}%` }}
+                                style={{ width: `${percent}%` }} 
                                 className="h-full bg-[#15803d] rounded-full"
                               />
                             </div>
@@ -381,7 +540,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                           <button
                             type="button"
                             onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
-                            className="p-1 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0]"
+                            className="p-1 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] cursor-pointer"
                             title="Ver detalle del evento"
                           >
                             <MoreHorizontal className="w-4 h-4" />
@@ -394,77 +553,437 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </table>
             </div>
           </div>
-        </>
+
+        </div>
       )}
 
-      {/* Si ES vista de usuarios: mostrar Directorio de Encargados y Consulta de Aprendices */}
-      {isUsersView && currentUser.role === 'admin_general' && (
+      {/* ========================================================= */}
+      {/* PESTAÑA 2: MÉTRICAS DE CADA ENCARGADO DE ÁREA (RF-15)    */}
+      {/* ========================================================= */}
+      {currentUser.role === 'admin_general' && adminMetricTab === 'encargados' && (
         <div className="space-y-6 animate-in fade-in duration-150">
           
-          {/* Encabezado de Gestión de Encargados */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-5 card-ergonomic">
+          {/* Cabecera de la Sección de Encargados */}
+          <div className="p-5 card-ergonomic flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h2 className="text-base font-bold text-[#1e293b] font-heading">
-                Administradores de Área Registrados ({encargadosList.length})
-              </h2>
-              <p className="text-xs text-[#64748b] mt-0.5">
-                Los encargados acceden exclusivamente por invitaciones multiuso generadas con token institucional.
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-[#1e293b] font-heading">
+                  Rendimiento y Desempeño Operativo por Encargado de Área
+                </h2>
+                <span className="text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2.5 py-0.5 rounded-md font-bold font-heading uppercase tracking-wide">
+                  Gestión Operativa
+                </span>
+              </div>
+              <p className="text-xs text-[#64748b] mt-1 leading-relaxed">
+                Supervisión de actividades creadas vía Excel, tasa de publicación, aforo total convocado y porcentaje de cumplimiento frente al plan oficial.
               </p>
             </div>
+
             <button
               type="button"
               onClick={onOpenInviteModal}
-              className="btn btn-primary"
+              className="btn btn-primary text-xs shrink-0"
             >
               <Plus className="w-4 h-4 text-white" />
-              <span>Crear Enlace Exclusivo</span>
+              <span>Invitar Nuevo Encargado</span>
             </button>
           </div>
 
-          {/* Grid de Encargados */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {encargadosList.map(enc => {
-              const encEvents = events.filter(e => e.area === enc.area);
+          {/* Tarjetas Resumen de KPIs por Encargado */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="card-ergonomic p-4">
+              <span className="text-[11px] text-[#64748b] font-medium block">Encargados Asignados</span>
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block my-1">
+                {encargadosList.length} Áreas
+              </strong>
+              <span className="text-[10px] text-[#15803d] font-bold">100% con token activo</span>
+            </div>
 
-              return (
-                <div key={enc.id} className="p-4 card-ergonomic space-y-3">
-                  <div className="flex items-center gap-3">
-                    <img src={enc.avatar} alt={enc.name} className="w-10 h-10 rounded-xl object-cover border border-[#e2e8f0]" />
+            <div className="card-ergonomic p-4">
+              <span className="text-[11px] text-[#64748b] font-medium block">Total Actividades de Áreas</span>
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block my-1">
+                {events.length} Eventos
+              </strong>
+              <span className="text-[10px] text-[#64748b]">Cargados vía Excel / Manual</span>
+            </div>
+
+            <div className="card-ergonomic p-4">
+              <span className="text-[11px] text-[#64748b] font-medium block">Asistencias Convocadas</span>
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block my-1">
+                {totalAttendees} Aprendices
+              </strong>
+              <span className="text-[10px] text-[#15803d] font-bold">Acreditados en sala</span>
+            </div>
+
+            <div className="card-ergonomic p-4">
+              <span className="text-[11px] text-[#64748b] font-medium block">Cumplimiento Promedio</span>
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block my-1">
+                {attendanceRate}%
+              </strong>
+              <span className="text-[10px] text-[#15803d] font-bold">↗ Meta institucional superada</span>
+            </div>
+          </div>
+
+          {/* Tabla Comparativa de Rendimiento por Encargado */}
+          <div className="card-ergonomic p-5">
+            <div className="pb-3 border-b border-[#e2e8f0]">
+              <strong className="text-sm font-heading font-bold text-[#1e293b]">
+                Tabla Comparativa de Encargados de Área
+              </strong>
+              <p className="text-[11px] text-[#64748b]">
+                Desglose analítico de actividades gestionadas, estado operativo y tasa de cumplimiento por responsable.
+              </p>
+            </div>
+
+            <div className="overflow-x-auto mt-3">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
+                    <th className="py-3 px-3">ENCARGADO / ÁREA</th>
+                    <th className="py-3 px-3">ACTIVIDADES</th>
+                    <th className="py-3 px-3">ESTADOS (PUB / CURSO / FIN)</th>
+                    <th className="py-3 px-3">AFORO ASISTENTES / CUPO</th>
+                    <th className="py-3 px-3">PROMEDIO / ACTIVIDAD</th>
+                    <th className="py-3 px-3">TASA DE CUMPLIMIENTO</th>
+                    <th className="py-3 px-3 text-right">ACCIÓN</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
+                  {encargadosMetrics.map(enc => (
+                    <tr key={enc.id} className="hover:bg-[#f8fafc] transition-colors">
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-2.5">
+                          <img src={enc.avatar} alt={enc.name} className="w-8 h-8 rounded-lg object-cover border border-[#e2e8f0]" />
+                          <div>
+                            <strong className="text-xs font-bold text-[#1e293b] font-heading block">{enc.name}</strong>
+                            <span className="text-[10px] text-[#15803d] font-bold font-mono">Área: {enc.area}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3 font-mono font-bold text-xs text-[#1e293b]">
+                        {enc.totalEvents} actividades
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                          <span className="bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.5 rounded font-bold" title="Publicados">
+                            {enc.published} P
+                          </span>
+                          <span className="bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-bold" title="En Curso">
+                            {enc.inProgress} C
+                          </span>
+                          <span className="bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold" title="Finalizados">
+                            {enc.finished} F
+                          </span>
+                          {enc.draft > 0 && (
+                            <span className="bg-slate-50 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded" title="Borradores">
+                              {enc.draft} B
+                            </span>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <div className="font-mono text-xs">
+                          <strong className="text-[#1e293b]">{enc.totalAttendees}</strong>
+                          <span className="text-[#64748b]"> / {enc.totalCapacity} cupos</span>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3 font-mono text-xs font-medium text-[#475569]">
+                        ~{enc.avgAttendees} aprendices
+                      </td>
+
+                      <td className="py-3.5 px-3">
+                        <div className="w-32 space-y-1">
+                          <div className="flex justify-between text-[11px] font-mono">
+                            <strong className="text-[#15803d]">{enc.complianceRate}%</strong>
+                            <span className="text-[#64748b]">efectividad</span>
+                          </div>
+                          <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
+                            <div 
+                              style={{ width: `${enc.complianceRate}%` }} 
+                              className="h-full bg-[#15803d] rounded-full"
+                            />
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-3 text-right">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedAreaFilter(enc.area);
+                            setAdminMetricTab('global');
+                          }}
+                          className="btn btn-secondary text-[11px] py-1 px-2.5 cursor-pointer"
+                          title={`Filtrar eventos del área de ${enc.area}`}
+                        >
+                          <span>Ver Actividades</span>
+                          <ChevronRight className="w-3 h-3" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Grid de Tarjetas de Perfil de Encargado */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {encargadosMetrics.map(enc => (
+              <div key={enc.id} className="p-4 card-ergonomic space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <img src={enc.avatar} alt={enc.name} className="w-9 h-9 rounded-xl object-cover border border-[#e2e8f0]" />
+                    <div>
+                      <h4 className="font-bold text-xs text-[#1e293b] font-heading">{enc.name}</h4>
+                      <span className="font-mono text-[9px] text-[#15803d] font-bold">Líder {enc.area}</span>
+                    </div>
+                  </div>
+                  <span className="font-mono text-[10px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-2 py-0.5 rounded font-bold">
+                    {enc.complianceRate}%
+                  </span>
+                </div>
+
+                <p className="text-[11px] text-[#475569] leading-relaxed line-clamp-2">
+                  {enc.description}
+                </p>
+
+                <div className="pt-2 border-t border-[#e2e8f0] flex items-center justify-between text-[11px] font-mono">
+                  <span className="text-[#64748b]">Total asistencias en sala:</span>
+                  <strong className="text-[#1e293b] font-bold">{enc.totalAttendees}</strong>
+                </div>
+              </div>
+            ))}
+          </div>
+
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* PESTAÑA 3: MÉTRICAS DE USUARIOS DE LA PLATAFORMA (RF-15) */}
+      {/* ========================================================= */}
+      {currentUser.role === 'admin_general' && adminMetricTab === 'usuarios' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          
+          {/* Cabecera de la Sección de Usuarios */}
+          <div className="p-5 card-ergonomic flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-[#1e293b] font-heading">
+                  Censo Institucional y Métricas de Usuarios de la Plataforma
+                </h2>
+                <span className="text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2.5 py-0.5 rounded-md font-bold font-heading uppercase tracking-wide">
+                  Censo Institucional
+                </span>
+              </div>
+              <p className="text-xs text-[#64748b] mt-1 leading-relaxed">
+                Supervisión del universo de aprendices, estado de perfiles institucionales activos, directorio de encargados y participaciones auditadas.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={onOpenInviteModal}
+              className="btn btn-primary text-xs shrink-0"
+            >
+              <LinkIcon className="w-4 h-4 text-white" />
+              <span>Emitir Enlace con Token</span>
+            </button>
+          </div>
+
+          {/* Grid de 4 StatCards de Censo */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div className="card-ergonomic p-4 relative">
+              <div className="w-9 h-9 rounded-xl bg-slate-100 text-[#1e293b] flex items-center justify-center absolute right-4 top-4 border border-slate-200">
+                <Users className="w-4 h-4" />
+              </div>
+              <span className="text-xs text-[#64748b] font-semibold">Total Censo Usuarios</span>
+              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block my-1">
+                {userStats.totalUsers.toLocaleString()}
+              </strong>
+              <span className="text-[11px] text-[#64748b]">Aprendices + Encargados + Admin</span>
+            </div>
+
+            <div className="card-ergonomic p-4 relative">
+              <div className="w-9 h-9 rounded-xl bg-emerald-50 text-[#15803d] flex items-center justify-center absolute right-4 top-4 border border-[#bbf7d0]">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <span className="text-xs text-[#64748b] font-semibold">Perfiles Oficiales Activos</span>
+              <strong className="text-2xl font-extrabold text-[#15803d] font-heading block my-1">
+                {userStats.completeApprentices.toLocaleString()}
+              </strong>
+              <span className="text-[11px] text-[#15803d] font-bold">
+                ↗ {userStats.onboardingComplianceRate}% con datos completos
+              </span>
+            </div>
+
+            <div className="card-ergonomic p-4 relative">
+              <div className="w-9 h-9 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center absolute right-4 top-4 border border-amber-200">
+                <AlertCircle className="w-4 h-4" />
+              </div>
+              <span className="text-xs text-[#64748b] font-semibold">Onboarding Pendiente</span>
+              <strong className="text-2xl font-extrabold text-amber-700 font-heading block my-1">
+                {userStats.incompleteApprentices}
+              </strong>
+              <span className="text-[11px] text-amber-700 font-medium">
+                Bloqueo preventivo en primer ingreso
+              </span>
+            </div>
+
+            <div className="card-ergonomic p-4 relative">
+              <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center absolute right-4 top-4 border border-blue-100">
+                <Award className="w-4 h-4" />
+              </div>
+              <span className="text-xs text-[#64748b] font-semibold">Aprendices Participantes</span>
+              <strong className="text-2xl font-extrabold text-blue-700 font-heading block my-1">
+                {userStats.uniqueParticipatingApprentices}
+              </strong>
+              <span className="text-[11px] text-[#64748b]">
+                {userStats.participationCoverageRate}% con asistencia acreditada
+              </span>
+            </div>
+
+          </div>
+
+          {/* Grid de 2 Paneles: Distribución por Programa y Modalidad */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Panel 1: Distribución por Programa de Formación */}
+            <div className="card-ergonomic p-5 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
+                <div>
+                  <h4 className="text-xs font-bold text-[#1e293b] font-heading uppercase tracking-wide">
+                    Distribución por Programa de Formación
+                  </h4>
+                  <p className="text-[11px] text-[#64748b]">
+                    Población de aprendices adscritos al Centro de Formación
+                  </p>
+                </div>
+                <span className="font-mono text-[10px] text-[#15803d] font-bold">100% Titulada</span>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                {userStats.programsDistribution.map((prog, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#334155] font-medium truncate">{prog.name}</span>
+                      <div className="flex items-center gap-2 font-mono">
+                        <strong className="text-[#1e293b]">{prog.count}</strong>
+                        <span className="text-[#64748b] text-[10px]">({prog.pct}%)</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
+                      <div 
+                        style={{ width: `${prog.pct}%` }} 
+                        className={`h-full rounded-full ${
+                          idx === 0 ? 'bg-[#15803d]' : idx === 1 ? 'bg-blue-600' : idx === 2 ? 'bg-purple-600' : 'bg-slate-500'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Panel 2: Distribución por Modalidad de Formación */}
+            <div className="card-ergonomic p-5 space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
+                <div>
+                  <h4 className="text-xs font-bold text-[#1e293b] font-heading uppercase tracking-wide">
+                    Distribución por Modalidad y Cobertura
+                  </h4>
+                  <p className="text-[11px] text-[#64748b]">
+                    Canal de asistencia presencial y virtual oficial
+                  </p>
+                </div>
+                <span className="font-mono text-[10px] text-[#15803d] font-bold">Activo</span>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                {userStats.modalityDistribution.map((mod, idx) => (
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#334155] font-medium">{mod.name}</span>
+                      <div className="flex items-center gap-2 font-mono">
+                        <strong className="text-[#1e293b]">{mod.count}</strong>
+                        <span className="text-[#64748b] text-[10px]">({mod.pct}%)</span>
+                      </div>
+                    </div>
+                    <div className="w-full h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
+                      <div 
+                        style={{ width: `${mod.pct}%` }} 
+                        className="h-full bg-[#15803d] rounded-full"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] mt-3 flex items-center justify-between text-[11px]">
+                <span className="text-[#64748b]">Nivel Tecnólogo: <strong className="text-[#1e293b]">68%</strong></span>
+                <span className="text-[#64748b]">Nivel Técnico: <strong className="text-[#1e293b]">32%</strong></span>
+              </div>
+            </div>
+
+          </div>
+
+          {/* Directorio de Administradores de Área Registrados */}
+          <div className="card-ergonomic p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e2e8f0] gap-2">
+              <div>
+                <h3 className="text-sm font-bold text-[#1e293b] font-heading">
+                  Directorio Oficial de Encargados de Área ({encargadosList.length})
+                </h3>
+                <p className="text-xs text-[#64748b] mt-0.5">
+                  Cuentas autorizadas mediante enlace exclusivo con token institucional.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={onOpenInviteModal}
+                className="btn btn-secondary text-xs py-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Generar Enlace Token</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {encargadosList.map(enc => (
+                <div key={enc.id} className="p-3.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] space-y-2">
+                  <div className="flex items-center gap-2.5">
+                    <img src={enc.avatar} alt={enc.name} className="w-8 h-8 rounded-lg object-cover border border-[#e2e8f0]" />
                     <div className="truncate">
-                      <h3 className="font-bold text-[#1e293b] text-xs font-heading truncate">{enc.name}</h3>
-                      <span className="font-mono text-[10px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-1.5 py-0.5 rounded font-bold">
+                      <h4 className="text-xs font-bold text-[#1e293b] font-heading truncate">{enc.name}</h4>
+                      <span className="font-mono text-[9px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-1.5 py-0.2 rounded font-bold">
                         Área: {enc.area}
                       </span>
                     </div>
                   </div>
-
-                  <p className="text-[#475569] text-[11px] leading-relaxed line-clamp-2">
-                    {enc.description}
-                  </p>
-
-                  <div className="pt-2 border-t border-[#e2e8f0] flex items-center justify-between text-[11px] font-mono">
-                    <span className="text-[#64748b]">Actividades del área:</span>
-                    <strong className="text-[#1e293b] font-bold">{encEvents.length}</strong>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[10px] text-[#64748b] pt-1">
-                    <span>Estado: Activo</span>
-                    <span className="text-[#15803d] font-bold">Acceso por Token</span>
+                  <div className="flex items-center justify-between text-[10px] text-[#64748b] pt-1 border-t border-[#e2e8f0]/80">
+                    <span>Email: {enc.email}</span>
+                    <span className="text-[#15803d] font-bold">Token Activo</span>
                   </div>
                 </div>
-              );
-            })}
+              ))}
+            </div>
           </div>
 
-          {/* Consulta Individual de Aprendices */}
+          {/* Consulta Individual de Aprendices y Auditoría de Marcas de Tiempo */}
           <div className="p-5 card-ergonomic space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e2e8f0]">
               <div>
                 <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-                  Consulta Individual de Aprendices y Participaciones
+                  Auditoría Individual de Aprendices
                 </h3>
                 <p className="text-xs text-[#64748b] mt-0.5">
-                  Auditoría institucional de registros con marcas de tiempo inmutables.
+                  Consulta de trazabilidad institucional con sellos de tiempo inmutables de servidor.
                 </p>
               </div>
 
@@ -485,7 +1004,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     const res = getApprenticeAuditData(apprenticeSearchDoc.trim());
                     setSearchedAuditResult(res);
                   }}
-                  className="btn btn-secondary text-xs py-1.5"
+                  className="btn btn-secondary text-xs py-1.5 cursor-pointer"
                 >
                   Consultar
                 </button>
@@ -496,7 +1015,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               <div className="p-4 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] font-bold flex items-center justify-center text-xs">
+                    <div className="w-8 h-8 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] font-bold flex items-center justify-center text-xs font-mono">
                       {searchedAuditResult.name.slice(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -505,7 +1024,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                     </div>
                   </div>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">
-                    Total Asistencias: {searchedAuditResult.history?.length || 0}
+                    Total Asistencias Acreditadas: {searchedAuditResult.history?.length || 0}
                   </span>
                 </div>
 
@@ -513,19 +1032,19 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                   <table className="w-full text-left text-[11px] border-collapse">
                     <thead>
                       <tr className="text-[#64748b] border-b border-[#e2e8f0]">
-                        <th className="py-2">EVENTO</th>
-                        <th className="py-2">TIPO REGISTRO</th>
-                        <th className="py-2">TIMESTAMP INMUTABLE</th>
-                        <th className="py-2">ESTADO</th>
+                        <th className="py-2 px-2">EVENTO</th>
+                        <th className="py-2 px-2">TIPO REGISTRO</th>
+                        <th className="py-2 px-2">TIMESTAMP INMUTABLE</th>
+                        <th className="py-2 px-2">ESTADO</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#e2e8f0]">
                       {searchedAuditResult.history?.map((h, i) => (
                         <tr key={i} className="text-[#334155]">
-                          <td className="py-2 font-medium">{h.title}</td>
-                          <td className="py-2 font-mono text-[#15803d]">{h.recordType}</td>
-                          <td className="py-2 font-mono text-[#64748b]">{h.timestamp}</td>
-                          <td className="py-2">
+                          <td className="py-2 px-2 font-medium">{h.title}</td>
+                          <td className="py-2 px-2 font-mono text-[#15803d]">{h.recordType}</td>
+                          <td className="py-2 px-2 font-mono text-[#64748b]">{h.timestamp}</td>
+                          <td className="py-2 px-2">
                             <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                               Acreditado
                             </span>
