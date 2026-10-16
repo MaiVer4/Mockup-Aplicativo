@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
-  ShieldAlert, 
   Sparkles, 
   CheckCircle2, 
   UserCheck, 
@@ -64,23 +63,25 @@ export default function ApprenticeOnboardingModal() {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-200">
       <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh]">
         
-        {/* Cabecera institucional de bloqueo */}
-        <div className="p-5 border-b border-amber-200/70 bg-amber-50/70">
-          <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-800 flex items-center justify-center shrink-0 border border-amber-300/80">
-              <ShieldAlert className="w-5 h-5" />
+        {/* Cabecera institucional de acreditación */}
+        <div className="px-6 py-4.5 border-b border-[#e2e8f0] bg-[#f8fafc]">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-[#eafaf1] text-[#15803d] flex items-center justify-center shrink-0 border border-[#bbf7d0] shadow-2xs">
+              <UserCheck className="w-5 h-5" />
             </div>
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <span className="font-mono text-[10px] text-amber-800 bg-amber-100/90 px-2 py-0.5 rounded border border-amber-300 font-bold uppercase">
-                  REGISTRO OBLIGATORIO // PRIMER INGRESO
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] text-[#15803d] bg-[#eafaf1] px-2.5 py-0.5 rounded-md border border-[#bbf7d0] font-bold font-heading uppercase tracking-wide">
+                  REGISTRO INSTITUCIONAL DE APRENDIZ
                 </span>
-                <span className="text-[10px] text-amber-700 font-medium">Bloqueo de Primer Ingreso</span>
+                <span className="text-[11px] text-[#64748b] font-medium">
+                  Verificación Oficial de Aprendiz
+                </span>
               </div>
-              <h2 className="text-base font-bold text-[#1e293b] mt-1">
+              <h2 className="text-base font-bold text-[#1e293b] font-heading tracking-tight mt-1">
                 Completa tu Perfil Institucional SENA
               </h2>
-              <p className="text-xs text-[#475569] mt-0.5">
+              <p className="text-xs text-[#475569] mt-0.5 leading-relaxed">
                 Para garantizar la validez legal del registro de asistencia y la firma temporal inmutable, debes diligenciar tus datos oficiales antes de acceder a la cartelera.
               </p>
             </div>
@@ -297,18 +298,18 @@ export default function ApprenticeOnboardingModal() {
             <button
               type="button"
               onClick={quickFillApprenticeProfile}
-              className="text-xs text-[#15803d] bg-[#eafaf1] hover:bg-[#d4f4e2] border border-[#bbf7d0] px-3.5 py-2 rounded-xl inline-flex items-center gap-1.5 font-medium transition-colors w-full sm:w-auto justify-center"
+              className="text-xs text-[#15803d] bg-[#eafaf1] hover:bg-[#dcfce7] active:scale-[0.98] border border-[#bbf7d0] px-4 py-2.5 rounded-xl inline-flex items-center gap-2 font-semibold transition-all w-full sm:w-auto justify-center shadow-2xs cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5" />
+              <Sparkles className="w-3.5 h-3.5 text-[#15803d]" />
               <span>Autocompletar con Datos de Prueba SENA</span>
             </button>
 
             <button
               type="submit"
-              className="text-xs bg-[#15803d] text-white hover:bg-[#166534] px-5 py-2.5 rounded-xl font-medium inline-flex items-center gap-2 shadow-sm transition-colors w-full sm:w-auto justify-center"
+              className="text-xs bg-[#15803d] text-white hover:bg-[#166534] active:scale-[0.98] px-5 py-2.5 rounded-xl font-semibold inline-flex items-center gap-2 shadow-sm transition-all w-full sm:w-auto justify-center cursor-pointer"
             >
               <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-              <span>Guardar Perfil y Desbloquear Cartelera</span>
+              <span>Guardar Perfil y Acceder a Cartelera</span>
             </button>
           </div>
         </form>

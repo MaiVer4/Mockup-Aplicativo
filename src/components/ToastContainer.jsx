@@ -32,7 +32,7 @@ export default function ToastContainer() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-semibold tracking-tight">{toast.title}</h4>
+              <h4 className="text-sm font-semibold tracking-tight text-white">{toast.title}</h4>
               <p className="text-xs mt-0.5 opacity-90 leading-relaxed">{toast.message}</p>
             </div>
 

@@ -27,7 +27,7 @@ export default function LoginModal({ isOpen, onClose }) {
         <div className="px-5 py-3.5 border-b border-[#e2e8f0] flex items-center justify-between bg-[#f8fafc]">
           <div>
             <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-              Cambiar Perfil // Control de Acceso
+              Cambiar Perfil Institucional
             </h3>
             <p className="text-[11px] text-[#64748b]">
               Selecciona un rol para simular sus permisos de plataforma.
@@ -84,8 +84,8 @@ export default function LoginModal({ isOpen, onClose }) {
           })}
         </div>
 
-        <div className="p-3 border-t border-[#e2e8f0] text-center font-mono text-[10px] text-[#64748b] bg-[#f8fafc] font-semibold">
-          CAMBIO DE ROL INSTANTÁNEO EN UN CLIC
+        <div className="p-3 border-t border-[#e2e8f0] text-center text-[10px] text-[#64748b] bg-[#f8fafc] font-semibold font-heading tracking-wider">
+          SELECCIÓN RÁPIDA DE ROL
         </div>
       </div>
     </div>

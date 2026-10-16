@@ -53,8 +53,8 @@ export default function ExportValidationModal({ isOpen, onClose, event }) {
                 <h3 className="text-sm font-bold text-[#1e293b] font-heading">
                   Pre-Validación & Exportación Oficial
                 </h3>
-                <span className="font-mono text-[9px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.5 rounded-lg font-bold">
-                  FORMATO // GOR-F-013
+                <span className="text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2 py-0.5 rounded-md font-bold font-heading">
+                  FORMATO GOR-F-013
                 </span>
               </div>
               <p className="text-[11px] text-[#64748b]">

@@ -11,14 +11,14 @@ export default function RoleBanner() {
         return {
           icon: <Shield className="w-3.5 h-3.5 text-[#15803d]" />,
           title: 'Rol Activo: Administrador General (Coordinación SENA)',
-          badge: 'SUPERVISIÓN // ACCESO GLOBAL',
+          badge: 'SUPERVISIÓN GLOBAL',
           desc: 'Supervisión de métricas globales, directorio de encargados y emisión de enlaces de invitación institucionales.'
         };
       case 'admin_area':
         return {
           icon: <Sparkles className="w-3.5 h-3.5 text-[#d97706]" />,
           title: `Rol Activo: Encargado de Área (${currentUser.area})`,
-          badge: `ENCARGADO // ${currentUser.area?.toUpperCase()}`,
+          badge: `ENCARGADO DE ${currentUser.area?.toUpperCase()}`,
           desc: 'Carga del plan anual Excel con IA, revisión de ambigüedades, publicación, habilitación de asistencia y exportación oficial GOR-F-013.'
         };
       case 'aprendiz':
@@ -45,14 +45,14 @@ export default function RoleBanner() {
           </div>
           <div className="flex items-center flex-wrap gap-2">
             <span className="font-bold text-[#1e293b] text-xs font-heading">{config.title}</span>
-            <span className="font-mono text-[9px] text-[#15803d] bg-[#eafaf1] px-2 py-0.5 rounded-md border border-[#bbf7d0] font-bold">
+            <span className="text-[10px] text-[#15803d] bg-[#eafaf1] px-2 py-0.5 rounded-md border border-[#bbf7d0] font-bold font-heading">
               {config.badge}
             </span>
             <span className="text-[#475569] hidden md:inline text-[11px]">— {config.desc}</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-[10px] text-[#64748b] self-end sm:self-auto font-medium">
+        <div className="flex items-center gap-2 text-[10px] text-[#64748b] self-end sm:self-auto font-semibold font-heading tracking-wider">
           <span>BIENESTAR AL APRENDIZ</span>
         </div>
       </div>
