@@ -16,7 +16,6 @@ import {
   Wallet,
   ArrowRight,
   X,
-  History,
   Check,
   UserCheck
 } from 'lucide-react';
@@ -33,7 +32,7 @@ export default function ApprenticePortal() {
     addToast 
   } = useApp();
 
-  const [currentSection, setCurrentSection] = useState('billboard'); // 'billboard' | 'history' | 'profile'
+  const [currentSection, setCurrentSection] = useState('billboard'); // 'billboard' | 'profile'
   const [filterArea, setFilterArea] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
@@ -51,9 +50,6 @@ export default function ApprenticePortal() {
     return matchesSearch && matchesArea;
   });
 
-  // Historial de asistencias personales acreditadas
-  const myHistory = events.filter(evt => evt.attendedByUserIds?.includes(currentUser.id));
-
   // Configuración de las 6 Áreas de Bienestar con tonos suaves y descansados
   const stitchAreas = [
     { name: 'Actividad Física', label: 'Deporte y Recreación', icon: Dumbbell, color: 'text-emerald-700', bg: 'bg-emerald-50' },
@@ -68,12 +64,12 @@ export default function ApprenticePortal() {
     <div className="space-y-6 max-w-5xl mx-auto">
       
       {/* 1. Header Secundario del Aprendiz: Navegación de Pestañas ergonómica */}
-      <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2">
-        <div className="flex items-center gap-6">
+      <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-3 sm:gap-6 shrink-0">
           <button
             type="button"
             onClick={() => setCurrentSection('billboard')}
-            className={`text-xs md:text-sm font-heading font-bold transition-all relative py-2 ${
+            className={`text-xs md:text-sm font-heading font-bold transition-all relative py-2 whitespace-nowrap ${
               currentSection === 'billboard'
                 ? 'text-[#15803d] border-b-2 border-[#15803d]'
                 : 'text-[#64748b] hover:text-[#1e293b]'
@@ -84,25 +80,8 @@ export default function ApprenticePortal() {
 
           <button
             type="button"
-            onClick={() => setCurrentSection('history')}
-            className={`text-xs md:text-sm font-heading font-bold transition-all relative py-2 ${
-              currentSection === 'history'
-                ? 'text-[#15803d] border-b-2 border-[#15803d]'
-                : 'text-[#64748b] hover:text-[#1e293b]'
-            }`}
-          >
-            <span>Mis asistencias</span>
-            {myHistory.length > 0 && (
-              <span className="ml-2 text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.2 rounded-full font-mono">
-                {myHistory.length}
-              </span>
-            )}
-          </button>
-
-          <button
-            type="button"
             onClick={() => setCurrentSection('profile')}
-            className={`text-xs md:text-sm font-heading font-bold transition-all relative py-2 ${
+            className={`text-xs md:text-sm font-heading font-bold transition-all relative py-2 whitespace-nowrap ${
               currentSection === 'profile'
                 ? 'text-[#15803d] border-b-2 border-[#15803d]'
                 : 'text-[#64748b] hover:text-[#1e293b]'
@@ -112,7 +91,7 @@ export default function ApprenticePortal() {
           </button>
         </div>
 
-        <div className="text-[11px] text-[#64748b] font-medium hidden sm:block">
+        <div className="text-[11px] text-[#64748b] font-medium hidden md:block shrink-0">
           Regional Distrito Capital • Complejo Paloquemao
         </div>
       </div>
@@ -122,13 +101,13 @@ export default function ApprenticePortal() {
         <div className="space-y-6">
           
           {/* Banner de Bienvenida Institucional Ergonómico (verde petróleo cálido) */}
-          <div className="rounded-3xl bg-gradient-to-r from-[#0c2f39] via-[#103a46] to-[#08262f] text-white p-7 md:p-9 relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-lg border border-[#1a4a58]">
+          <div className="rounded-3xl bg-gradient-to-r from-[#0c2f39] via-[#103a46] to-[#08262f] text-white p-5 sm:p-7 md:p-9 relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 shadow-lg border border-[#1a4a58]">
             
-            <div className="relative z-10 max-w-lg space-y-2">
+            <div className="relative z-10 max-w-lg space-y-1.5 sm:space-y-2">
               <span className="text-[10px] font-extrabold tracking-[1.8px] text-[#c4f246] uppercase font-mono">
                 VIERNES, 14 DE MARZO DE 2026
               </span>
-              <h1 className="text-2xl md:text-3xl font-extrabold font-heading text-white tracking-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-heading text-white tracking-tight">
                 Hay experiencias esperando por ti.
               </h1>
               <p className="text-xs md:text-sm text-[#bfd3df] leading-relaxed">
@@ -137,9 +116,9 @@ export default function ApprenticePortal() {
             </div>
 
             {/* Tarjeta de Calendario Flotante con contraste suave */}
-            <div className="relative z-10 w-24 h-28 bg-[#f8fafc] border border-[#cbd5e1] rounded-2xl text-[#1e293b] flex flex-col items-center justify-center shadow-lg shrink-0 self-end sm:self-auto">
+            <div className="relative z-10 w-20 h-24 sm:w-24 sm:h-28 bg-[#f8fafc] border border-[#cbd5e1] rounded-2xl text-[#1e293b] flex flex-col items-center justify-center shadow-lg shrink-0 self-end sm:self-auto">
               <small className="text-[#15803d] text-[10px] font-extrabold tracking-wider">MAR</small>
-              <strong className="text-4xl font-extrabold font-heading leading-tight text-[#1e293b]">14</strong>
+              <strong className="text-3xl sm:text-4xl font-extrabold font-heading leading-tight text-[#1e293b]">14</strong>
               <span className="text-[9px] text-[#64748b] font-semibold">Viernes</span>
             </div>
 
@@ -147,7 +126,7 @@ export default function ApprenticePortal() {
             <div className="absolute -right-20 -top-24 w-80 h-80 rounded-full border-[50px] border-white/[0.03] pointer-events-none" />
           </div>
 
-          {/* Grid de 6 Áreas de Bienestar con tonos pastel relajantes */}
+          {/* Grid / Carrusel táctil de 6 Áreas de Bienestar */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <strong className="text-sm font-heading font-bold text-[#1e293b]">
@@ -164,7 +143,8 @@ export default function ApprenticePortal() {
               )}
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {/* En móvil: carrusel swipe horizontal táctil. En sm+: rejilla 3 a 6 columnas */}
+            <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-6 gap-2.5 overflow-x-auto pb-2 sm:pb-0 -mx-1 px-1 sm:mx-0 sm:px-0 no-scrollbar scroll-smooth">
               {stitchAreas.map((areaItem) => {
                 const IconComponent = areaItem.icon;
                 const isSelected = filterArea === areaItem.name;
@@ -174,16 +154,16 @@ export default function ApprenticePortal() {
                     key={areaItem.name}
                     type="button"
                     onClick={() => setFilterArea(isSelected ? 'ALL' : areaItem.name)}
-                    className={`p-3.5 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-2 group ${
+                    className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 shrink-0 sm:shrink w-[130px] sm:w-auto group ${
                       isSelected 
                         ? 'border-[#15803d] bg-white ring-2 ring-[#15803d]/30 shadow-xs' 
                         : 'border-[#e2e8f0] bg-white hover:border-[#cbd5e1] hover:shadow-2xs'
                     }`}
                   >
-                    <div className={`w-10 h-10 rounded-xl ${areaItem.bg} ${areaItem.color} flex items-center justify-center group-hover:scale-105 transition-transform`}>
-                      <IconComponent className="w-5 h-5" />
+                    <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl ${areaItem.bg} ${areaItem.color} flex items-center justify-center group-hover:scale-105 transition-transform`}>
+                      <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
                     </div>
-                    <span className="text-[11px] font-bold text-[#1e293b] leading-tight">
+                    <span className="text-[11px] font-bold text-[#1e293b] leading-tight line-clamp-2">
                       {areaItem.label}
                     </span>
                   </button>
@@ -338,79 +318,25 @@ export default function ApprenticePortal() {
         </div>
       )}
 
-      {/* SECCIÓN 2: HISTORIAL DE ASISTENCIAS */}
-      {currentSection === 'history' && (
-        <div className="p-6 card-ergonomic space-y-4">
-          <div>
-            <h2 className="text-base font-bold text-[#1e293b] font-heading">
-              Historial Personal de Participaciones ({myHistory.length})
-            </h2>
-            <p className="text-xs text-[#64748b] mt-0.5">
-              Certificación de actividades en las que has acreditado asistencia presencial.
-            </p>
-          </div>
-
-          {myHistory.length === 0 ? (
-            <div className="p-12 text-center border border-[#e2e8f0] rounded-xl space-y-2">
-              <History className="w-8 h-8 text-[#94a3b8] mx-auto stroke-1" />
-              <p className="text-xs text-[#64748b]">Aún no has acreditado asistencia presencial en ningún evento.</p>
-            </div>
-          ) : (
-            <div className="border border-[#e2e8f0] rounded-xl overflow-x-auto">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-[#f8fafc] text-[#475569] font-bold border-b border-[#e2e8f0]">
-                  <tr>
-                    <th className="p-3">Código</th>
-                    <th className="p-3">Actividad</th>
-                    <th className="p-3">Área</th>
-                    <th className="p-3">Fecha Realizada</th>
-                    <th className="p-3">Estado</th>
-                    <th className="p-3">Firma Digital (Servidor)</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
-                  {myHistory.map(evt => (
-                    <tr key={evt.id} className="hover:bg-[#f8fafc]">
-                      <td className="p-3 font-mono text-[11px] font-bold text-[#1e293b]">{evt.code}</td>
-                      <td className="p-3 font-medium text-[#1e293b]">{evt.title}</td>
-                      <td className="p-3 font-mono text-[11px] text-[#475569]">{evt.area}</td>
-                      <td className="p-3 font-mono text-[11px] text-[#475569]">{evt.date}</td>
-                      <td className="p-3">
-                        <span className="font-mono text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2 py-0.5 rounded font-bold">
-                          Asistió (Certificado)
-                        </span>
-                      </td>
-                      <td className="p-3 font-mono text-[10px] text-[#64748b]">
-                        {evt.date} 14:05:12 (COT)
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* SECCIÓN 3: CONFIGURACIÓN Y PERFIL INSTITUCIONAL */}
+      {/* SECCIÓN 2: CONFIGURACIÓN Y PERFIL INSTITUCIONAL (RF-01, RF-02) */}
       {currentSection === 'profile' && (
         <div className="p-6 card-ergonomic space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-[#e2e8f0]">
             <div>
               <h2 className="text-base font-bold text-[#1e293b] font-heading">
-                Información del Aprendiz & Política de Actualización Mensual
+                Perfil Institucional del Aprendiz
               </h2>
               <p className="text-xs text-[#64748b] mt-0.5">
-                Para preservar la trazabilidad de actas oficiales, cada campo institucional solo puede actualizarse una vez al mes.
+                Consulta y actualiza los datos oficiales de tu ficha y contacto.
               </p>
             </div>
-            <span className="font-mono text-[10px] bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-lg font-bold">
-              BLOQUEO MENSUAL ACTIVO
+            <span className="font-mono text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2.5 py-1 rounded-lg font-bold">
+              INSTANTÁNEA HISTÓRICA ACTIVA
             </span>
           </div>
 
-          <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs text-[#475569] leading-relaxed">
-            <strong>Política SENA:</strong> Las asistencias registradas previamente conservan una instantánea histórica de los datos con los que te uniste. Los cambios que realices aplicarán únicamente a futuros eventos.
+          <div className="p-3.5 rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] text-xs text-[#166534] leading-relaxed">
+            <strong>Trazabilidad Institucional:</strong> Los cambios que realices en tu ficha o contacto aplicarán únicamente para futuras actividades. Las participaciones ya registradas en actas anteriores conservan su instantánea histórica inalterada.
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -427,7 +353,7 @@ export default function ApprenticePortal() {
 
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">Ficha de Formación</label>
-              <input type="text" defaultValue={currentUser.ficha || '2687140'} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] font-mono text-[#1e293b]" />
+              <input type="text" defaultValue={currentUser.ficha || '2670192'} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] font-mono text-[#1e293b]" />
             </div>
 
             <div>
@@ -438,11 +364,11 @@ export default function ApprenticePortal() {
 
           <div className="pt-3 border-t border-[#e2e8f0] flex items-center justify-between text-xs">
             <span className="text-[11px] text-[#64748b]">
-              Próxima edición permitida: <strong>2026-11-01</strong>
+              Los cambios se reflejarán en próximas actividades
             </span>
             <button
               type="button"
-              onClick={() => addToast('Edición Mensual', 'Se registraron los cambios permitidos para este mes.', 'success')}
+              onClick={() => addToast('Perfil Actualizado', 'Se han guardado tus modificaciones institucionales.', 'success')}
               className="btn btn-primary text-xs font-bold"
             >
               Guardar Modificaciones

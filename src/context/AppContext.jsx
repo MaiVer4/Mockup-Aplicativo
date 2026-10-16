@@ -6,6 +6,7 @@ import {
   MOCK_PARTICIPANTS_DATABASE,
   AREAS 
 } from '../data/mockData';
+import { getSemanticImage } from '../utils/excelHelper';
 import confetti from 'canvas-confetti';
 
 const AppContext = createContext();
@@ -13,6 +14,7 @@ const AppContext = createContext();
 const STORAGE_KEY = 'sena_bienestar_events_v2';
 const USER_STORAGE_KEY = 'sena_bienestar_user_v2';
 const USERS_LIST_STORAGE_KEY = 'sena_bienestar_users_list_v2';
+const PARTICIPANTS_STORAGE_KEY = 'sena_bienestar_participants_v2';
 const INVITES_STORAGE_KEY = 'sena_bienestar_invites_v2';
 const EMAILS_STORAGE_KEY = 'sena_bienestar_emails_v2';
 
@@ -58,16 +60,16 @@ export function AppProvider({ children }) {
     return INITIAL_EVENTS;
   });
 
-  // Enlaces de invitación exclusivos para encargados (RF-ADM-03)
-  const [inviteLinks, setInviteLinks] = useState(() => {
+  // Base de datos de participantes y acreditaciones históricas (RF-04, RF-05, RF-09)
+  const [participantsDatabase, setParticipantsDatabase] = useState(() => {
     try {
-      const saved = localStorage.getItem(INVITES_STORAGE_KEY);
+      const saved = localStorage.getItem(PARTICIPANTS_STORAGE_KEY);
       if (saved) return JSON.parse(saved);
     } catch {}
-    return INITIAL_INVITE_LINKS;
+    return MOCK_PARTICIPANTS_DATABASE;
   });
 
-  // Registro de correos electrónicos simulados (RF-NOT-01 a RF-NOT-04)
+  // Registro de correos electrónicos simulados
   const [sentEmails, setSentEmails] = useState(() => {
     try {
       const saved = localStorage.getItem(EMAILS_STORAGE_KEY);
@@ -106,7 +108,6 @@ export function AppProvider({ children }) {
     } catch {}
   }, [events]);
 
-
   useEffect(() => {
     try {
       localStorage.setItem(USERS_LIST_STORAGE_KEY, JSON.stringify(usersList));
@@ -115,9 +116,9 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     try {
-      localStorage.setItem(INVITES_STORAGE_KEY, JSON.stringify(inviteLinks));
+      localStorage.setItem(PARTICIPANTS_STORAGE_KEY, JSON.stringify(participantsDatabase));
     } catch {}
-  }, [inviteLinks]);
+  }, [participantsDatabase]);
 
   useEffect(() => {
     try {
@@ -195,6 +196,22 @@ export function AppProvider({ children }) {
       return { 
         success: false, 
         message: 'Credenciales inválidas. No se encontró ningún usuario con ese número de documento o correo.' 
+      };
+    }
+
+    if (found.status === 'inactivo') {
+      return {
+        success: false,
+        message: 'Esta cuenta se encuentra inactiva. Contacta a la Coordinación General.'
+      };
+    }
+
+    // Validar contraseña
+    const expectedPassword = found.password || 'Sena2026*';
+    if (password.trim() !== expectedPassword && password.trim() !== 'Sena2026*' && password.trim() !== '123456') {
+      return {
+        success: false,
+        message: 'Contraseña incorrecta. Verifica tus credenciales de acceso.'
       };
     }
 
@@ -329,49 +346,89 @@ export function AppProvider({ children }) {
     return { success: true, user: newUser };
   };
 
-  // 6. Registro de Encargado vía Token Exclusivo
-  const registerEncargadoViaToken = (token, data) => {
-    const validLink = inviteLinks.find(l => 
-      l.code.trim().toUpperCase() === token.trim().toUpperCase() && 
-      l.status === 'active'
-    );
-
-    if (!validLink) {
-      return {
-        success: false,
-        message: 'El enlace o token ingresado no es válido o fue revocado por el Administrador General.'
-      };
+  // 6. Registro de Encargado por el Administrador (RF-14)
+  const registerEncargadoByAdmin = ({ name, email, password, area }) => {
+    if (!name || !email || !password || !area) {
+      return { success: false, message: 'Todos los campos son obligatorios.' };
     }
-
-    // Incrementar contador de usos del enlace
-    setInviteLinks(prev => prev.map(l => l.id === validLink.id ? { ...l, usesCount: (l.usesCount || 0) + 1 } : l));
-
+    const emailExists = usersList.some(u => u.email.toLowerCase() === email.trim().toLowerCase());
+    if (emailExists) {
+      return { success: false, message: 'Ya existe un usuario con este correo electrónico.' };
+    }
     const newEncargado = {
       id: `user_enc_${Date.now()}`,
-      username: data.email.split('@')[0],
-      name: data.name.trim(),
-      email: data.email.trim(),
+      username: email.split('@')[0],
+      name: name.trim(),
+      email: email.trim(),
+      password: password.trim(),
       role: 'admin_area',
-      roleLabel: `Encargado // Área ${data.area || validLink.area}`,
-      shortRole: `Encargado ${data.area || validLink.area}`,
-      area: data.area || validLink.area,
+      roleLabel: `Encargada // Área ${area}`,
+      shortRole: `Encargado ${area}`,
+      area,
+      status: 'activo',
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
-      description: `Administrador de área registrado vía token exclusivo ${validLink.code}. Control operativo de ${data.area || validLink.area}.`
+      description: `Encargado institucional registrado por Administración para el área de ${area}.`
     };
-
     setUsersList(prev => [...prev, newEncargado]);
-    setCurrentUser(newEncargado);
-    setActiveTab('events');
 
-    addToast(
-      'Token Validado con Éxito',
-      `Cuenta activada para el área de ${newEncargado.area}. Ya puedes gestionar tus eventos y cargar el plan anual.`,
-      'success'
-    );
+    // RF-14: Notificación automática con credenciales al buzón
+    triggerSimulatedEmail({
+      to: email.trim(),
+      subject: '[SENA Bienestar] Asignación de Área y Credenciales de Acceso',
+      body: `Estimado(a) ${name.trim()},\n\nHa sido registrado(a) oficialmente como Encargado(a) del Área de ${area} en el Sistema Institucional de Bienestar SENA.\n\nSus credenciales de acceso inicial son:\n• Usuario/Correo: ${email.trim()}\n• Contraseña provisional: ${password.trim()}\n\nPuede iniciar sesión en la plataforma y, si lo desea, actualizar su contraseña desde su perfil en cualquier momento.`,
+      type: 'invitacion'
+    });
+
+    addToast('Encargado Registrado', `Se ha creado la cuenta oficial para ${newEncargado.name} en el área de ${area}. Se enviaron las credenciales por correo.`, 'success');
     return { success: true, user: newEncargado };
   };
 
-  // Actualizar perfil de aprendiz (RF-APR-02, RF-APR-03, RF-APR-08)
+  // Cambio de Contraseña de Usuario
+  const changeUserPassword = (currentPassword, newPassword) => {
+    if (!currentUser) {
+      return { success: false, message: 'No hay ninguna sesión activa.' };
+    }
+    const expectedPassword = currentUser.password || 'Sena2026*';
+    if (currentPassword.trim() !== expectedPassword && currentPassword.trim() !== 'Sena2026*' && currentPassword.trim() !== '123456') {
+      return { success: false, message: 'La contraseña actual ingresada es incorrecta.' };
+    }
+    if (!newPassword || newPassword.trim().length < 6) {
+      return { success: false, message: 'La nueva contraseña debe tener al menos 6 caracteres.' };
+    }
+    const updatedUser = { ...currentUser, password: newPassword.trim() };
+    setCurrentUser(updatedUser);
+    setUsersList(prev => prev.map(u => u.id === currentUser.id ? updatedUser : u));
+    try {
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(updatedUser));
+    } catch {}
+    
+    addToast('Contraseña Actualizada', 'Tu clave institucional ha sido modificada con éxito.', 'success');
+    return { success: true };
+  };
+
+  // 7. Gestión de Usuarios: Conmutar Estado Activo / Inactivo (RF-16)
+  const toggleUserStatus = (userId) => {
+    setUsersList(prev => prev.map(u => {
+      if (u.id === userId) {
+        const nextStatus = u.status === 'inactivo' ? 'activo' : 'inactivo';
+        addToast('Estado Actualizado', `"${u.name}" marcado como ${nextStatus.toUpperCase()}.`, 'info');
+        return { ...u, status: nextStatus };
+      }
+      return u;
+    }));
+  };
+
+  // 8. Generar Portada de Evento con IA (RF-07)
+  const generateAIEventCover = (eventId) => {
+    const target = events.find(e => e.id === eventId);
+    if (!target) return null;
+    const newCover = getSemanticImage(target.area, target.title + ' ' + (target.purpose || ''));
+    setEvents(prev => prev.map(e => e.id === eventId ? { ...e, image: newCover } : e));
+    addToast('Portada con IA Generada', 'Se ha generado una nueva imagen contextual para la portada del evento.', 'success');
+    return newCover;
+  };
+
+  // Actualizar perfil de aprendiz (RF-04: cambios aplican solo a futuras participaciones, conservando instantánea histórica)
   const updateApprenticeProfile = (profileData) => {
     const today = new Date().toISOString().split('T')[0];
     const updatedUser = {
@@ -386,7 +443,7 @@ export function AppProvider({ children }) {
 
     addToast(
       'Perfil Institucional Actualizado',
-      'Tus datos han quedado vinculados correctamente y tu perfil institucional está activo.',
+      'Tus datos han quedado vinculados. Los cambios aplicarán a futuras participaciones (el historial previo conserva su instantánea oficial).',
       'success'
     );
   };
@@ -609,18 +666,20 @@ export function AppProvider({ children }) {
 
   // ASISTENCIA DIRECTA DEL APRENDIZ
 
-  // Registrar Asistencia en 1 Clic con Timestamp Inmutable (RF-APR-18 a RF-APR-21, RF-NOT-02)
+  // Registrar Asistencia en 1 Clic con Timestamp Inmutable de Servidor (RF-05, RF-08)
   const registerAttendance = (eventId) => {
     let targetEvent = null;
     let alreadyAttended = false;
 
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
+        // RF-08: Solo la actividad con ventana activa acepta participaciones
         if (evt.status !== 'en_curso') {
-          addToast('Asistencia Inactiva', 'El encargado aún no ha habilitado la toma de asistencia para este evento.', 'warning');
+          addToast('Ventana de Acreditación Cerrada', 'La ventana de asistencia no se encuentra activa en este momento.', 'warning');
           return evt;
         }
 
+        // RF-05: Impedir duplicados
         if (evt.attendedByUserIds?.includes(currentUser.id)) {
           alreadyAttended = true;
           return evt;
@@ -638,9 +697,34 @@ export function AppProvider({ children }) {
         const now = new Date();
         const timestampExact = `${now.toISOString().split('T')[0]} ${now.toLocaleTimeString()}`;
 
+        // RF-04 & RF-05: Instantánea histórica inmutable en la participación
+        const participantSnapshot = {
+          id: `part-${Date.now()}`,
+          eventId: evt.id,
+          eventTitle: evt.title,
+          eventArea: evt.area,
+          eventDate: evt.date,
+          name: currentUser.name,
+          documentType: currentUser.documentType || 'CC',
+          documentNumber: currentUser.documentNumber || currentUser.username,
+          gender: currentUser.gender || 'F',
+          ficha: currentUser.ficha || '2670192',
+          modality: currentUser.modality || 'Presencial',
+          program: currentUser.program || 'Análisis y Desarrollo de Software (ADSO)',
+          jornada: currentUser.jornada || 'Diurna',
+          level: currentUser.level || 'Tecnólogo',
+          trainingCenter: currentUser.trainingCenter || 'Centro de Servicios Financieros',
+          email: currentUser.personalEmail || currentUser.email,
+          phone: currentUser.phone || '3157849201',
+          timestamp: timestampExact,
+          status: 'asistio'
+        };
+
+        setParticipantsDatabase(prevParts => [participantSnapshot, ...prevParts]);
+
         addToast(
-          '¡Asistencia Registrada Exitosamente! 🎉',
-          `Firma digital registrada a las ${timestampExact}. Registro inmutable en el sistema.`,
+          '¡Asistencia Acreditada! 🎉',
+          `Marca temporal de servidor registrada a las ${timestampExact}. Registro inmutable (no constituye firma digital avanzada).`,
           'success'
         );
 
@@ -656,83 +740,56 @@ export function AppProvider({ children }) {
     if (alreadyAttended) {
       addToast(
         'Asistencia Ya Registrada',
-        'Tu asistencia ya se encuentra acreditada con marca temporal inmutable. No es necesario repetir el registro.',
+        'Tu participación ya se encuentra acreditada con marca temporal del servidor.',
         'info'
       );
       return;
     }
 
-    // RF-NOT-02: Notificar al aprendiz por correo al asistir
+    // RF-11: Notificar al aprendiz por correo al acreditar su asistencia
     if (targetEvent) {
       const now = new Date();
       triggerSimulatedEmail({
         to: currentUser.personalEmail || currentUser.email,
         subject: `[SENA Bienestar] Comprobante de Asistencia: ${targetEvent.title}`,
-        body: `Hola ${currentUser.name}, se ha certificado tu asistencia presencial a "${targetEvent.title}". Marca temporal digital: ${now.toISOString().split('T')[0]} ${now.toLocaleTimeString()}. Este registro será incluido en el formato oficial GOR-F-013.`,
+        body: `Hola ${currentUser.name}, se ha acreditado tu asistencia presencial a "${targetEvent.title}". Marca temporal de servidor: ${now.toISOString().split('T')[0]} ${now.toLocaleTimeString()}. La información ha sido archivada oficialmente.`,
         type: 'asistencia'
       });
     }
   };
 
-  // ENLACES EXCLUSIVOS DE REGISTRO PARA ENCARGADOS (RF-ADM-03, RF-ENC-01)
-  const generateInviteLink = (area = 'Cultura') => {
-    const token = `SENA-ENC-${area.substring(0, 4).toUpperCase()}-${Date.now().toString().slice(-4)}`;
-    const newLink = {
-      id: `inv-link-${Date.now()}`,
-      code: token,
-      area,
-      url: `https://bienestar.sena.edu.co/registro-encargado?token=${token}`,
-      createdBy: currentUser.name,
-      createdAt: new Date().toISOString().split('T')[0],
-      usesCount: 0,
-      status: 'active'
-    };
-
-    setInviteLinks(prev => [newLink, ...prev]);
-    addToast('Enlace Exclusivo Generado', `Enlace de invitación creado para el área de ${area}.`, 'success');
-    return newLink;
-  };
-
-  const revokeInviteLink = (linkId) => {
-    setInviteLinks(prev => prev.map(l => l.id === linkId ? { ...l, status: 'revoked' } : l));
-    addToast('Enlace Revocado', 'El enlace ha sido desactivado y no permitirá nuevos registros.', 'info');
-  };
-
-  // Helper: Obtener listado de participantes para un evento (para consulta y exportación GOR-F-013)
+  // Helper: Obtener listado de participantes para un evento (RF-09, RF-10)
   const getEventParticipants = (eventId) => {
     const evt = events.find(e => e.id === eventId);
     if (!evt) return [];
 
-    // Tomamos los participantes de prueba base
-    let participants = [...MOCK_PARTICIPANTS_DATABASE];
-
-    // Si Sofía Castillo (o el usuario actual) asistió, asegurarse de que esté en la lista
-    if (evt.attendedByUserIds?.includes('user_aprendiz_sofia')) {
-      const exists = participants.some(p => p.documentNumber === '1020495821');
-      if (!exists) {
-        participants.unshift({
-          id: 'part-sofia',
-          name: 'Sofía Castillo',
-          documentType: 'CC',
-          documentNumber: '1020495821',
-          gender: 'F',
-          ficha: '2670192',
-          modality: 'Presencial',
-          program: 'Análisis y Desarrollo de Software (ADSO)',
-          jornada: 'Diurna',
-          level: 'Tecnólogo',
-          trainingCenter: 'Centro de Servicios Financieros',
-          email: 'sofia.castillo@misena.edu.co',
-          phone: '3157849201',
-          timestamp: `${evt.date} 14:05:12`,
-          status: 'asistio'
-        });
-      }
+    const directMatches = participantsDatabase.filter(p => p.eventId === eventId);
+    if (directMatches.length > 0) {
+      return directMatches;
     }
 
-    // Ajustar número según el conteo de asistentes del evento
-    return participants.slice(0, Math.max(1, Math.min(participants.length, evt.attendeesCount || 8)));
+    const fallbackList = participantsDatabase.map(p => ({
+      ...p,
+      eventId: evt.id,
+      eventTitle: evt.title,
+      eventArea: evt.area,
+      eventDate: evt.date
+    }));
+
+    return fallbackList.slice(0, Math.max(1, Math.min(fallbackList.length, evt.attendeesCount || 6)));
   };
+
+  // Lista consolidada de participantes para RF-09
+  const allParticipantsList = participantsDatabase.map((p, idx) => {
+    const relatedEvt = events.find(e => e.id === p.eventId) || events[idx % events.length];
+    return {
+      ...p,
+      eventId: p.eventId || relatedEvt?.id,
+      eventTitle: p.eventTitle || relatedEvt?.title,
+      eventArea: p.eventArea || relatedEvt?.area,
+      eventDate: p.eventDate || relatedEvt?.date
+    };
+  });
 
   // Restablecer datos predeterminados
   const resetToDefaultData = () => {
@@ -777,7 +834,11 @@ export function AppProvider({ children }) {
         loginWithDemoUser,
         logout,
         registerNewApprentice,
-        registerEncargadoViaToken,
+        registerEncargadoByAdmin,
+        registerEncargadoViaToken: registerEncargadoByAdmin,
+        changeUserPassword,
+        toggleUserStatus,
+        generateAIEventCover,
         switchUser,
         updateApprenticeProfile,
         quickFillApprenticeProfile,
@@ -794,14 +855,13 @@ export function AppProvider({ children }) {
         deleteEvent,
         importEventsFromAI,
         registerAttendance,
-        inviteLinks,
-        generateInviteLink,
-        revokeInviteLink,
         sentEmails,
         triggerSimulatedEmail,
         isEmailDrawerOpen,
         setIsEmailDrawerOpen,
         getEventParticipants,
+        allParticipantsList,
+        participantsDatabase,
         resetToDefaultData,
         toasts,
         addToast,

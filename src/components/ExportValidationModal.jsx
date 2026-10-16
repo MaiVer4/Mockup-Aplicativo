@@ -3,12 +3,7 @@ import { useApp } from '../context/AppContext';
 import { 
   X, 
   FileSpreadsheet, 
-  CheckCircle2, 
-  AlertTriangle, 
-  ShieldCheck, 
-  Download,
-  Clock,
-  Users
+  Download 
 } from 'lucide-react';
 import { 
   validateParticipantsBeforeExport, 
@@ -29,18 +24,23 @@ export default function ExportValidationModal({ isOpen, onClose, event }) {
       return;
     }
 
+    if (!validation.isValid) {
+      addToast('Inconsistencia en Datos', validation.errors[0] || 'Verifique los campos requeridos.', 'warning');
+      return;
+    }
+
     exportOfficialSenaAttendanceSheet(event, participants);
     addToast(
       'Exportación Generada con Éxito',
-      `Se ha descargado la plantilla oficial GOR-F-013 con ${participants.length} registros auditados.`,
+      `Se ha descargado la plantilla oficial GOR-F-013 con ${participants.length} registros confirmados.`,
       'success'
     );
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[94vh] sm:max-h-[90vh]">
         
         {/* Cabecera */}
         <div className="px-5 py-4 border-b border-[#e2e8f0] flex items-center justify-between bg-[#f8fafc]">
@@ -51,14 +51,14 @@ export default function ExportValidationModal({ isOpen, onClose, event }) {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-                  Pre-Validación & Exportación Oficial
+                  Previsualización & Exportación Oficial
                 </h3>
                 <span className="text-[10px] bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2 py-0.5 rounded-md font-bold font-heading">
                   FORMATO GOR-F-013
                 </span>
               </div>
               <p className="text-[11px] text-[#64748b]">
-                Verificación de integridad, campos normativos y marcas temporales antes de emitir el reporte.
+                Verifique los datos de la actividad y lista de asistentes antes de emitir el reporte oficial.
               </p>
             </div>
           </div>
@@ -103,43 +103,6 @@ export default function ExportValidationModal({ isOpen, onClose, event }) {
               </div>
             </div>
           </div>
-
-          {/* Resultado de la Auditoría */}
-          {validation.isValid ? (
-            <div className="p-4 rounded-2xl bg-[#eafaf1] border border-[#bbf7d0] flex items-start gap-3">
-              <CheckCircle2 className="w-4 h-4 text-[#15803d] shrink-0 mt-0.5" />
-              <div>
-                <h5 className="font-bold text-[#14532d] text-xs font-heading">Auditoría Superada con Éxito</h5>
-                <p className="text-[11px] text-[#166534] mt-0.5 leading-relaxed">
-                  El 100% de los registros disponen de nombre completo, tipo y número de documento único, género, ficha y firma temporal digital del servidor.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3">
-              <AlertTriangle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
-              <div>
-                <h5 className="font-bold text-rose-900 text-xs font-heading">Inconsistencias Detectadas</h5>
-                <ul className="list-disc pl-4 mt-1 space-y-0.5 text-[11px] text-rose-700">
-                  {validation.errors.map((err, i) => (
-                    <li key={i}>{err}</li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          )}
-
-          {/* Advertencias Menores si existen */}
-          {validation.warnings.length > 0 && (
-            <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 text-[11px] space-y-1">
-              <span className="font-bold block">Observaciones no bloqueantes:</span>
-              <ul className="list-disc pl-4 space-y-0.5 text-amber-700">
-                {validation.warnings.map((w, idx) => (
-                  <li key={idx}>{w}</li>
-                ))}
-              </ul>
-            </div>
-          )}
 
           {/* Previsualización de Muestra */}
           <div>
@@ -200,9 +163,9 @@ export default function ExportValidationModal({ isOpen, onClose, event }) {
 
           <button
             onClick={handleDownload}
-            disabled={!validation.isValid}
+            disabled={participants.length === 0}
             className={`px-4 py-2 rounded-xl text-xs font-bold inline-flex items-center gap-2 shadow-sm transition-colors ${
-              validation.isValid
+              participants.length > 0
                 ? 'bg-[#15803d] text-white hover:bg-[#166534]'
                 : 'bg-[#f1f5f9] text-[#94a3b8] cursor-not-allowed border border-[#e2e8f0]'
             }`}

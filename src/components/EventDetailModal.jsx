@@ -22,7 +22,8 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
     registerAttendance,
     publishEvent,
     startEventAttendance,
-    closeEventAttendance 
+    closeEventAttendance,
+    generateAIEventCover
   } = useApp();
 
   if (!isOpen || !event) return null;
@@ -40,19 +41,19 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
   const percent = Math.min(100, Math.round((attendeesCount / capacity) * 100));
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[92vh] relative">
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[94vh] sm:max-h-[92vh] relative">
         
         {/* Botón Cerrar flotante con blur */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-[#0e2738]/80 hover:bg-[#0e2738] text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-md"
+          className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#0e2738]/80 hover:bg-[#0e2738] text-white flex items-center justify-center backdrop-blur-md border border-white/20 transition-all shadow-md"
         >
           <X className="w-4 h-4" />
         </button>
 
         {/* Hero de Portada estilo Functional Mockup */}
-        <div className="relative h-60 w-full overflow-hidden shrink-0">
+        <div className="relative h-44 sm:h-60 w-full overflow-hidden shrink-0">
           <img
             src={event.image}
             alt={event.title}
@@ -60,63 +61,63 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0c2f3a]/95 via-[#0c2f3a]/40 to-transparent" />
           
-          <div className="absolute bottom-5 left-6 right-6 text-white space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="bg-[#c4f246] text-[#0e2738] text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg font-mono">
+          <div className="absolute bottom-3 left-4 right-4 sm:bottom-5 sm:left-6 sm:right-6 text-white space-y-1 sm:space-y-2">
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              <span className="bg-[#c4f246] text-[#0e2738] text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-lg font-mono">
                 {event.area}
               </span>
-              <span className="bg-white/20 text-white backdrop-blur-xs text-[10px] font-bold px-2.5 py-0.5 rounded-lg">
+              <span className="bg-white/20 text-white backdrop-blur-xs text-[9px] sm:text-[10px] font-bold px-2 py-0.5 rounded-lg">
                 {event.quarter || 'Trimestre 4'}
               </span>
               {isEnCurso && (
-                <span className="bg-[#15803d] text-white text-[10px] font-extrabold px-2.5 py-0.5 rounded-lg animate-pulse">
+                <span className="bg-[#15803d] text-white text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-lg animate-pulse">
                   EN CURSO
                 </span>
               )}
             </div>
 
-            <h2 className="text-xl md:text-2xl font-extrabold font-heading text-white tracking-tight">
+            <h2 className="text-lg sm:text-xl md:text-2xl font-extrabold font-heading text-white tracking-tight line-clamp-2">
               {event.title}
             </h2>
-            <p className="text-xs text-slate-200 line-clamp-1">
+            <p className="text-[11px] sm:text-xs text-slate-200 line-clamp-1">
               {event.purpose}
             </p>
           </div>
         </div>
 
         {/* Contenido del modal */}
-        <div className="p-6 overflow-y-auto space-y-5 text-xs flex-1">
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 text-xs flex-1">
           
           {/* Métricas clave estilo Functional Mockup */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+              <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
                 ASISTENTES
               </span>
-              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
+              <strong className="text-xl sm:text-2xl font-extrabold text-[#1e293b] font-heading block mt-0.5 sm:mt-1">
                 {attendeesCount}
               </strong>
-              <small className="text-[#64748b] text-[10px]">asistencias en sala</small>
+              <small className="text-[#64748b] text-[9px] sm:text-[10px] truncate block">asistencias en sala</small>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
-                CUPO META
+            <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+              <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
+                CAPACIDAD
               </span>
-              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
+              <strong className="text-xl sm:text-2xl font-extrabold text-[#1e293b] font-heading block mt-0.5 sm:mt-1">
                 {capacity}
               </strong>
-              <small className="text-[#64748b] text-[10px]">cupos programados</small>
+              <small className="text-[#64748b] text-[9px] sm:text-[10px] truncate block">aforo oficial</small>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
-              <span className="text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
+            <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#eafaf1] border border-[#bbf7d0]">
+              <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-[#15803d] font-mono block">
                 OCUPACIÓN
               </span>
-              <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block mt-1">
+              <strong className="text-xl sm:text-2xl font-extrabold text-[#15803d] font-heading block mt-0.5 sm:mt-1">
                 {percent}%
               </strong>
-              <small className="text-[#64748b] text-[10px]">del aforo oficial</small>
+              <small className="text-[#15803d] text-[9px] sm:text-[10px] truncate block">meta alcanzada</small>
             </div>
           </div>
 
@@ -199,6 +200,29 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
               </div>
               <p className="text-[11px] text-amber-800 leading-relaxed">
                 {event.ambiguityReason || 'Esta actividad proviene del plan de bienestar con programación tentativa. Confirma la fecha para proceder a publicarla en la cartelera oficial.'}
+              </p>
+            </div>
+          )}
+
+          {/* RF-07: Generación de Portada con IA al Publicar */}
+          {isEncargado && isDraft && (
+            <div className="p-3.5 rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-[#15803d]" />
+                  <span className="font-bold text-xs text-[#166534]">Portada con IA Institucional</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => generateAIEventCover(event.id)}
+                  className="px-2.5 py-1 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                  <span>Regenerar Portada con IA</span>
+                </button>
+              </div>
+              <p className="text-[11px] text-[#166534]/90 leading-tight">
+                Genera una portada visual temática adaptada al área ({event.area}) y propósito antes de publicar formalmente.
               </p>
             </div>
           )}

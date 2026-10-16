@@ -18,16 +18,17 @@ import {
   MoreHorizontal, 
   MapPin, 
   Search, 
-  Filter,
-  Layers,
-  BarChart3,
-  Award,
-  ShieldCheck,
-  AlertCircle
+  Filter, 
+  Layers, 
+  BarChart3, 
+  Award, 
+  ShieldCheck, 
+  AlertCircle,
+  UserPlus
 } from 'lucide-react';
 import { AREAS } from '../data/mockData';
 
-export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpenEventDetail }) {
+export default function DashboardView({ onOpenRegisterModal, onNavigateView, onOpenEventDetail }) {
   const { 
     currentUser, 
     events, 
@@ -35,12 +36,17 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
     users, 
     activeTab, 
     setActiveTab, 
-    getApprenticeAuditData 
+    getApprenticeAuditData,
+    toggleUserStatus
   } = useApp();
 
   const [selectedWeekFilter, setSelectedWeekFilter] = useState('Últimas 5 semanas');
   const [apprenticeSearchDoc, setApprenticeSearchDoc] = useState('');
   const [searchedAuditResult, setSearchedAuditResult] = useState(null);
+  
+  // Filtros para Gestión de Usuarios (RF-16)
+  const [userRoleFilter, setUserRoleFilter] = useState('ALL');
+  const [userSearchTerm, setUserSearchTerm] = useState('');
   
   // Pestañas de supervisión RF-15 para Admin General
   const [adminMetricTab, setAdminMetricTab] = useState(activeTab === 'users' ? 'usuarios' : 'global');
@@ -151,14 +157,16 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
 
         <div className="flex items-center gap-2.5">
           {currentUser.role === 'admin_general' ? (
-            <button
-              type="button"
-              onClick={onOpenInviteModal}
-              className="btn btn-primary"
-            >
-              <LinkIcon className="w-4 h-4 text-white" />
-              <span>Generar Enlace Encargado</span>
-            </button>
+            adminMetricTab !== 'usuarios' && activeTab !== 'users' ? (
+              <button
+                type="button"
+                onClick={onOpenRegisterModal}
+                className="btn btn-primary"
+              >
+                <UserPlus className="w-4 h-4 text-white" />
+                <span>Registrar Encargado</span>
+              </button>
+            ) : null
           ) : (
             <button
               type="button"
@@ -596,7 +604,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               <strong className="text-2xl font-extrabold text-[#1e293b] font-heading block my-1">
                 {encargadosList.length} Áreas
               </strong>
-              <span className="text-[10px] text-[#15803d] font-bold">100% con token activo</span>
+              <span className="text-[10px] text-[#15803d] font-bold">100% con asignación activa</span>
             </div>
 
             <div className="card-ergonomic p-4">
@@ -635,7 +643,63 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </p>
             </div>
 
-            <div className="overflow-x-auto mt-3">
+            {/* Vista Móvil: Tarjetas de Encargados (<sm) */}
+            <div className="block sm:hidden space-y-3 mt-3">
+              {encargadosMetrics.map(enc => (
+                <div key={enc.id} className="p-4 rounded-xl border border-[#e2e8f0] bg-white shadow-2xs space-y-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-2.5">
+                      <img src={enc.avatar} alt={enc.name} className="w-9 h-9 rounded-lg object-cover border border-[#e2e8f0]" />
+                      <div>
+                        <strong className="text-xs font-bold text-[#1e293b] font-heading block">{enc.name}</strong>
+                        <span className="text-[10px] text-[#15803d] font-bold font-mono">Área: {enc.area}</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedAreaFilter(enc.area);
+                        setAdminMetricTab('global');
+                      }}
+                      className="btn btn-secondary text-[10px] py-1 px-2 cursor-pointer shrink-0"
+                    >
+                      <span>Ver</span>
+                      <ChevronRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 text-[11px] bg-[#f8fafc] p-2.5 rounded-xl border border-[#e2e8f0]">
+                    <div>
+                      <span className="text-[10px] text-[#64748b] uppercase font-bold block">Actividades</span>
+                      <strong className="font-mono text-xs text-[#1e293b]">{enc.totalEvents} creadas</strong>
+                    </div>
+                    <div>
+                      <span className="text-[10px] text-[#64748b] uppercase font-bold block">Aforo / Cupo</span>
+                      <span className="font-mono text-xs text-[#1e293b] font-bold">{enc.totalAttendees} / {enc.totalCapacity}</span>
+                    </div>
+                    <div className="col-span-2 pt-1 border-t border-[#e2e8f0]/60 flex items-center justify-between">
+                      <span className="text-[10px] text-[#64748b] uppercase font-bold">Efectividad</span>
+                      <strong className="text-[#15803d] font-mono text-xs">{enc.complianceRate}%</strong>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                    <span className="bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.5 rounded font-bold">
+                      {enc.published} Publicados
+                    </span>
+                    <span className="bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded font-bold">
+                      {enc.inProgress} En Curso
+                    </span>
+                    <span className="bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold">
+                      {enc.finished} Fin
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Vista Desktop / Tablet: Tabla (≥sm) */}
+            <div className="hidden sm:block overflow-x-auto mt-3">
               <table className="w-full text-left text-xs border-collapse">
                 <thead>
                   <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
@@ -785,14 +849,10 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
               </p>
             </div>
 
-            <button
-              type="button"
-              onClick={onOpenInviteModal}
-              className="btn btn-primary text-xs shrink-0"
-            >
-              <LinkIcon className="w-4 h-4 text-white" />
-              <span>Emitir Enlace con Token</span>
-            </button>
+            <div className="flex items-center gap-2 font-mono text-[11px] text-[#64748b] bg-[#f8fafc] px-3 py-1.5 rounded-xl border border-[#e2e8f0] shrink-0">
+              <span className="w-2 h-2 rounded-full bg-[#15803d] animate-pulse" />
+              <span>Regional D.C. • C.E.E.T.</span>
+            </div>
           </div>
 
           {/* Grid de 4 StatCards de Censo */}
@@ -932,7 +992,7 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
 
           </div>
 
-          {/* Directorio de Administradores de Área Registrados */}
+          {/* Directorio Oficial de Encargados de Área (RF-14) */}
           <div className="card-ergonomic p-5 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e2e8f0] gap-2">
               <div>
@@ -940,17 +1000,17 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                   Directorio Oficial de Encargados de Área ({encargadosList.length})
                 </h3>
                 <p className="text-xs text-[#64748b] mt-0.5">
-                  Cuentas autorizadas mediante enlace exclusivo con token institucional.
+                  Encargados asignados por la Coordinación para la gestión de actividades y control de aforos.
                 </p>
               </div>
 
               <button
                 type="button"
-                onClick={onOpenInviteModal}
-                className="btn btn-secondary text-xs py-1.5"
+                onClick={onOpenRegisterModal}
+                className="btn btn-primary text-xs py-1.5 flex items-center gap-1.5"
               >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Generar Enlace Token</span>
+                <UserPlus className="w-3.5 h-3.5 text-white" />
+                <span>Registrar Encargado</span>
               </button>
             </div>
 
@@ -968,22 +1028,189 @@ export default function DashboardView({ onOpenInviteModal, onNavigateView, onOpe
                   </div>
                   <div className="flex items-center justify-between text-[10px] text-[#64748b] pt-1 border-t border-[#e2e8f0]/80">
                     <span>Email: {enc.email}</span>
-                    <span className="text-[#15803d] font-bold">Token Activo</span>
+                    <span className="text-[#15803d] font-bold">Activo</span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Consulta Individual de Aprendices y Auditoría de Marcas de Tiempo */}
+          {/* Módulo de Gestión de Usuarios de la Plataforma (RF-16) */}
+          <div className="card-ergonomic p-5 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e2e8f0] gap-3">
+              <div>
+                <h3 className="text-sm font-bold text-[#1e293b] font-heading">
+                  Gestión Integral de Usuarios de la Plataforma
+                </h3>
+                <p className="text-xs text-[#64748b] mt-0.5">
+                  Supervisión del censo institucional, activación/desactivación de cuentas y control de accesos.
+                </p>
+              </div>
+
+              {/* Filtros de rol y buscador */}
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 text-[#94a3b8] absolute left-3 top-2.5" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o correo..."
+                    value={userSearchTerm}
+                    onChange={(e) => setUserSearchTerm(e.target.value)}
+                    className="pl-8 pr-3 py-1.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d] w-52"
+                  />
+                </div>
+
+                <select
+                  value={userRoleFilter}
+                  onChange={(e) => setUserRoleFilter(e.target.value)}
+                  className="px-2.5 py-1.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none"
+                >
+                  <option value="ALL">Todos los Roles</option>
+                  <option value="aprendiz">Aprendices</option>
+                  <option value="admin_area">Encargados de Área</option>
+                  <option value="admin_general">Administradores</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Vista Móvil: Tarjetas de Usuarios (<sm) */}
+            <div className="block sm:hidden divide-y divide-[#e2e8f0] rounded-xl border border-[#e2e8f0] overflow-hidden bg-white">
+              {users
+                .filter(u => {
+                  if (userRoleFilter !== 'ALL' && u.role !== userRoleFilter) return false;
+                  if (userSearchTerm.trim()) {
+                    const term = userSearchTerm.toLowerCase();
+                    const matchName = u.name?.toLowerCase().includes(term);
+                    const matchEmail = u.email?.toLowerCase().includes(term);
+                    const matchDoc = u.documentNumber?.toLowerCase().includes(term);
+                    if (!matchName && !matchEmail && !matchDoc) return false;
+                  }
+                  return true;
+                })
+                .map(u => (
+                  <div key={u.id} className="p-3.5 space-y-2.5">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2.5">
+                        <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-lg object-cover border border-[#e2e8f0]" />
+                        <div>
+                          <strong className="text-xs text-[#1e293b] font-heading block">{u.name}</strong>
+                          <span className="text-[10px] text-[#64748b] font-mono">{u.email}</span>
+                        </div>
+                      </div>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
+                        u.status === 'inactivo'
+                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      }`}>
+                        {u.status === 'inactivo' ? 'Inactivo' : 'Activo'}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[#f1f5f9]">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#475569]">
+                          {u.shortRole || u.role}
+                        </span>
+                        <span className="text-[10px] text-[#64748b]">Área: <strong>{u.area || 'General'}</strong></span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => toggleUserStatus(u.id)}
+                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors cursor-pointer shrink-0 ${
+                          u.status === 'inactivo'
+                            ? 'bg-[#15803d] hover:bg-[#166534] text-white'
+                            : 'bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-[#475569] border border-[#cbd5e1]'
+                        }`}
+                      >
+                        {u.status === 'inactivo' ? 'Habilitar' : 'Desactivar'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+            </div>
+
+            {/* Vista Desktop / Tablet: Tabla (≥sm) */}
+            <div className="hidden sm:block overflow-x-auto rounded-xl border border-[#e2e8f0]">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="bg-[#f8fafc] text-[#64748b] text-[10px] font-mono uppercase font-bold border-b border-[#e2e8f0]">
+                    <th className="py-2.5 px-3">USUARIO / IDENTIDAD</th>
+                    <th className="py-2.5 px-3">ROL EN PLATAFORMA</th>
+                    <th className="py-2.5 px-3">ÁREA ASIGNADA</th>
+                    <th className="py-2.5 px-3">ESTADO</th>
+                    <th className="py-2.5 px-3 text-center">GESTIÓN DE ESTADO</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#e2e8f0]">
+                  {users
+                    .filter(u => {
+                      if (userRoleFilter !== 'ALL' && u.role !== userRoleFilter) return false;
+                      if (userSearchTerm.trim()) {
+                        const term = userSearchTerm.toLowerCase();
+                        const matchName = u.name?.toLowerCase().includes(term);
+                        const matchEmail = u.email?.toLowerCase().includes(term);
+                        const matchDoc = u.documentNumber?.toLowerCase().includes(term);
+                        if (!matchName && !matchEmail && !matchDoc) return false;
+                      }
+                      return true;
+                    })
+                    .map(u => (
+                      <tr key={u.id} className="hover:bg-[#f8fafc] transition-colors">
+                        <td className="py-2.5 px-3">
+                          <div className="flex items-center gap-2.5">
+                            <img src={u.avatar} alt={u.name} className="w-7 h-7 rounded-lg object-cover border border-[#e2e8f0]" />
+                            <div>
+                              <strong className="text-xs text-[#1e293b] font-heading block">{u.name}</strong>
+                              <span className="text-[10px] text-[#64748b] font-mono">{u.email}</span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#475569]">
+                            {u.shortRole || u.role}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-[#334155] font-medium">
+                          {u.area || 'General'}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            u.status === 'inactivo'
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                          }`}>
+                            {u.status === 'inactivo' ? 'Inactivo' : 'Activo'}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => toggleUserStatus(u.id)}
+                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
+                              u.status === 'inactivo'
+                                ? 'bg-[#15803d] hover:bg-[#166534] text-white'
+                                : 'bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-[#475569] border border-[#cbd5e1]'
+                            }`}
+                          >
+                            {u.status === 'inactivo' ? 'Habilitar Cuenta' : 'Desactivar Cuenta'}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Consulta Individual de Aprendices e Historial de Asistencia */}
           <div className="p-5 card-ergonomic space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e2e8f0]">
               <div>
                 <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-                  Auditoría Individual de Aprendices
+                  Consulta Individual de Asistencias
                 </h3>
                 <p className="text-xs text-[#64748b] mt-0.5">
-                  Consulta de trazabilidad institucional con sellos de tiempo inmutables de servidor.
+                  Búsqueda rápida del historial de participación y asistencias por número de documento.
                 </p>
               </div>
 

@@ -16,7 +16,8 @@ import {
   Eye,
   Filter,
   ArrowRight,
-  Sparkles
+  Sparkles,
+  Users
 } from 'lucide-react';
 import { AREAS } from '../data/mockData';
 
@@ -27,7 +28,8 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
     publishEvent, 
     startEventAttendance, 
     closeEventAttendance, 
-    deleteEvent 
+    deleteEvent,
+    setActiveTab
   } = useApp();
 
   const [filterStatus, setFilterStatus] = useState('ALL');
@@ -342,15 +344,27 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                       )}
 
                       {(isFinished || (evt.attendeesCount || 0) > 0) && (
-                        <button
-                          type="button"
-                          onClick={() => onOpenExportModal && onOpenExportModal(evt)}
-                          className="btn btn-secondary px-2.5 py-1.5 text-xs font-bold text-[#1e293b]"
-                          title="Exportar acta oficial GOR-F-013"
-                        >
-                          <FileSpreadsheet className="w-3.5 h-3.5 text-[#15803d]" />
-                          <span>GOR-F-013</span>
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('participants')}
+                            className="btn btn-secondary px-2.5 py-1.5 text-xs font-bold text-[#1e293b] flex items-center gap-1"
+                            title="Consultar participantes y asistencias (RF-09)"
+                          >
+                            <Users className="w-3.5 h-3.5 text-[#15803d]" />
+                            <span>Participantes</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => onOpenExportModal && onOpenExportModal(evt)}
+                            className="btn btn-secondary px-2.5 py-1.5 text-xs font-bold text-[#1e293b] flex items-center gap-1"
+                            title="Exportar acta oficial de asistencia (RF-10)"
+                          >
+                            <FileSpreadsheet className="w-3.5 h-3.5 text-[#15803d]" />
+                            <span>Exportar XLSX</span>
+                          </button>
+                        </>
                       )}
 
                       {/* Editar */}

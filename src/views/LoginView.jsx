@@ -31,7 +31,7 @@ export default function LoginView() {
     addToast 
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register_aprendiz' | 'token_encargado' | 'recovery'
+  const [activeTab, setActiveTab] = useState('login'); // 'login' | 'register_aprendiz' | 'recovery'
   const [selectedDemoRole, setSelectedDemoRole] = useState('admin_general'); // 'admin_general' | 'admin_area' | 'aprendiz' | 'aprendiz_nuevo'
 
   // Estados para formulario de login clásico
@@ -43,24 +43,23 @@ export default function LoginView() {
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoverySuccess, setRecoverySuccess] = useState(false);
 
-  // Estados para registro nuevo de aprendiz
+  // Estados para registro nuevo de aprendiz (RF-01)
   const [registerData, setRegisterData] = useState({
     name: '',
     email: '',
     personalEmail: '',
     documentType: 'Cédula de Ciudadanía (CC)',
     documentNumber: '',
+    gender: 'Femenino',
+    ficha: '',
+    modality: 'Presencial',
+    program: 'Análisis y Desarrollo de Software (ADSO)',
+    jornada: 'Diurna',
+    level: 'Tecnólogo',
+    trainingCenter: 'Centro de Servicios Financieros',
+    phone: '',
     password: '',
     confirmPassword: ''
-  });
-
-  // Estados para registro de encargado con token exclusivo
-  const [tokenInput, setTokenInput] = useState('');
-  const [encargadoRegisterData, setEncargadoRegisterData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    area: 'Cultura'
   });
 
   // Manejar Login Clásico
@@ -114,15 +113,6 @@ export default function LoginView() {
     }
   };
 
-  // Manejar Registro de Encargado con Enlace Exclusivo
-  const handleEncargadoTokenSubmit = (e) => {
-    e.preventDefault();
-    const res = registerEncargadoViaToken(tokenInput, encargadoRegisterData);
-    if (!res.success) {
-      addToast('Token Inválido', res.message, 'warning');
-    }
-  };
-
   const handleSelectDemo = (roleKey, userId) => {
     setSelectedDemoRole(roleKey);
     loginWithDemoUser(userId);
@@ -134,8 +124,8 @@ export default function LoginView() {
       {/* Contenedor Unificado Ergonómico Anti-Fatiga */}
       <div className="w-full max-w-6xl bg-white rounded-3xl border border-[#cbd5e1] shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-[1.05fr_1fr]">
         
-        {/* Panel Izquierdo: Visual Orgánico en Verde Petróleo Calmante (no negro puro) */}
-        <div className="relative bg-gradient-to-br from-[#0c2f3a] via-[#103a46] to-[#08242e] text-white p-8 md:p-12 flex flex-col justify-between overflow-hidden min-h-[440px] lg:min-h-full">
+        {/* Panel Izquierdo: Banner Institucional Compacto en móviles/tablets (<lg), Completo en desktop (≥lg) */}
+        <div className="relative bg-gradient-to-br from-[#0c2f3a] via-[#103a46] to-[#08242e] text-white p-5 sm:p-8 lg:p-12 flex flex-col justify-between overflow-hidden">
           
           {/* Cabecera Superior Izquierda */}
           <div className="relative z-10 flex items-center justify-between">
@@ -153,8 +143,8 @@ export default function LoginView() {
             </span>
           </div>
 
-          {/* Copy Central con Manrope y Micro-Acentos */}
-          <div className="relative z-10 my-auto py-8 max-w-lg">
+          {/* Copy Central con Manrope y Micro-Acentos - Visible en pantallas grandes */}
+          <div className="relative z-10 my-auto py-8 max-w-lg hidden lg:block">
             <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-white/10 backdrop-blur-xs border border-white/15 text-[11px] font-bold text-[#c4f246] tracking-wide mb-4">
               <Sparkles className="w-3.5 h-3.5" />
               <span>SISTEMA INSTITUCIONAL DE BIENESTAR</span>
@@ -184,8 +174,8 @@ export default function LoginView() {
             </div>
           </div>
 
-          {/* Footer Izquierdo */}
-          <div className="relative z-10 flex items-center justify-between text-xs text-[#8baabf] pt-4 border-t border-white/10">
+          {/* Footer Izquierdo - Visible en desktop */}
+          <div className="relative z-10 hidden lg:flex items-center justify-between text-xs text-[#8baabf] pt-4 border-t border-white/10">
             <span>Dirección de Formación Profesional</span>
             <span>Versión 2026.10</span>
           </div>
@@ -239,7 +229,7 @@ export default function LoginView() {
                         Admin General (Coordinación)
                       </strong>
                       <small className="text-[#64748b] text-[11px]">
-                        Supervisión de las 6 áreas y enlaces de invitación
+                        Supervisión integral de las 6 áreas y reporte consolidado
                       </small>
                     </div>
                   </div>
@@ -349,16 +339,6 @@ export default function LoginView() {
                   }`}
                 >
                   Nuevo Aprendiz
-                </button>
-                <button
-                  onClick={() => { setActiveTab('token_encargado'); setLoginError(''); }}
-                  className={`flex-1 py-2.5 text-center transition-colors border-b-2 ${
-                    activeTab === 'token_encargado'
-                      ? 'border-[#15803d] text-[#15803d] font-bold'
-                      : 'border-transparent text-[#64748b] hover:text-[#1e293b]'
-                  }`}
-                >
-                  Enlace Encargado
                 </button>
               </div>
 
@@ -549,86 +529,7 @@ export default function LoginView() {
                 </div>
               )}
 
-              {/* TAB 3: TOKEN ENCARGADO */}
-              {activeTab === 'token_encargado' && (
-                <div className="pt-4 space-y-3">
-                  <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs">
-                    <strong>Registro Exclusivo de Encargado:</strong> Ingresa el token de invitación emitido por el Administrador General para vincular tu área asignada.
-                  </div>
-
-                  <form onSubmit={handleEncargadoTokenSubmit} className="space-y-3">
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#334155] mb-1">Token de Invitación *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="SENA-ENC-CULTURA-2026"
-                        value={tokenInput}
-                        onChange={(e) => setTokenInput(e.target.value)}
-                        className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs font-mono font-bold text-[#1e293b] focus:bg-white focus:outline-none focus:border-purple-600"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#334155] mb-1">Nombre Completo *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Lic. Fernando Gómez"
-                        value={encargadoRegisterData.name}
-                        onChange={(e) => setEncargadoRegisterData({ ...encargadoRegisterData, name: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo SENA *</label>
-                      <input
-                        type="email"
-                        required
-                        placeholder="fernando.gomez@sena.edu.co"
-                        value={encargadoRegisterData.email}
-                        onChange={(e) => setEncargadoRegisterData({ ...encargadoRegisterData, email: e.target.value })}
-                        className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none"
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="block text-[11px] font-bold text-[#334155] mb-1">Área Asignada</label>
-                        <select
-                          value={encargadoRegisterData.area}
-                          onChange={(e) => setEncargadoRegisterData({ ...encargadoRegisterData, area: e.target.value })}
-                          className="w-full px-2 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none"
-                        >
-                          {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-                        </select>
-                      </div>
-                      <div>
-                        <label className="block text-[11px] font-bold text-[#334155] mb-1">Contraseña *</label>
-                        <input
-                          type="password"
-                          required
-                          placeholder="••••••••"
-                          value={encargadoRegisterData.password}
-                          onChange={(e) => setEncargadoRegisterData({ ...encargadoRegisterData, password: e.target.value })}
-                          className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs font-mono text-[#1e293b] focus:bg-white focus:outline-none"
-                        />
-                      </div>
-                    </div>
-
-                    <button
-                      type="submit"
-                      className="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 mt-2"
-                    >
-                      <ShieldCheck className="w-4 h-4 text-purple-200" />
-                      <span>Activar Cuenta de Encargado</span>
-                    </button>
-                  </form>
-                </div>
-              )}
-
-              {/* TAB 4: RECUPERACIÓN */}
+              {/* TAB 3: RECUPERACIÓN */}
               {activeTab === 'recovery' && (
                 <div className="pt-4 space-y-3">
                   {recoverySuccess ? (

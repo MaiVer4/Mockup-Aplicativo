@@ -18,14 +18,18 @@ export default function Sidebar({ view, setView, open, close }) {
 
   const activeEventsCount = events.filter(e => e.status !== 'finalizado').length;
 
-  const navItems = [
-    { id: 'dashboard', icon: LayoutGrid, label: 'Resumen' },
-    { id: 'events', icon: Calendar, label: 'Eventos', count: activeEventsCount },
-    { id: 'upload', icon: Upload, label: 'Importar Excel' },
-    ...(currentUser.role === 'admin_general' 
-      ? [{ id: 'users', icon: Users, label: 'Usuarios y Roles' }] 
-      : [])
-  ];
+  const navItems = currentUser.role === 'admin_area'
+    ? [
+        { id: 'events', icon: Calendar, label: 'Mis Actividades', count: activeEventsCount },
+        { id: 'upload', icon: Upload, label: 'Cargar Plan XLSX' },
+        { id: 'participants', icon: Users, label: 'Participantes' }
+      ]
+    : [
+        { id: 'dashboard', icon: LayoutGrid, label: 'Supervisión' },
+        { id: 'events', icon: Calendar, label: 'Todas las Actividades', count: activeEventsCount },
+        { id: 'participants', icon: Users, label: 'Participantes Globales' },
+        { id: 'users', icon: Users, label: 'Gestión de Usuarios' }
+      ];
 
   return (
     <>

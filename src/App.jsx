@@ -5,13 +5,14 @@ import AdminHeader from './components/AdminHeader';
 import ToastContainer from './components/ToastContainer';
 import EventModal from './components/EventModal';
 import ExportValidationModal from './components/ExportValidationModal';
-import InviteLinkModal from './components/InviteLinkModal';
+import RegisterEncargadoModal from './components/RegisterEncargadoModal';
 import EventDetailModal from './components/EventDetailModal';
 import ApprenticeOnboardingModal from './components/ApprenticeOnboardingModal';
 import EmailNotificationDrawer from './components/EmailNotificationDrawer';
 import DashboardView from './views/DashboardView';
 import EventsView from './views/EventsView';
 import ExcelUploadView from './views/ExcelUploadView';
+import ParticipantsView from './views/ParticipantsView';
 import ApprenticePortal from './views/ApprenticePortal';
 import LoginView from './views/LoginView';
 
@@ -30,7 +31,7 @@ function AdminShell() {
   // Modales
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
-  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [selectedEventForExport, setSelectedEventForExport] = useState(null);
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
 
@@ -66,13 +67,21 @@ function AdminShell() {
         />
 
         {/* Contenido de la Vista Activa */}
-        <main className="flex-1 p-5 md:p-8 max-w-7xl w-full mx-auto">
+        <main className="flex-1 p-3.5 sm:p-5 md:p-8 max-w-7xl w-full mx-auto">
           {activeTab === 'dashboard' && (
-            <DashboardView 
-              onOpenInviteModal={() => setIsInviteModalOpen(true)}
-              onNavigateView={setActiveTab}
-              onOpenEventDetail={setSelectedEventForDetail}
-            />
+            currentUser.role === 'admin_general' ? (
+              <DashboardView 
+                onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+                onNavigateView={setActiveTab}
+                onOpenEventDetail={setSelectedEventForDetail}
+              />
+            ) : (
+              <EventsView 
+                onOpenModal={handleOpenEventModal}
+                onOpenExportModal={setSelectedEventForExport}
+                onOpenDetailModal={setSelectedEventForDetail}
+              />
+            )
           )}
 
           {activeTab === 'events' && (
@@ -89,9 +98,15 @@ function AdminShell() {
             />
           )}
 
+          {activeTab === 'participants' && (
+            <ParticipantsView 
+              onOpenExportModal={setSelectedEventForExport}
+            />
+          )}
+
           {(activeTab === 'users' || activeTab === 'encargados' || activeTab === 'aprendices') && (
             <DashboardView 
-              onOpenInviteModal={() => setIsInviteModalOpen(true)}
+              onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
               onNavigateView={setActiveTab}
               onOpenEventDetail={setSelectedEventForDetail}
             />
@@ -106,7 +121,7 @@ function AdminShell() {
             <span>Sistema Institucional de Control de Asistencia y Aforo</span>
           </div>
           <div className="font-mono text-[11px] text-[#9aa5b2]">
-            Versión 2026.10 • GOR-F-013
+            Versión 2026.10 • Bienestar Institucional
           </div>
         </footer>
 
@@ -123,17 +138,17 @@ function AdminShell() {
         />
       )}
 
-      {/* 2. Modal de exportación oficial GOR-F-013 */}
+      {/* 2. Modal de exportación oficial */}
       <ExportValidationModal
         isOpen={Boolean(selectedEventForExport)}
         onClose={() => setSelectedEventForExport(null)}
         event={selectedEventForExport}
       />
 
-      {/* 3. Modal para generar enlaces exclusivos de invitación a encargados */}
-      <InviteLinkModal
-        isOpen={isInviteModalOpen}
-        onClose={() => setIsInviteModalOpen(false)}
+      {/* 3. Modal para registrar encargados de área directamente (RF-14) */}
+      <RegisterEncargadoModal
+        isOpen={isRegisterModalOpen}
+        onClose={() => setIsRegisterModalOpen(false)}
       />
 
       {/* 4. Modal de detalle extendido para la ficha del evento */}
@@ -166,8 +181,8 @@ function LearnerShell() {
     <div className="min-h-screen flex flex-col bg-[#f1f4f8] text-[#1e293b] font-sans antialiased">
       
       {/* Header Superior del Aprendiz */}
-      <header className="h-[74px] bg-white border-b border-[#e2e8f0] px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
-        <div className="flex items-center gap-3">
+      <header className="h-[64px] sm:h-[74px] bg-white border-b border-[#e2e8f0] px-3 sm:px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+        <div className="flex items-center gap-2 sm:gap-3">
           <div className="logo-wrap">
             <div className="logo-mark logo-dark">
               <span>S</span>
@@ -179,12 +194,12 @@ function LearnerShell() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Campana de Notificaciones */}
           <button
             type="button"
             onClick={() => setIsEmailDrawerOpen(true)}
-            className="relative w-10 h-10 rounded-xl border border-[#cbd5e1] bg-white text-[#475569] hover:text-[#0f172a] hover:bg-[#f8fafc] flex items-center justify-center transition-colors shadow-2xs"
+            className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-[#cbd5e1] bg-white text-[#475569] hover:text-[#0f172a] hover:bg-[#f8fafc] flex items-center justify-center transition-colors shadow-2xs"
             title="Buzón de notificaciones automáticas"
           >
             <span className="w-2 h-2 rounded-full bg-[#15803d] absolute top-2 right-2" />
@@ -194,11 +209,11 @@ function LearnerShell() {
           </button>
 
           {/* Perfil del Aprendiz */}
-          <div className="flex items-center gap-3 pl-3 border-l border-[#e2e8f0]">
+          <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-[#e2e8f0]">
             <img 
               src={currentUser.avatar} 
               alt={currentUser.name} 
-              className="w-9 h-9 rounded-xl object-cover border border-[#cbd5e1]"
+              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl object-cover border border-[#cbd5e1]"
             />
             <div className="hidden sm:flex flex-col text-left">
               <strong className="text-xs font-bold text-[#1e293b] font-heading truncate max-w-[140px]">
@@ -212,7 +227,7 @@ function LearnerShell() {
             <button
               type="button"
               onClick={logout}
-              className="p-2 rounded-xl text-[#64748b] hover:text-rose-600 hover:bg-rose-50 transition-colors ml-1"
+              className="p-1.5 sm:p-2 rounded-xl text-[#64748b] hover:text-rose-600 hover:bg-rose-50 transition-colors ml-0.5"
               title="Cerrar sesión"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
@@ -224,7 +239,7 @@ function LearnerShell() {
       </header>
 
       {/* Contenido Principal del Aprendiz */}
-      <main className="flex-1 p-5 md:p-8 max-w-6xl w-full mx-auto">
+      <main className="flex-1 p-3.5 sm:p-5 md:p-8 max-w-6xl w-full mx-auto">
         <ApprenticePortal />
       </main>
 

@@ -9,8 +9,10 @@ import {
   RotateCcw, 
   Shield, 
   Sparkles,
-  Mail
+  Mail,
+  KeyRound
 } from 'lucide-react';
+import ChangePasswordModal from './ChangePasswordModal';
 
 export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery }) {
   const { 
@@ -22,6 +24,7 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
   } = useApp();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   const getInitials = (name) => {
     if (!name) return 'S';
@@ -46,25 +49,25 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
   const roleBadge = getRoleBadge();
 
   return (
-    <header className="h-[74px] bg-white border-b border-[#e2e8f0] px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30">
+    <header className="h-[64px] sm:h-[74px] bg-white border-b border-[#e2e8f0] px-3 sm:px-6 lg:px-8 flex items-center justify-between sticky top-0 z-30">
       
       {/* Botón menú mobile + Buscador */}
-      <div className="flex items-center gap-3 flex-1 max-w-md">
+      <div className="flex items-center gap-2 sm:gap-3 flex-1 max-w-md min-w-0">
         <button
           type="button"
           onClick={onOpenMenu}
-          className="p-2 rounded-xl text-[#334155] hover:bg-[#f1f5f9] lg:hidden transition-colors"
+          className="p-1.5 sm:p-2 rounded-xl text-[#334155] hover:bg-[#f1f5f9] lg:hidden transition-colors shrink-0"
           title="Abrir menú"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         {/* Search box ergonómico */}
-        <div className="h-10 w-full bg-[#f1f5f9] rounded-xl flex items-center gap-2.5 px-3.5 text-[#64748b] border border-[#cbd5e1]/70 focus-within:border-[#15803d] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#15803d]/20 transition-all">
-          <Search className="w-4 h-4 shrink-0 text-[#64748b]" />
+        <div className="h-9 sm:h-10 flex-1 min-w-0 bg-[#f1f5f9] rounded-xl flex items-center gap-2 px-2.5 sm:px-3.5 text-[#64748b] border border-[#cbd5e1]/70 focus-within:border-[#15803d] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#15803d]/20 transition-all">
+          <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 text-[#64748b]" />
           <input
             type="text"
-            placeholder="Buscar eventos, aprendices o fichas..."
+            placeholder="Buscar eventos, aprendices..."
             value={searchQuery || ''}
             onChange={(e) => setSearchQuery && setSearchQuery(e.target.value)}
             className="flex-1 bg-transparent border-0 outline-none text-xs text-[#1e293b] placeholder:text-[#64748b] min-w-0"
@@ -76,7 +79,7 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
       </div>
 
       {/* Acciones de la derecha */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         
         {/* Badge del Área o Rol */}
         <span className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${roleBadge.color}`}>
@@ -92,12 +95,12 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
         <button
           type="button"
           onClick={() => setIsEmailDrawerOpen(true)}
-          className="relative w-10 h-10 rounded-xl border border-[#cbd5e1] bg-white text-[#475569] hover:text-[#0f172a] hover:bg-[#f8fafc] flex items-center justify-center transition-colors shadow-2xs"
+          className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl border border-[#cbd5e1] bg-white text-[#475569] hover:text-[#0f172a] hover:bg-[#f8fafc] flex items-center justify-center transition-colors shadow-2xs"
           title="Buzón de notificaciones automáticas"
         >
           <Bell className="w-4 h-4" />
           {sentEmails.length > 0 && (
-            <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
+            <span className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 w-2 h-2 rounded-full bg-rose-500 ring-2 ring-white" />
           )}
         </button>
 
@@ -106,9 +109,9 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
           <button
             type="button"
             onClick={() => setIsProfileOpen(!isProfileOpen)}
-            className="flex items-center gap-3 pl-3 border-l border-[#e2e8f0] text-left hover:opacity-90 transition-opacity"
+            className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-[#e2e8f0] text-left hover:opacity-90 transition-opacity"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center font-extrabold text-xs shadow-2xs">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center font-extrabold text-xs shadow-2xs shrink-0">
               {getInitials(currentUser.name)}
             </div>
             <div className="hidden sm:flex flex-col">
@@ -149,6 +152,18 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
                 <button
                   type="button"
                   onClick={() => {
+                    setIsChangePasswordOpen(true);
+                    setIsProfileOpen(false);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs text-[#203754] hover:bg-[#f4f7fa] flex items-center gap-2 font-medium"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-[#718098]" />
+                  <span>Cambiar Contraseña</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
                     resetToDefaultData();
                     setIsProfileOpen(false);
                   }}
@@ -175,6 +190,12 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
         </div>
 
       </div>
+
+      {/* Modal de Cambio de Contraseña */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
+      />
 
     </header>
   );
