@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { DEMO_ANNUAL_PLAN_SHEETS, AREAS } from '../data/mockData';
+import { DEMO_ANNUAL_PLAN_SHEETS, AREAS } from '../data/mockData.js';
 
 // Banco de recursos visuales representativos según las 6 áreas del SENA Bienestar
 const SENA_THEMATIC_IMAGES = {
@@ -48,38 +48,306 @@ export function getSemanticImage(area = '', text = '') {
   return pool[index];
 }
 
-// Detección de expresiones ambiguas según RF-06
+// Normalizador de texto para comparaciones semánticas difusas
+function normalizeSearchText(str = '') {
+  return String(str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim();
+}
+
+// Sinónimos institucionales de columnas utilizados en planes del SENA
+const COLUMN_SYNONYMS = {
+  title: [
+    'evento / actividad', 'nombre de la actividad', 'nombre actividad', 'actividad', 
+    'evento', 'titulo', 'título', 'denominacion', 'denominación', 'tema', 
+    'acciones', 'descripcion', 'descripción', 'taller', 'jornada', 'encuentro', 
+    'charla', 'accion a desarrollar', 'actividades a desarrollar', 'nombre'
+  ],
+  date: [
+    'mes / fecha programada', 'fecha programada', 'fecha estimada', 'fecha de ejecucion', 
+    'fecha de realización', 'fecha realizacion', 'fecha', 'mes', 'cronograma', 
+    'calendario', 'programacion', 'programación', 'periodo', 'período', 'dia', 'día',
+    'fecha de inicio', 'fecha inicio'
+  ],
+  capacity: [
+    'aprendices estimados', 'cupos estimados', 'cupo', 'capacidad', 'cobertura', 
+    'meta', 'aprendices', 'participantes', 'aforo', 'asistentes', 'cantidad', 
+    'numero de aprendices', 'cupos'
+  ],
+  line: [
+    'línea de acción', 'linea de accion', 'linea', 'línea', 'dimension', 'dimensión', 
+    'eje', 'componente', 'tematica', 'temática', 'enfoque', 'area tematica'
+  ],
+  responsible: [
+    'responsable sugerido', 'responsable', 'lider', 'líder', 'facilitador', 
+    'encargado', 'instructor', 'orientador', 'apoyo', 'responsable del evento'
+  ],
+  location: [
+    'lugar sugerido', 'lugar', 'ubicacion', 'ubicación', 'sitio', 'escenario', 
+    'ambiente', 'espacio', 'sala', 'instalaciones'
+  ],
+  area: [
+    'área', 'area', 'categoria', 'categoría', 'seccion', 'sección', 
+    'coordinacion', 'coordinación', 'dependencia'
+  ],
+  quarter: [
+    'trimestre', 'cuatrimestre', 'fase', 'periodo academico'
+  ],
+  code: [
+    'código', 'codigo', 'cod', 'id', 'consecutivo', 'item', 'n°', 'num', 'numero'
+  ]
+};
+
+// Asignación de columna a campo según sinónimos
+export function matchColumnField(headerName = '') {
+  const norm = normalizeSearchText(headerName);
+  if (!norm) return null;
+
+  // 1. Coincidencia exacta prioritaria
+  for (const [field, synonyms] of Object.entries(COLUMN_SYNONYMS)) {
+    if (synonyms.some(syn => norm === syn)) {
+      return field;
+    }
+  }
+
+  // 2. Coincidencia por inclusión: el encabezado del usuario contiene un sinónimo completo
+  // Ordenamos por longitud descendente para que 'nombre de la actividad' gane sobre 'nombre'
+  for (const [field, synonyms] of Object.entries(COLUMN_SYNONYMS)) {
+    const sorted = [...synonyms].sort((a, b) => b.length - a.length);
+    for (const syn of sorted) {
+      if (norm.includes(syn)) {
+        return field;
+      }
+    }
+  }
+
+  return null;
+}
+
+// Analizador y limpiador de fechas reales de Excel con evaluación RF-06
+export function parseSmartDate(cellValue) {
+  if (cellValue === null || cellValue === undefined || cellValue === '') {
+    return {
+      dateStr: '2026-10-25',
+      isAmbiguous: true,
+      ambiguityReason: 'Fecha no especificada en el archivo fuente (RF-06).'
+    };
+  }
+
+  // 1. Si ya es una instancia de Date de JavaScript
+  if (cellValue instanceof Date && !isNaN(cellValue.getTime())) {
+    const year = cellValue.getFullYear();
+    const month = String(cellValue.getMonth() + 1).padStart(2, '0');
+    const day = String(cellValue.getDate()).padStart(2, '0');
+    return {
+      dateStr: `${year}-${month}-${day}`,
+      isAmbiguous: false,
+      ambiguityReason: null
+    };
+  }
+
+  // 2. Si es número serial de Excel (ej: 45678)
+  if (typeof cellValue === 'number' && cellValue > 25569 && cellValue < 60000) {
+    const jsDate = new Date(Math.round((cellValue - 25569) * 86400 * 1000));
+    const year = jsDate.getUTCFullYear();
+    const month = String(jsDate.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(jsDate.getUTCDate()).padStart(2, '0');
+    return {
+      dateStr: `${year}-${month}-${day}`,
+      isAmbiguous: false,
+      ambiguityReason: null
+    };
+  }
+
+  const str = String(cellValue).trim();
+  const norm = normalizeSearchText(str);
+
+  // 3. Expresiones ambiguas institucionales (RF-06)
+  const ambiguousKeywords = [
+    'por solicitud', 'todo el mes', 'segun programacion', 'por definir', 
+    'pendiente', 'a convenir', 'permanente', 'durante el trimestre', 
+    'semana 1', 'semana 2', 'semana 3', 'semana 4', 'a demanda', 
+    'convenido', 'rango', 'flexible', 'continuo'
+  ];
+
+  for (const kw of ambiguousKeywords) {
+    if (norm.includes(kw)) {
+      return {
+        dateStr: '2026-10-25',
+        isAmbiguous: true,
+        ambiguityReason: `Expresión ambigua detectada ("${str}"). Bloqueada para publicación hasta decisión humana (RF-06).`
+      };
+    }
+  }
+
+  // 4. Formato estándar YYYY-MM-DD
+  const isoMatch = str.match(/^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/);
+  if (isoMatch) {
+    const [, y, m, d] = isoMatch;
+    return {
+      dateStr: `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`,
+      isAmbiguous: false,
+      ambiguityReason: null
+    };
+  }
+
+  // 5. Formato latino DD/MM/YYYY o DD-MM-YYYY
+  const latMatch = str.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (latMatch) {
+    const [, d, m, y] = latMatch;
+    return {
+      dateStr: `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`,
+      isAmbiguous: false,
+      ambiguityReason: null
+    };
+  }
+
+  // 6. Meses en español (ej: "15 de Octubre", "Octubre 2026", "Noviembre")
+  const spanishMonths = {
+    'enero': '01', 'febrero': '02', 'marzo': '03', 'abril': '04',
+    'mayo': '05', 'junio': '06', 'julio': '07', 'agosto': '08',
+    'septiembre': '09', 'octubre': '10', 'noviembre': '11', 'diciembre': '12'
+  };
+
+  for (const [mName, mNum] of Object.entries(spanishMonths)) {
+    if (norm.includes(mName)) {
+      // Buscar si tiene día especificado (1 a 31)
+      const dayMatch = norm.match(/\b([1-9]|[12][0-9]|3[01])\b/);
+      if (dayMatch) {
+        const day = dayMatch[1].padStart(2, '0');
+        return {
+          dateStr: `2026-${mNum}-${day}`,
+          isAmbiguous: false,
+          ambiguityReason: null
+        };
+      }
+      // Si solo tiene el mes, sugerir día 15 y marcar como ambigua para fijar día
+      return {
+        dateStr: `2026-${mNum}-15`,
+        isAmbiguous: true,
+        ambiguityReason: `Solo se especificó el mes ("${str}"). Fija el día exacto de la actividad.`
+      };
+    }
+  }
+
+  return {
+    dateStr: '2026-10-25',
+    isAmbiguous: true,
+    ambiguityReason: `Formato de fecha no normalizado ("${str}"). Requiere validar fecha exacta.`
+  };
+}
+
+// Extractor numérico inteligente para cupo/capacidad
+export function parseSmartCapacity(cellValue) {
+  if (typeof cellValue === 'number' && !isNaN(cellValue) && cellValue > 0) {
+    return Math.round(cellValue);
+  }
+  if (cellValue) {
+    const matches = String(cellValue).match(/\d+/);
+    if (matches) {
+      const num = parseInt(matches[0], 10);
+      if (num > 0) return num;
+    }
+  }
+  return 50; // Capacidad estándar institucional si no se especificó
+}
+
+// Detección automática de cabecera y filas reales en matriz 2D
+export function detectHeaderAndRows(matrix = []) {
+  if (!matrix || matrix.length === 0) {
+    return { headerRowIndex: 0, headers: [], columnMap: {}, validRows: [] };
+  }
+
+  // 1. Escanear las primeras 15 filas buscando la cabecera con mayor puntuación
+  let bestRowIndex = 0;
+  let maxScore = -1;
+
+  const maxScan = Math.min(matrix.length, 15);
+  for (let r = 0; r < maxScan; r++) {
+    const row = matrix[r] || [];
+    let score = 0;
+    
+    row.forEach(cell => {
+      const field = matchColumnField(String(cell));
+      if (field) {
+        score += (field === 'title' ? 3 : 1);
+      }
+    });
+
+    if (score > maxScore) {
+      maxScore = score;
+      bestRowIndex = r;
+    }
+  }
+
+  // 2. Extraer nombres de cabecera
+  const headerCells = matrix[bestRowIndex] || [];
+  const headers = headerCells.map((c, idx) => {
+    const str = String(c).trim();
+    return str || `Columna_${idx + 1}`;
+  });
+
+  // 3. Establecer el mapeo de columnas automático
+  const columnMap = {};
+  headers.forEach((h, idx) => {
+    const matchedField = matchColumnField(h);
+    if (matchedField && !columnMap[matchedField]) {
+      columnMap[matchedField] = h;
+    }
+  });
+
+  // Si no se encontró columna de título explícita, usar la primera columna con texto
+  if (!columnMap.title && headers.length > 0) {
+    columnMap.title = headers[0];
+  }
+
+  // 4. Filtrar filas de datos omitiendo totales, subtotales, notas y firmas
+  const validRows = [];
+  const invalidStarters = [
+    'total', 'subtotal', 'suma', 'observaci', 'firma', 'elaboro', 
+    'reviso', 'aprobo', 'coordinador', 'convenciones', 'nota:', 
+    'responsable:', 'meta total', 'presupuesto total'
+  ];
+
+  for (let r = bestRowIndex + 1; r < matrix.length; r++) {
+    const rowCells = matrix[r] || [];
+    // Verificar si la fila está completamente vacía
+    const hasAnyContent = rowCells.some(c => c !== null && c !== undefined && String(c).trim() !== '');
+    if (!hasAnyContent) continue;
+
+    // Convertir fila a objeto con nombres de columnas
+    const rowObj = {};
+    headers.forEach((h, idx) => {
+      rowObj[h] = rowCells[idx] !== undefined ? rowCells[idx] : '';
+    });
+
+    // Validar celda de título
+    const titleVal = columnMap.title ? rowObj[columnMap.title] : rowCells[0];
+    const normTitle = normalizeSearchText(titleVal);
+
+    if (!normTitle) continue; // Fila sin nombre de actividad
+
+    const isGarbage = invalidStarters.some(prefix => normTitle.startsWith(prefix) || normTitle === prefix);
+    if (isGarbage) continue;
+
+    validRows.push(rowObj);
+  }
+
+  return {
+    headerRowIndex: bestRowIndex,
+    headers,
+    columnMap,
+    validRows,
+    rawRows: validRows
+  };
+}
+
+// Detección de expresiones ambiguas según RF-06 (compatibilidad)
 export function checkIsAmbiguousDate(dateString = '') {
-  if (!dateString || typeof dateString !== 'string') {
-    return { isAmbiguous: true, reason: 'Fecha no especificada en el archivo fuente.' };
-  }
-  const normalized = dateString.toLowerCase().trim();
-  if (
-    normalized.includes('por solicitud') ||
-    normalized.includes('todo el mes') ||
-    normalized.includes('según programación') ||
-    normalized.includes('segun programacion') ||
-    normalized.includes('por definir') ||
-    normalized.includes('pendiente') ||
-    normalized.includes('a convenir') ||
-    normalized.includes('rango')
-  ) {
-    return {
-      isAmbiguous: true,
-      reason: `Expresión ambigua detectada ("${dateString}"). Bloqueada para publicación hasta decisión humana.`
-    };
-  }
-
-  // Verificar si es formato fecha YYYY-MM-DD
-  const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-  if (!dateRegex.test(normalized)) {
-    return {
-      isAmbiguous: true,
-      reason: `Formato de fecha no normalizado ("${dateString}"). Requiere validación de fecha y hora exacta.`
-    };
-  }
-
-  return { isAmbiguous: false, reason: null };
+  const result = parseSmartDate(dateString);
+  return { isAmbiguous: result.isAmbiguous, reason: result.ambiguityReason };
 }
 
 // 1. Descargar la Plantilla Oficial del Plan Anual SENA (multi-hoja: Cultura, Prevención, etc.)
@@ -91,7 +359,7 @@ export function downloadSampleAnnualPlanTemplate() {
       'Código': r.codigo || `ACT-${sheetName.substring(0, 3).toUpperCase()}-${i + 1}`,
       'Línea de Acción': r.linea,
       'Evento / Actividad': r.evento,
-      'Trimestre': r.trimestre,
+      'Trimestre': r.trimestre || 'Trimestre 4',
       'Aprendices Estimados': r.aprendicesEstimados,
       'Costo Estimado (COP)': r.costo,
       'Responsable Sugerido': r.responsable,
@@ -118,7 +386,7 @@ export function downloadSampleAnnualPlanTemplate() {
   XLSX.writeFile(workbook, 'Plan_Anual_Bienestar_SENA_2026.xlsx');
 }
 
-// 2. Parsear archivo Excel multi-hoja cargado por el Encargado
+// 2. Parsear archivo Excel multi-hoja con auto-descubrimiento inteligente de encabezados
 export async function parseMultiSheetExcelFile(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -126,15 +394,24 @@ export async function parseMultiSheetExcelFile(file) {
     reader.onload = (e) => {
       try {
         const data = new Uint8Array(e.target.result);
-        const workbook = XLSX.read(data, { type: 'array' });
+        const workbook = XLSX.read(data, { type: 'array', cellDates: true });
 
         const resultBySheet = {};
 
         workbook.SheetNames.forEach(sheetName => {
           const worksheet = workbook.Sheets[sheetName];
-          const rawRows = XLSX.utils.sheet_to_json(worksheet, { defval: '' });
-          if (rawRows && rawRows.length > 0) {
-            resultBySheet[sheetName] = rawRows;
+          // Leer matriz cruda de celdas
+          const matrix = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '', blankrows: false });
+          
+          if (matrix && matrix.length > 0) {
+            const detected = detectHeaderAndRows(matrix);
+            resultBySheet[sheetName] = {
+              rawRows: detected.validRows,
+              headers: detected.headers,
+              columnMap: detected.columnMap,
+              activitiesCount: detected.validRows.length,
+              headerRowIndex: detected.headerRowIndex
+            };
           }
         });
 
@@ -154,55 +431,92 @@ export async function parseMultiSheetExcelFile(file) {
 }
 
 // 3. Procesamiento semántico del modelo de IA sobre filas del Plan Anual
-export function processPlanRowsWithAI(rawRows, area = 'Cultura', quarter = 'Trimestre 4') {
-  return rawRows.map((row, index) => {
-    const title = row['Evento / Actividad'] || row['Evento'] || row['Titulo'] || row['Actividad'] || row.evento || `Actividad ${index + 1}`;
-    const code = row['Código'] || row['Codigo'] || row.codigo || `ACT-${area.substring(0, 3).toUpperCase()}-${index + 1}`;
-    const line = row['Línea de Acción'] || row['Linea'] || row.linea || 'Formación y Bienestar Integral';
-    const estimatedCapacity = Number(row['Aprendices Estimados'] || row['Capacidad'] || row['Cupo'] || row.aprendicesEstimados || 60);
-    const dateValue = String(row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || row.mesFecha || '');
-    const responsible = row['Responsable Sugerido'] || row['Responsable'] || row.responsable || 'Coordinación de Área';
+export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quarter = 'Trimestre 4', customColumnMap = null) {
+  // Manejar tanto el formato nuevo de sheetData como arrays directos de filas
+  const rows = Array.isArray(rawRowsOrSheetData) 
+    ? rawRowsOrSheetData 
+    : (rawRowsOrSheetData?.rawRows || rawRowsOrSheetData?.validRows || []);
+  
+  const columnMap = customColumnMap || rawRowsOrSheetData?.columnMap || {};
 
-    // Evaluación de ambigüedad
-    let isAmbiguous = false;
-    let ambiguityReason = null;
-    if (typeof row.esAmbiguo === 'boolean') {
-      isAmbiguous = row.esAmbiguo;
-      ambiguityReason = row.motivoAmbiguedad || (isAmbiguous ? 'Fecha o datos pendientes de confirmación.' : null);
-    } else {
-      const ambiguityCheck = checkIsAmbiguousDate(dateValue);
-      isAmbiguous = ambiguityCheck.isAmbiguous;
-      ambiguityReason = ambiguityCheck.reason;
+  return rows.map((row, index) => {
+    // 1. Título real de la actividad
+    const title = (
+      (columnMap.title && row[columnMap.title]) ||
+      row['Evento / Actividad'] || row['Evento'] || row['Titulo'] || row['Actividad'] || 
+      row['Nombre'] || row['Nombre de la Actividad'] || row.evento || `Actividad ${index + 1}`
+    ).toString().trim();
+
+    // 2. Línea de acción formativa
+    const line = (
+      (columnMap.line && row[columnMap.line]) ||
+      row['Línea de Acción'] || row['Linea'] || row.linea || 'Formación y Bienestar Integral'
+    ).toString().trim();
+
+    // 3. Área institucional (detección en cascada)
+    let assignedArea = area;
+    const rowArea = columnMap.area ? row[columnMap.area] : (row['Área'] || row['Area'] || row.area);
+    if (rowArea) {
+      const normArea = normalizeSearchText(rowArea);
+      const matchedArea = AREAS.find(a => normalizeSearchText(a) === normArea || normArea.includes(normalizeSearchText(a)));
+      if (matchedArea) assignedArea = matchedArea;
     }
 
-    // Síntesis de propósito formativo y objetivo según el contexto
-    const purpose = `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación y convivencia.`;
-    const objective = `Desarrollar competencias socioemocionales e incentivar la integración de las fichas de formación en el centro.`;
+    // 4. Código oficial
+    const code = (
+      (columnMap.code && row[columnMap.code]) ||
+      row['Código'] || row['Codigo'] || row.codigo || 
+      `ACT-${assignedArea.substring(0, 3).toUpperCase()}-${String(index + 1).padStart(2, '0')}`
+    ).toString().trim();
 
-    const image = getSemanticImage(area, title + ' ' + line);
+    // 5. Capacidad / Cupo proyectado
+    const rawCapacity = columnMap.capacity ? row[columnMap.capacity] : (row['Aprendices Estimados'] || row['Capacidad'] || row['Cupo'] || row.aprendicesEstimados);
+    const estimatedCapacity = parseSmartCapacity(rawCapacity);
+
+    // 6. Fecha y evaluación de ambigüedad (RF-06)
+    const rawDateValue = columnMap.date ? row[columnMap.date] : (row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || row.mesFecha);
+    const dateParsed = parseSmartDate(rawDateValue);
+
+    // 7. Responsable
+    const responsible = (
+      (columnMap.responsible && row[columnMap.responsible]) ||
+      row['Responsable Sugerido'] || row['Responsable'] || row.responsable || 'Coordinación de Área'
+    ).toString().trim();
+
+    // 8. Lugar
+    const location = (
+      (columnMap.location && row[columnMap.location]) ||
+      row['Lugar Sugerido'] || row['Lugar'] || row.location || 'Centro de Formación - Auditorio / Ambientes de Bienestar'
+    ).toString().trim();
+
+    // 9. Síntesis pedagógica de propósito formativo y objetivo
+    const purpose = `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación activa y convivencia comunitaria.`;
+    const objective = `Desarrollar competencias socioemocionales e incentivar la integración y permanencia de las fichas de formación en el centro.`;
+
+    const image = getSemanticImage(assignedArea, title + ' ' + line);
 
     return {
       tempId: `prop-${Date.now()}-${index}`,
       code,
       title,
-      area,
-      quarter: row['Trimestre'] || row.trimestre || quarter,
+      area: assignedArea,
+      quarter: (columnMap.quarter && row[columnMap.quarter]) || row['Trimestre'] || row.trimestre || quarter,
       line,
       purpose,
       objective,
       capacity: estimatedCapacity,
-      date: isAmbiguous ? (dateValue && /^\d{4}-\d{2}-\d{2}$/.test(dateValue) ? dateValue : '2026-10-25') : dateValue,
-      rawDateValue: dateValue,
-      isAmbiguous,
-      ambiguityReason,
+      date: dateParsed.dateStr,
+      rawDateValue: rawDateValue !== undefined ? String(rawDateValue) : '',
+      isAmbiguous: dateParsed.isAmbiguous,
+      ambiguityReason: dateParsed.ambiguityReason,
       responsibleName: responsible,
       image,
       duration: '3 horas',
       time: '14:00 - 17:00',
-      location: 'Centro de Formación - Auditorio / Canchas',
-      status: 'borrador', // Nace siempre en borrador
+      location,
+      status: 'borrador', // Nace siempre en borrador para revisión humana
       selected: true,
-      confidenceScore: isAmbiguous ? 76 : 98
+      confidenceScore: dateParsed.isAmbiguous ? 82 : 99
     };
   });
 }
