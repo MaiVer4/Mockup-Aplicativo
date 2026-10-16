@@ -157,7 +157,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             ))}
           </div>
 
-          <div className="pt-2 flex justify-center gap-3">
+          <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
             <button
               type="button"
               onClick={() => {
@@ -165,7 +165,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                 setExtractedItems([]);
                 setFileName('');
               }}
-              className="btn btn-secondary text-xs"
+              className="btn btn-secondary text-xs w-full sm:w-auto justify-center py-2.5"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>Importar otro archivo</span>
@@ -174,7 +174,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             <button
               type="button"
               onClick={onSuccessNavigate}
-              className="btn btn-primary text-xs font-bold"
+              className="btn btn-primary text-xs font-bold w-full sm:w-auto justify-center py-2.5"
             >
               <span>Revisar eventos en Catálogo</span>
               <ArrowRight className="w-4 h-4" />
@@ -198,33 +198,33 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
         </p>
       </div>
 
-      {/* Indicador de 3 Pasos Ergonómico */}
-      <div className="flex items-center justify-center gap-3 py-2">
-        <div className={`flex items-center gap-2 text-xs font-bold ${step === 1 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+      {/* Indicador de 3 Pasos Ergonómico y Responsivo */}
+      <div className="flex items-center justify-center gap-2 sm:gap-3 py-2 px-1 max-w-full overflow-hidden">
+        <div className={`flex items-center gap-1.5 sm:gap-2 text-xs font-bold shrink-0 ${step === 1 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
             step === 1 ? 'bg-[#15803d] text-white shadow-xs' : 'bg-[#e2e8f0] text-[#64748b]'
           }`}>
             1
           </span>
-          <span>Cargar archivo</span>
+          <span className={step === 1 ? 'inline' : 'hidden sm:inline'}>Cargar archivo</span>
         </div>
-        <i className="w-12 h-px bg-[#cbd5e1]" />
-        <div className={`flex items-center gap-2 text-xs font-bold ${step === 2 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+        <i className="w-6 sm:w-12 h-px bg-[#cbd5e1] shrink-0" />
+        <div className={`flex items-center gap-1.5 sm:gap-2 text-xs font-bold shrink-0 ${step === 2 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
             step === 2 ? 'bg-[#15803d] text-white shadow-xs' : 'bg-[#e2e8f0] text-[#64748b]'
           }`}>
             2
           </span>
-          <span>Revisión inteligente</span>
+          <span className={step === 2 ? 'inline' : 'hidden sm:inline'}>Revisión inteligente</span>
         </div>
-        <i className="w-12 h-px bg-[#cbd5e1]" />
-        <div className={`flex items-center gap-2 text-xs font-bold ${step === 3 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
-          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+        <i className="w-6 sm:w-12 h-px bg-[#cbd5e1] shrink-0" />
+        <div className={`flex items-center gap-1.5 sm:gap-2 text-xs font-bold shrink-0 ${step === 3 ? 'text-[#1e293b]' : 'text-[#64748b]'}`}>
+          <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
             step === 3 ? 'bg-[#15803d] text-white shadow-xs' : 'bg-[#e2e8f0] text-[#64748b]'
           }`}>
             3
           </span>
-          <span>Revisar creados</span>
+          <span className={step === 3 ? 'inline' : 'hidden sm:inline'}>Revisar creados</span>
         </div>
       </div>
 
@@ -341,9 +341,9 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
           </div>
 
           {/* Fila de Plantilla Oficial */}
-          <div className="p-3.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] flex items-center justify-between gap-3">
+          <div className="p-3.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div className="flex items-center gap-3">
-              <FileSpreadsheet className="w-5 h-5 text-[#15803d]" />
+              <FileSpreadsheet className="w-5 h-5 text-[#15803d] shrink-0" />
               <div>
                 <strong className="block text-xs text-[#1e293b]">¿No tienes la plantilla oficial?</strong>
                 <small className="text-[10px] text-[#64748b]">Descarga el formato recomendado con pestañas para las 6 áreas institucionales.</small>
@@ -352,7 +352,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             <button
               type="button"
               onClick={downloadSampleAnnualPlanTemplate}
-              className="btn btn-secondary text-xs"
+              className="btn btn-secondary text-xs w-full sm:w-auto justify-center shrink-0"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Descargar plantilla</span>
@@ -371,29 +371,29 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
               <span className="text-[10px] font-bold tracking-wider uppercase text-[#15803d] font-mono">
                 PASO 2 • REVISIÓN DE INFERENCIAS
               </span>
-              <h2 className="text-lg font-bold text-[#1e293b] font-heading">
+              <h2 className="text-base sm:text-lg font-bold text-[#1e293b] font-heading">
                 Propuestas detectadas en "{fileName}" ({extractedItems.length})
               </h2>
-              <p className="text-xs text-[#64748b]">
+              <p className="text-xs text-[#64748b] mt-0.5">
                 Selecciona las actividades que deseas incorporar al catálogo en estado <strong>Borrador</strong>.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="btn btn-secondary text-xs"
+                className="btn btn-secondary text-xs flex-1 sm:flex-none justify-center py-2"
               >
                 Volver
               </button>
               <button
                 type="button"
                 onClick={handleCommitEvents}
-                className="btn btn-primary text-xs font-bold"
+                className="btn btn-primary text-xs font-bold flex-1 sm:flex-none justify-center py-2"
               >
-                <span>Aprobar Seleccionadas ({extractedItems.filter(i => i.selected).length})</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>Aprobar ({extractedItems.filter(i => i.selected).length})</span>
+                <ArrowRight className="w-4 h-4 ml-1" />
               </button>
             </div>
           </div>
@@ -403,68 +403,72 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             {extractedItems.map(item => (
               <div 
                 key={item.tempId}
-                className={`p-4 rounded-xl border transition-all ${
+                className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
                   item.selected 
                     ? 'border-[#86efac] bg-[#f0fdf4]' 
                     : 'border-[#e2e8f0] bg-white opacity-70'
                 }`}
               >
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+                <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
                   
                   {/* Checkbox y Contenido */}
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="flex items-start gap-2.5 sm:gap-3 flex-1 min-w-0 w-full">
                     <input
                       type="checkbox"
                       checked={item.selected}
                       onChange={() => toggleSelect(item.tempId)}
-                      className="mt-1 w-4 h-4 rounded text-[#15803d] focus:ring-[#15803d]"
+                      className="mt-1 w-4 h-4 rounded text-[#15803d] focus:ring-[#15803d] shrink-0"
                     />
 
                     <img 
                       src={item.image} 
                       alt={item.title} 
-                      className="w-16 h-14 rounded-lg object-cover shrink-0 border border-[#e2e8f0]"
+                      className="w-14 h-12 sm:w-16 sm:h-14 rounded-lg object-cover shrink-0 border border-[#e2e8f0]"
                     />
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <strong className="text-xs text-[#1e293b] font-heading font-bold truncate">
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                        <strong className="text-xs text-[#1e293b] font-heading font-bold truncate max-w-full">
                           {item.title}
                         </strong>
-                        <span className="text-[10px] font-mono bg-slate-100 text-[#0e2738] border border-slate-200 px-1.5 py-0.2 rounded font-bold">
+                        <span className="text-[10px] font-mono bg-slate-100 text-[#0e2738] border border-slate-200 px-1.5 py-0.2 rounded font-bold shrink-0">
                           {item.area}
                         </span>
                       </div>
 
-                      <p className="text-[11px] text-[#475569] mt-0.5 line-clamp-1">
+                      <p className="text-[11px] text-[#475569] line-clamp-2 sm:line-clamp-1 leading-snug">
                         {item.purpose}
                       </p>
 
-                      <div className="flex items-center gap-3 text-[10px] text-[#64748b] font-mono mt-1">
-                        <span>Fecha: {item.date}</span>
-                        <span>•</span>
-                        <span>Horario: {item.schedule}</span>
-                        <span>•</span>
-                        <span>Lugar: {item.location}</span>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-[#64748b] font-mono pt-0.5">
+                        <span className="bg-white/80 px-1.5 py-0.5 rounded border border-[#e2e8f0] shrink-0">
+                          📅 {item.date}
+                        </span>
+                        <span className="bg-white/80 px-1.5 py-0.5 rounded border border-[#e2e8f0] shrink-0">
+                          ⏰ {item.schedule}
+                        </span>
+                        <span className="bg-white/80 px-1.5 py-0.5 rounded border border-[#e2e8f0] truncate max-w-[200px] sm:max-w-xs" title={item.location}>
+                          📍 {item.location}
+                        </span>
                       </div>
                     </div>
                   </div>
 
                   {/* Acciones para resolver ambigüedad o regenerar imagen */}
-                  <div className="flex items-center gap-2 self-end md:self-center">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-[#e2e8f0]/80">
                     {item.isAmbiguous ? (
-                      <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
+                      <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg flex-1 sm:flex-none">
                         <AlertTriangle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                        <span className="text-[10px] text-amber-900 font-bold">Fecha ambigua:</span>
+                        <span className="text-[10px] text-amber-900 font-bold shrink-0">Fecha:</span>
                         <input
                           type="date"
                           defaultValue="2026-10-25"
                           onChange={(e) => e.target.value && handleResolveAmbiguity(item.tempId, e.target.value)}
-                          className="text-[10px] bg-white border border-amber-300 rounded px-1.5 py-0.5"
+                          className="text-[10px] bg-white border border-amber-300 rounded px-1.5 py-0.5 w-full sm:w-auto"
                         />
                       </div>
                     ) : (
-                      <span className="text-[10px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-2 py-0.5 rounded font-bold">
+                      <span className="text-[10px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-2 py-0.5 rounded font-bold shrink-0">
                         Válido ✓
                       </span>
                     )}
@@ -472,10 +476,10 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                     <button
                       type="button"
                       onClick={() => handleRegenerateImage(item.tempId, item.area, item.title)}
-                      className="btn-ghost text-[10px] text-[#64748b] hover:text-[#1e293b]"
+                      className="btn-ghost text-[10px] text-[#64748b] hover:text-[#1e293b] p-1.5 rounded-lg border border-[#e2e8f0] bg-white shrink-0"
                       title="Regenerar portada temática con IA"
                     >
-                      <Sparkles className="w-3.5 h-3.5" />
+                      <Sparkles className="w-3.5 h-3.5 text-[#15803d]" />
                     </button>
                   </div>
 
@@ -484,17 +488,17 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             ))}
           </div>
 
-          <div className="pt-3 border-t border-[#e2e8f0] flex justify-between items-center">
-            <span className="text-xs text-[#64748b]">
-              {extractedItems.filter(i => i.selected).length} de {extractedItems.length} seleccionadas
+          <div className="pt-3 border-t border-[#e2e8f0] flex flex-col sm:flex-row justify-between items-center gap-3">
+            <span className="text-xs text-[#64748b] text-center sm:text-left">
+              <strong>{extractedItems.filter(i => i.selected).length}</strong> de {extractedItems.length} actividades seleccionadas
             </span>
             <button
               type="button"
               onClick={handleCommitEvents}
-              className="btn btn-primary text-xs font-bold"
+              className="btn btn-primary text-xs font-bold w-full sm:w-auto justify-center py-2.5 px-4"
             >
               <span>Confirmar y Guardar como Borradores</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-4 h-4 ml-1.5" />
             </button>
           </div>
 
