@@ -292,29 +292,31 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
 
                   {/* Barra de Acciones del Ciclo de 4 Estados (Solo para Encargado) */}
                   {isEncargado && (
-                    <div className="pt-2 border-t border-[#e2e8f0] flex items-center justify-between gap-1.5">
+                    <div className="pt-2.5 border-t border-[#e2e8f0] space-y-2">
+                      
+                      {/* FILA 1: Acción Operativa Principal de Ancho Completo */}
                       {isDraft && (
                         evt.isAmbiguous ? (
-                          <div className="flex-1 flex items-center justify-between gap-1.5 p-1 bg-amber-50 border border-amber-200 rounded-lg">
-                            <div className="flex items-center gap-1.5 min-w-0 pl-1">
-                              <AlertCircle className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                              <span className="text-[11px] text-amber-900 font-semibold truncate">
+                          <div className="w-full flex items-center justify-between gap-2 p-2 bg-amber-50 border border-amber-200 rounded-xl">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span className="text-[11px] text-amber-900 font-bold truncate">
                                 Fecha por confirmar
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={() => onOpenDetailModal && onOpenDetailModal(evt)}
-                              className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded text-[11px] font-bold shrink-0 transition-colors"
+                              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors shadow-2xs"
                             >
-                              Revisar
+                              Fijar Fecha
                             </button>
                           </div>
                         ) : (
                           <button
                             type="button"
                             onClick={() => publishEvent(evt.id)}
-                            className="btn btn-primary flex-1 py-1.5 text-xs font-bold"
+                            className="btn btn-primary w-full py-2 text-xs font-bold justify-center shadow-xs"
                           >
                             <span>Publicar Evento</span>
                           </button>
@@ -325,7 +327,7 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                         <button
                           type="button"
                           onClick={() => startEventAttendance(evt.id)}
-                          className="btn btn-primary flex-1 py-1.5 text-xs font-bold"
+                          className="btn btn-primary w-full py-2 text-xs font-bold justify-center shadow-xs"
                         >
                           <Play className="w-3.5 h-3.5" />
                           <span>Habilitar Asistencia</span>
@@ -336,58 +338,84 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                         <button
                           type="button"
                           onClick={() => closeEventAttendance(evt.id)}
-                          className="btn btn-danger flex-1 py-1.5 text-xs font-bold"
+                          className="btn btn-danger w-full py-2 text-xs font-bold justify-center shadow-xs"
                         >
                           <Pause className="w-3.5 h-3.5" />
                           <span>Finalizar Evento</span>
                         </button>
                       )}
 
-                      {(isFinished || (evt.attendeesCount || 0) > 0) && (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => setActiveTab('participants')}
-                            className="btn btn-secondary px-2.5 py-1.5 text-xs font-bold text-[#1e293b] flex items-center gap-1"
-                            title="Consultar participantes y asistencias (RF-09)"
-                          >
-                            <Users className="w-3.5 h-3.5 text-[#15803d]" />
-                            <span>Participantes</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => onOpenExportModal && onOpenExportModal(evt)}
-                            className="btn btn-secondary px-2.5 py-1.5 text-xs font-bold text-[#1e293b] flex items-center gap-1"
-                            title="Exportar acta oficial de asistencia (RF-10)"
-                          >
-                            <FileSpreadsheet className="w-3.5 h-3.5 text-[#15803d]" />
-                            <span>Exportar XLSX</span>
-                          </button>
-                        </>
-                      )}
-
-                      {/* Editar */}
-                      <button
-                        type="button"
-                        onClick={() => onOpenModal && onOpenModal(evt)}
-                        className="p-2 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0]"
-                        title="Editar parámetros del evento"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-
-                      {/* Eliminar (solo en borrador) */}
-                      {isDraft && (
+                      {isFinished && (
                         <button
                           type="button"
-                          onClick={() => deleteEvent(evt.id)}
-                          className="p-2 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50"
-                          title="Eliminar borrador"
+                          onClick={() => onOpenExportModal && onOpenExportModal(evt)}
+                          className="btn btn-secondary w-full py-2 text-xs font-bold justify-center text-[#1e293b] border border-[#cbd5e1] hover:border-[#15803d]"
+                          title="Exportar acta oficial de asistencia GOR-F-013"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <FileSpreadsheet className="w-3.5 h-3.5 text-[#15803d]" />
+                          <span>Exportar Formato GOR-F-013 (.xlsx)</span>
                         </button>
                       )}
+
+                      {/* FILA 2: Acciones Complementarias y Herramientas (Wrap Fluido) */}
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 pt-1 border-t border-[#e2e8f0]/60">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          {((!isFinished && (evt.attendeesCount || 0) > 0) || isFinished) && (
+                            <button
+                              type="button"
+                              onClick={() => setActiveTab('participants')}
+                              className="btn btn-secondary px-2.5 py-1.5 text-xs font-semibold text-[#1e293b] flex items-center gap-1"
+                              title="Consultar participantes y asistencias (RF-09)"
+                            >
+                              <Users className="w-3.5 h-3.5 text-[#15803d]" />
+                              <span>
+                                <span className="inline sm:hidden">Asistentes</span>
+                                <span className="hidden sm:inline">Participantes</span>
+                              </span>
+                            </button>
+                          )}
+
+                          {!isFinished && (evt.attendeesCount || 0) > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => onOpenExportModal && onOpenExportModal(evt)}
+                              className="btn btn-secondary px-2.5 py-1.5 text-xs font-semibold text-[#1e293b] flex items-center gap-1"
+                              title="Exportar acta oficial de asistencia (RF-10)"
+                            >
+                              <FileSpreadsheet className="w-3.5 h-3.5 text-[#15803d]" />
+                              <span>
+                                <span className="inline sm:hidden">Exportar</span>
+                                <span className="hidden sm:inline">Exportar XLSX</span>
+                              </span>
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1 ml-auto">
+                          {/* Editar */}
+                          <button
+                            type="button"
+                            onClick={() => onOpenModal && onOpenModal(evt)}
+                            className="p-1.5 sm:p-2 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] transition-colors"
+                            title="Editar parámetros del evento"
+                          >
+                            <Edit3 className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Eliminar (solo en borrador) */}
+                          {isDraft && (
+                            <button
+                              type="button"
+                              onClick={() => deleteEvent(evt.id)}
+                              className="p-1.5 sm:p-2 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 transition-colors"
+                              title="Eliminar borrador"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
                     </div>
                   )}
 

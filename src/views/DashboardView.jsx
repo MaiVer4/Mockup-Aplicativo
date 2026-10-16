@@ -223,7 +223,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              Métricas de Usuarios
+              Censo Demográfico
             </button>
           </div>
 
@@ -992,297 +992,24 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
           </div>
 
-          {/* Directorio Oficial de Encargados de Área (RF-14) */}
-          <div className="card-ergonomic p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e2e8f0] gap-2">
-              <div>
-                <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-                  Directorio Oficial de Encargados de Área ({encargadosList.length})
-                </h3>
-                <p className="text-xs text-[#64748b] mt-0.5">
-                  Encargados asignados por la Coordinación para la gestión de actividades y control de aforos.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={onOpenRegisterModal}
-                className="btn btn-primary text-xs py-1.5 flex items-center gap-1.5"
-              >
-                <UserPlus className="w-3.5 h-3.5 text-white" />
-                <span>Registrar Encargado</span>
-              </button>
+          {/* Tarjeta de Enlace Rápido hacia Gestión de Aprendices y Encargados */}
+          <div className="card-ergonomic p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-[#f8fafc] to-[#eafaf1] border border-[#bbf7d0]">
+            <div>
+              <h3 className="text-sm font-bold text-[#14532d] font-heading flex items-center gap-2">
+                <Users className="w-4 h-4 text-[#15803d]" />
+                <span>¿Deseas gestionar aprendices o asignar encargados?</span>
+              </h3>
+              <p className="text-xs text-[#166534] mt-0.5">
+                Accede a los módulos dedicados de Gestión de Aprendices y Directorio de Encargados de Área.
+              </p>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {encargadosList.map(enc => (
-                <div key={enc.id} className="p-3.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] space-y-2">
-                  <div className="flex items-center gap-2.5">
-                    <img src={enc.avatar} alt={enc.name} className="w-8 h-8 rounded-lg object-cover border border-[#e2e8f0]" />
-                    <div className="truncate">
-                      <h4 className="text-xs font-bold text-[#1e293b] font-heading truncate">{enc.name}</h4>
-                      <span className="font-mono text-[9px] text-[#15803d] bg-[#eafaf1] border border-[#bbf7d0] px-1.5 py-0.2 rounded font-bold">
-                        Área: {enc.area}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-[#64748b] pt-1 border-t border-[#e2e8f0]/80">
-                    <span>Email: {enc.email}</span>
-                    <span className="text-[#15803d] font-bold">Activo</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Módulo de Gestión de Usuarios de la Plataforma (RF-16) */}
-          <div className="card-ergonomic p-5 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#e2e8f0] gap-3">
-              <div>
-                <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-                  Gestión Integral de Usuarios de la Plataforma
-                </h3>
-                <p className="text-xs text-[#64748b] mt-0.5">
-                  Supervisión del censo institucional, activación/desactivación de cuentas y control de accesos.
-                </p>
-              </div>
-
-              {/* Filtros de rol y buscador */}
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-[#94a3b8] absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre o correo..."
-                    value={userSearchTerm}
-                    onChange={(e) => setUserSearchTerm(e.target.value)}
-                    className="pl-8 pr-3 py-1.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d] w-52"
-                  />
-                </div>
-
-                <select
-                  value={userRoleFilter}
-                  onChange={(e) => setUserRoleFilter(e.target.value)}
-                  className="px-2.5 py-1.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none"
-                >
-                  <option value="ALL">Todos los Roles</option>
-                  <option value="aprendiz">Aprendices</option>
-                  <option value="admin_area">Encargados de Área</option>
-                  <option value="admin_general">Administradores</option>
-                </select>
-              </div>
-            </div>
-
-            {/* Vista Móvil: Tarjetas de Usuarios (<sm) */}
-            <div className="block sm:hidden divide-y divide-[#e2e8f0] rounded-xl border border-[#e2e8f0] overflow-hidden bg-white">
-              {users
-                .filter(u => {
-                  if (userRoleFilter !== 'ALL' && u.role !== userRoleFilter) return false;
-                  if (userSearchTerm.trim()) {
-                    const term = userSearchTerm.toLowerCase();
-                    const matchName = u.name?.toLowerCase().includes(term);
-                    const matchEmail = u.email?.toLowerCase().includes(term);
-                    const matchDoc = u.documentNumber?.toLowerCase().includes(term);
-                    if (!matchName && !matchEmail && !matchDoc) return false;
-                  }
-                  return true;
-                })
-                .map(u => (
-                  <div key={u.id} className="p-3.5 space-y-2.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-2.5">
-                        <img src={u.avatar} alt={u.name} className="w-8 h-8 rounded-lg object-cover border border-[#e2e8f0]" />
-                        <div>
-                          <strong className="text-xs text-[#1e293b] font-heading block">{u.name}</strong>
-                          <span className="text-[10px] text-[#64748b] font-mono">{u.email}</span>
-                        </div>
-                      </div>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-bold shrink-0 ${
-                        u.status === 'inactivo'
-                          ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                          : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      }`}>
-                        {u.status === 'inactivo' ? 'Inactivo' : 'Activo'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] pt-1 border-t border-[#f1f5f9]">
-                      <div className="flex items-center gap-2">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#475569]">
-                          {u.shortRole || u.role}
-                        </span>
-                        <span className="text-[10px] text-[#64748b]">Área: <strong>{u.area || 'General'}</strong></span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => toggleUserStatus(u.id)}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors cursor-pointer shrink-0 ${
-                          u.status === 'inactivo'
-                            ? 'bg-[#15803d] hover:bg-[#166534] text-white'
-                            : 'bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-[#475569] border border-[#cbd5e1]'
-                        }`}
-                      >
-                        {u.status === 'inactivo' ? 'Habilitar' : 'Desactivar'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-
-            {/* Vista Desktop / Tablet: Tabla (≥sm) */}
-            <div className="hidden sm:block overflow-x-auto rounded-xl border border-[#e2e8f0]">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="bg-[#f8fafc] text-[#64748b] text-[10px] font-mono uppercase font-bold border-b border-[#e2e8f0]">
-                    <th className="py-2.5 px-3">USUARIO / IDENTIDAD</th>
-                    <th className="py-2.5 px-3">ROL EN PLATAFORMA</th>
-                    <th className="py-2.5 px-3">ÁREA ASIGNADA</th>
-                    <th className="py-2.5 px-3">ESTADO</th>
-                    <th className="py-2.5 px-3 text-center">GESTIÓN DE ESTADO</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0]">
-                  {users
-                    .filter(u => {
-                      if (userRoleFilter !== 'ALL' && u.role !== userRoleFilter) return false;
-                      if (userSearchTerm.trim()) {
-                        const term = userSearchTerm.toLowerCase();
-                        const matchName = u.name?.toLowerCase().includes(term);
-                        const matchEmail = u.email?.toLowerCase().includes(term);
-                        const matchDoc = u.documentNumber?.toLowerCase().includes(term);
-                        if (!matchName && !matchEmail && !matchDoc) return false;
-                      }
-                      return true;
-                    })
-                    .map(u => (
-                      <tr key={u.id} className="hover:bg-[#f8fafc] transition-colors">
-                        <td className="py-2.5 px-3">
-                          <div className="flex items-center gap-2.5">
-                            <img src={u.avatar} alt={u.name} className="w-7 h-7 rounded-lg object-cover border border-[#e2e8f0]" />
-                            <div>
-                              <strong className="text-xs text-[#1e293b] font-heading block">{u.name}</strong>
-                              <span className="text-[10px] text-[#64748b] font-mono">{u.email}</span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-[#f1f5f9] text-[#475569]">
-                            {u.shortRole || u.role}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-[#334155] font-medium">
-                          {u.area || 'General'}
-                        </td>
-                        <td className="py-2.5 px-3">
-                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            u.status === 'inactivo'
-                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
-                              : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                          }`}>
-                            {u.status === 'inactivo' ? 'Inactivo' : 'Activo'}
-                          </span>
-                        </td>
-                        <td className="py-2.5 px-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => toggleUserStatus(u.id)}
-                            className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-colors cursor-pointer ${
-                              u.status === 'inactivo'
-                                ? 'bg-[#15803d] hover:bg-[#166534] text-white'
-                                : 'bg-slate-100 hover:bg-rose-50 hover:text-rose-600 text-[#475569] border border-[#cbd5e1]'
-                            }`}
-                          >
-                            {u.status === 'inactivo' ? 'Habilitar Cuenta' : 'Desactivar Cuenta'}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* Consulta Individual de Aprendices e Historial de Asistencia */}
-          <div className="p-5 card-ergonomic space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#e2e8f0]">
-              <div>
-                <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-                  Consulta Individual de Asistencias
-                </h3>
-                <p className="text-xs text-[#64748b] mt-0.5">
-                  Búsqueda rápida del historial de participación y asistencias por número de documento.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-[#94a3b8] absolute left-3 top-2.5" />
-                  <input
-                    type="text"
-                    placeholder="Documento aprendiz (ej. 1020495821)"
-                    value={apprenticeSearchDoc}
-                    onChange={(e) => setApprenticeSearchDoc(e.target.value)}
-                    className="pl-9 pr-3 py-1.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d] w-64 font-mono"
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const res = getApprenticeAuditData(apprenticeSearchDoc.trim());
-                    setSearchedAuditResult(res);
-                  }}
-                  className="btn btn-secondary text-xs py-1.5 cursor-pointer"
-                >
-                  Consultar
-                </button>
-              </div>
-            </div>
-
-            {searchedAuditResult && (
-              <div className="p-4 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] font-bold flex items-center justify-center text-xs font-mono">
-                      {searchedAuditResult.name.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <strong className="text-xs text-[#1e293b] font-heading block">{searchedAuditResult.name}</strong>
-                      <span className="text-[10px] text-[#64748b] font-mono">Ficha: {searchedAuditResult.ficha} • Doc: {searchedAuditResult.documentNumber}</span>
-                    </div>
-                  </div>
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">
-                    Total Asistencias Acreditadas: {searchedAuditResult.history?.length || 0}
-                  </span>
-                </div>
-
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-[11px] border-collapse">
-                    <thead>
-                      <tr className="text-[#64748b] border-b border-[#e2e8f0]">
-                        <th className="py-2 px-2">EVENTO</th>
-                        <th className="py-2 px-2">TIPO REGISTRO</th>
-                        <th className="py-2 px-2">TIMESTAMP INMUTABLE</th>
-                        <th className="py-2 px-2">ESTADO</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[#e2e8f0]">
-                      {searchedAuditResult.history?.map((h, i) => (
-                        <tr key={i} className="text-[#334155]">
-                          <td className="py-2 px-2 font-medium">{h.title}</td>
-                          <td className="py-2 px-2 font-mono text-[#15803d]">{h.recordType}</td>
-                          <td className="py-2 px-2 font-mono text-[#64748b]">{h.timestamp}</td>
-                          <td className="py-2 px-2">
-                            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
-                              Acreditado
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            <button
+              type="button"
+              onClick={() => onNavigateView && onNavigateView('aprendices')}
+              className="btn btn-primary text-xs py-2 px-4 shrink-0 shadow-sm self-start sm:self-auto cursor-pointer"
+            >
+              <span>Ir a Gestión de Aprendices ➔</span>
+            </button>
           </div>
 
         </div>
