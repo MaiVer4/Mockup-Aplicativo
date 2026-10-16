@@ -13,6 +13,9 @@ import DashboardView from './views/DashboardView';
 import EventsView from './views/EventsView';
 import ExcelUploadView from './views/ExcelUploadView';
 import ParticipantsView from './views/ParticipantsView';
+import LearnersManagementView from './views/LearnersManagementView';
+import EncargadosView from './views/EncargadosView';
+import CreateApprenticeModal from './components/CreateApprenticeModal';
 import ApprenticePortal from './views/ApprenticePortal';
 import LoginView from './views/LoginView';
 
@@ -32,6 +35,7 @@ function AdminShell() {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [isCreateApprenticeModalOpen, setIsCreateApprenticeModalOpen] = useState(false);
   const [selectedEventForExport, setSelectedEventForExport] = useState(null);
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
 
@@ -104,11 +108,15 @@ function AdminShell() {
             />
           )}
 
-          {(activeTab === 'users' || activeTab === 'encargados' || activeTab === 'aprendices') && (
-            <DashboardView 
+          {(activeTab === 'aprendices' || activeTab === 'users') && (
+            <LearnersManagementView 
+              onOpenCreateModal={() => setIsCreateApprenticeModalOpen(true)}
+            />
+          )}
+
+          {activeTab === 'encargados' && (
+            <EncargadosView 
               onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
-              onNavigateView={setActiveTab}
-              onOpenEventDetail={setSelectedEventForDetail}
             />
           )}
         </main>
@@ -151,14 +159,20 @@ function AdminShell() {
         onClose={() => setIsRegisterModalOpen(false)}
       />
 
-      {/* 4. Modal de detalle extendido para la ficha del evento */}
+      {/* 4. Modal para registrar aprendiz directamente (RF-01) */}
+      <CreateApprenticeModal
+        isOpen={isCreateApprenticeModalOpen}
+        onClose={() => setIsCreateApprenticeModalOpen(false)}
+      />
+
+      {/* 5. Modal de detalle extendido para la ficha del evento */}
       <EventDetailModal
         isOpen={Boolean(selectedEventForDetail)}
         onClose={() => setSelectedEventForDetail(null)}
         event={selectedEventForDetail}
       />
 
-      {/* 5. Buzón de notificaciones automáticas por correo */}
+      {/* 6. Buzón de notificaciones automáticas por correo */}
       <EmailNotificationDrawer
         isOpen={isEmailDrawerOpen}
         onClose={() => setIsEmailDrawerOpen(false)}

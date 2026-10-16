@@ -418,6 +418,92 @@ export function AppProvider({ children }) {
     }));
   };
 
+  // 8. Crear Aprendiz por el Administrador
+  const createApprenticeByAdmin = (data) => {
+    if (!data.name || !data.documentNumber || !data.email) {
+      return { success: false, message: 'Nombre, documento y correo son obligatorios.' };
+    }
+
+    const docExists = usersList.some(u => u.documentNumber && u.documentNumber.trim() === data.documentNumber.trim());
+    if (docExists) {
+      return {
+        success: false,
+        message: `El documento ${data.documentNumber} ya se encuentra registrado en el sistema.`
+      };
+    }
+
+    const emailExists = usersList.some(u => 
+      (u.email && u.email.toLowerCase() === data.email.trim().toLowerCase()) ||
+      (u.personalEmail && u.personalEmail.toLowerCase() === data.email.trim().toLowerCase())
+    );
+    if (emailExists) {
+      return {
+        success: false,
+        message: `El correo ${data.email} ya se encuentra asignado a otro usuario.`
+      };
+    }
+
+    const newApprentice = {
+      id: `user_apr_${Date.now()}`,
+      username: data.documentNumber.trim(),
+      name: data.name.trim(),
+      email: data.email.trim(),
+      personalEmail: data.personalEmail ? data.personalEmail.trim() : data.email.trim(),
+      password: data.password ? data.password.trim() : 'Sena2026*',
+      role: 'aprendiz',
+      roleLabel: 'Aprendiz SENA // Formación Titulada',
+      shortRole: 'Aprendiz',
+      area: 'General',
+      status: 'activo',
+      avatar: data.gender === 'Femenino'
+        ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
+        : 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+      description: 'Aprendiz matriculado oficialmente registrado por la Administración.',
+      isProfileComplete: true,
+      documentType: data.documentType || 'Cédula de Ciudadanía (CC)',
+      documentNumber: data.documentNumber.trim(),
+      gender: data.gender || 'Femenino',
+      ficha: data.ficha ? data.ficha.trim() : '2670192',
+      modality: data.modality || 'Presencial',
+      program: data.program || 'Análisis y Desarrollo de Software (ADSO)',
+      jornada: data.jornada || 'Diurna',
+      level: data.level || 'Tecnólogo',
+      trainingCenter: data.trainingCenter || 'Centro de Electricidad, Electrónica y Telecomunicaciones',
+      phone: data.phone ? data.phone.trim() : '3128491029',
+      profileLastUpdated: new Date().toISOString()
+    };
+
+    setUsersList(prev => [newApprentice, ...prev]);
+
+    triggerSimulatedEmail({
+      to: newApprentice.email,
+      subject: '[SENA Bienestar] Cuenta de Aprendiz Habilitada',
+      body: `Estimado(a) ${newApprentice.name},\n\nLa Administración de Bienestar al Aprendiz ha habilitado su cuenta en la plataforma.\n\nSus credenciales de ingreso son:\n• Usuario/Documento: ${newApprentice.documentNumber}\n• Contraseña asignada: ${newApprentice.password}\n• Ficha: ${newApprentice.ficha}\n\nPuede acceder a la cartelera institucional de actividades y registrar su asistencia.`,
+      type: 'invitacion'
+    });
+
+    addToast(
+      'Aprendiz Creado con Éxito',
+      `Se dio de alta a ${newApprentice.name} con Ficha ${newApprentice.ficha}.`,
+      'success'
+    );
+    return { success: true, user: newApprentice };
+  };
+
+  // 9. Eliminar Aprendiz por el Administrador
+  const deleteApprentice = (apprenticeId) => {
+    const target = usersList.find(u => u.id === apprenticeId);
+    if (!target) return { success: false, message: 'Usuario no encontrado.' };
+
+    setUsersList(prev => prev.filter(u => u.id !== apprenticeId));
+    addToast(
+      'Aprendiz Eliminado',
+      `La cuenta de ${target.name} fue revocada y eliminada del sistema.`,
+      'info'
+    );
+    return { success: true };
+  };
+
   // 8. Generar Portada de Evento con IA (RF-07)
   const generateAIEventCover = (eventId) => {
     const target = events.find(e => e.id === eventId);
@@ -834,6 +920,8 @@ export function AppProvider({ children }) {
         loginWithDemoUser,
         logout,
         registerNewApprentice,
+        createApprenticeByAdmin,
+        deleteApprentice,
         registerEncargadoByAdmin,
         registerEncargadoViaToken: registerEncargadoByAdmin,
         changeUserPassword,

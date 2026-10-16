@@ -10,7 +10,9 @@ import {
   Mail, 
   LogOut, 
   X,
-  FileSpreadsheet
+  FileSpreadsheet,
+  GraduationCap,
+  UserCheck
 } from 'lucide-react';
 
 export default function Sidebar({ view, setView, open, close }) {
@@ -28,7 +30,8 @@ export default function Sidebar({ view, setView, open, close }) {
         { id: 'dashboard', icon: LayoutGrid, label: 'Supervisión' },
         { id: 'events', icon: Calendar, label: 'Todas las Actividades', count: activeEventsCount },
         { id: 'participants', icon: Users, label: 'Participantes Globales' },
-        { id: 'users', icon: Users, label: 'Gestión de Usuarios' }
+        { id: 'aprendices', icon: GraduationCap, label: 'Gestión de Aprendices' },
+        { id: 'encargados', icon: UserCheck, label: 'Encargados de Área' }
       ];
 
   return (
