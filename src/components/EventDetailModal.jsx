@@ -17,7 +17,8 @@ import {
   Upload,
   Link2,
   RotateCcw,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Edit3
 } from 'lucide-react';
 import { buildDefaultImagePrompt, getSemanticImage } from '../utils/excelHelper';
 
@@ -576,7 +577,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
 
           {/* Acciones para el Encargado */}
           {isEncargado && (
-            <div className="pt-2 border-t border-[#edf0f3] flex flex-wrap gap-2">
+            <div className="pt-2 border-t border-[#edf0f3] flex items-center gap-2">
               {isDraft && (
                 event.isAmbiguous ? (
                   <button
@@ -593,65 +594,92 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                     <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                   </button>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const success = publishEvent(event.id);
-                      if (success) onClose();
-                    }}
-                    className="btn btn-primary flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2 group/pub"
-                  >
-                    <span className="flex items-center gap-2 min-w-0">
-                      <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0 group-hover/pub:bg-[#c4f246] group-hover/pub:text-[#0e2738] transition-colors">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                      </span>
-                      <span className="truncate">Publicar Evento en Cartelera</span>
-                    </span>
-                    <ArrowRight className="w-4 h-4 text-white/80 group-hover/pub:translate-x-0.5 group-hover/pub:text-[#c4f246] transition-all shrink-0" />
-                  </button>
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const success = publishEvent(event.id);
+                        if (success) onClose();
+                      }}
+                      className="btn btn-primary flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 group/pub shadow-2xs"
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-white/90" />
+                      <span>Publicar Evento</span>
+                      <ArrowRight className="w-4 h-4 text-[#c4f246] group-hover/pub:translate-x-0.5 transition-transform" />
+                    </button>
+                    {onOpenEditModal && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onClose();
+                          onOpenEditModal(event);
+                        }}
+                        className="btn btn-secondary px-3.5 py-2.5 rounded-xl text-xs font-semibold text-[#1e293b] flex items-center justify-center gap-1.5 border border-[#cbd5e1] hover:border-[#15803d] hover:text-[#15803d] hover:bg-emerald-50/40 transition-colors shrink-0 shadow-2xs"
+                      >
+                        <Edit3 className="w-3.5 h-3.5 text-[#15803d]" />
+                        <span>Editar</span>
+                      </button>
+                    )}
+                  </>
                 )
               )}
 
               {isPublicado && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    startEventAttendance(event.id);
-                    onClose();
-                  }}
-                  className="btn btn-sena flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2 group/live"
-                >
-                  <span className="flex items-center gap-2 min-w-0">
-                    <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0 group-hover/live:bg-[#c4f246] group-hover/live:text-[#0e2738] transition-colors">
-                      <Play className="w-3.5 h-3.5" />
-                    </span>
-                    <span className="truncate">Habilitar Asistencia Presencial</span>
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md bg-[#0e2738]/35 border border-white/15 text-[10px] font-mono font-extrabold text-[#c4f246] shrink-0">
-                    INICIAR
-                  </span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      startEventAttendance(event.id);
+                      onClose();
+                    }}
+                    className="btn btn-primary flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 group/live shadow-2xs"
+                  >
+                    <Play className="w-3.5 h-3.5" />
+                    <span>Habilitar Asistencia Presencial</span>
+                  </button>
+                  {onOpenEditModal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenEditModal(event);
+                      }}
+                      className="btn btn-secondary px-3.5 py-2.5 rounded-xl text-xs font-semibold text-[#1e293b] flex items-center justify-center gap-1.5 border border-[#cbd5e1] hover:border-[#15803d] hover:text-[#15803d] hover:bg-emerald-50/40 transition-colors shrink-0 shadow-2xs"
+                    >
+                      <Edit3 className="w-3.5 h-3.5 text-[#15803d]" />
+                      <span>Editar</span>
+                    </button>
+                  )}
+                </>
               )}
 
               {isEnCurso && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    closeEventAttendance(event.id);
-                    onClose();
-                  }}
-                  className="btn btn-danger flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2"
-                >
-                  <span className="flex items-center gap-2 min-w-0">
-                    <span className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
-                      <Pause className="w-3.5 h-3.5" />
-                    </span>
-                    <span className="truncate">Finalizar Evento</span>
-                  </span>
-                  <span className="px-2 py-0.5 rounded-md bg-white border border-rose-200 text-[10px] font-mono font-extrabold text-rose-700 shrink-0">
-                    CERRAR
-                  </span>
-                </button>
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeEventAttendance(event.id);
+                      onClose();
+                    }}
+                    className="btn btn-danger flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-center gap-2 shadow-2xs"
+                  >
+                    <Pause className="w-3.5 h-3.5" />
+                    <span>Finalizar Evento</span>
+                  </button>
+                  {onOpenEditModal && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        onClose();
+                        onOpenEditModal(event);
+                      }}
+                      className="btn btn-secondary px-3.5 py-2.5 rounded-xl text-xs font-semibold text-[#1e293b] flex items-center justify-center gap-1.5 border border-[#cbd5e1] hover:border-[#15803d] hover:text-[#15803d] hover:bg-emerald-50/40 transition-colors shrink-0 shadow-2xs"
+                    >
+                      <Edit3 className="w-3.5 h-3.5 text-[#15803d]" />
+                      <span>Editar</span>
+                    </button>
+                  )}
+                </>
               )}
             </div>
           )}
