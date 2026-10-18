@@ -33,6 +33,7 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
   } = useApp();
 
   const [filterStatus, setFilterStatus] = useState('ALL');
+  const [filterQuarter, setFilterQuarter] = useState('ALL');
   const [filterArea, setFilterArea] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
 
@@ -53,7 +54,15 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
       (evt.code && evt.code.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesArea = filterArea === 'ALL' || evt.area === filterArea;
     const matchesStatus = filterStatus === 'ALL' || evt.status === filterStatus;
-    return matchesSearch && matchesArea && matchesStatus;
+    const matchesQuarter = 
+      filterQuarter === 'ALL' || 
+      evt.quarter === filterQuarter || 
+      (!evt.quarter && filterQuarter === 'ALL') ||
+      (filterQuarter === 'Trimestre 1' && (evt.quarter?.includes('1') || evt.quarter === 'T1')) ||
+      (filterQuarter === 'Trimestre 2' && (evt.quarter?.includes('2') || evt.quarter === 'T2')) ||
+      (filterQuarter === 'Trimestre 3' && (evt.quarter?.includes('3') || evt.quarter === 'T3')) ||
+      (filterQuarter === 'Trimestre 4' && (evt.quarter?.includes('4') || evt.quarter === 'T4'));
+    return matchesSearch && matchesArea && matchesStatus && matchesQuarter;
   });
 
   return (
@@ -85,109 +94,140 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
       </div>
 
       {/* Barra de Filtros y Búsqueda */}
-      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+      <div className="space-y-2.5">
         
-        {/* Pestañas de Estados */}
-        <div className="flex items-center gap-1 bg-[#e2e8f0]/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto border border-[#cbd5e1]/50">
-          <button
-            type="button"
-            onClick={() => setFilterStatus('ALL')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              filterStatus === 'ALL'
-                ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
-                : 'text-[#64748b] hover:text-[#1e293b]'
-            }`}
-          >
-            <span>Todos</span>
-            <span className="text-[10px] font-mono font-bold bg-[#f1f5f9] text-[#475569] px-1.5 py-0.2 rounded">
-              {totalCount}
-            </span>
-          </button>
+        {/* FILA 1: Estados del Evento y Búsqueda */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          {/* Pestañas de Estados */}
+          <div className="flex items-center gap-1 bg-[#e2e8f0]/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto border border-[#cbd5e1]/50">
+            <button
+              type="button"
+              onClick={() => setFilterStatus('ALL')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                filterStatus === 'ALL'
+                  ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              <span>Todos</span>
+              <span className="text-[10px] font-mono font-bold bg-[#f1f5f9] text-[#475569] px-1.5 py-0.2 rounded">
+                {totalCount}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setFilterStatus('publicado')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              filterStatus === 'publicado'
-                ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
-                : 'text-[#64748b] hover:text-[#1e293b]'
-            }`}
-          >
-            <span>Publicados</span>
-            <span className="text-[10px] font-mono font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.2 rounded">
-              {publishedCount}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('publicado')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                filterStatus === 'publicado'
+                  ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              <span>Publicados</span>
+              <span className="text-[10px] font-mono font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.2 rounded">
+                {publishedCount}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setFilterStatus('en_curso')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              filterStatus === 'en_curso'
-                ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
-                : 'text-[#64748b] hover:text-[#1e293b]'
-            }`}
-          >
-            <span>En Curso</span>
-            <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded animate-pulse">
-              {inProgressCount}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('en_curso')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                filterStatus === 'en_curso'
+                  ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              <span>En Curso</span>
+              <span className="text-[10px] font-mono font-bold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.2 rounded animate-pulse">
+                {inProgressCount}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setFilterStatus('borrador')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              filterStatus === 'borrador'
-                ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
-                : 'text-[#64748b] hover:text-[#1e293b]'
-            }`}
-          >
-            <span>Borradores</span>
-            <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded">
-              {draftCount}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('borrador')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                filterStatus === 'borrador'
+                  ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              <span>Borradores</span>
+              <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded">
+                {draftCount}
+              </span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setFilterStatus('finalizado')}
-            className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
-              filterStatus === 'finalizado'
-                ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
-                : 'text-[#64748b] hover:text-[#1e293b]'
-            }`}
-          >
-            <span>Finalizados</span>
-            <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded">
-              {finishedCount}
-            </span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setFilterStatus('finalizado')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                filterStatus === 'finalizado'
+                  ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              <span>Finalizados</span>
+              <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded">
+                {finishedCount}
+              </span>
+            </button>
+          </div>
+
+          {/* Buscador + Filtro de Área */}
+          <div className="flex items-center gap-2">
+            {isAdminGeneral && (
+              <select
+                value={filterArea}
+                onChange={(e) => setFilterArea(e.target.value)}
+                className="text-xs text-[#1e293b] border border-[#cbd5e1] rounded-xl px-2.5 py-2 bg-[#f8fafc] focus:bg-white focus:outline-none focus:border-[#15803d]"
+              >
+                <option value="ALL">Todas las Áreas</option>
+                {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            )}
+
+            <div className="h-10 w-full sm:w-60 bg-[#f8fafc] border border-[#cbd5e1] rounded-xl flex items-center gap-2 px-3 text-[#64748b] focus-within:bg-white focus-within:border-[#15803d] focus-within:ring-2 focus-within:ring-[#15803d]/20 transition-all shadow-2xs">
+              <Search className="w-4 h-4 shrink-0 text-[#94a3b8]" />
+              <input
+                type="text"
+                placeholder="Buscar evento..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-transparent border-0 outline-none text-xs text-[#1e293b] placeholder:text-[#94a3b8]"
+              />
+            </div>
+          </div>
         </div>
 
-        {/* Buscador + Filtro de Área */}
-        <div className="flex items-center gap-2">
-          {isAdminGeneral && (
-            <select
-              value={filterArea}
-              onChange={(e) => setFilterArea(e.target.value)}
-              className="text-xs text-[#1e293b] border border-[#cbd5e1] rounded-xl px-2.5 py-2 bg-[#f8fafc] focus:bg-white focus:outline-none focus:border-[#15803d]"
+        {/* FILA 2: Filtro Temporal por Trimestres (Vigencia Anual) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs pt-1">
+          <span className="text-[11px] font-bold text-[#64748b] flex items-center gap-1 font-mono shrink-0">
+            <Filter className="w-3.5 h-3.5 text-[#15803d]" />
+            <span>PERIODO:</span>
+          </span>
+          {[
+            { id: 'ALL', label: 'Todo el Año (Anual)' },
+            { id: 'Trimestre 1', label: 'T1 (Ene - Mar)' },
+            { id: 'Trimestre 2', label: 'T2 (Abr - Jun)' },
+            { id: 'Trimestre 3', label: 'T3 (Jul - Sep)' },
+            { id: 'Trimestre 4', label: 'T4 (Oct - Dic)' }
+          ].map(q => (
+            <button
+              key={q.id}
+              type="button"
+              onClick={() => setFilterQuarter(q.id)}
+              className={`px-3 py-1 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap text-xs border ${
+                filterQuarter === q.id
+                  ? 'bg-[#15803d] text-white border-[#15803d] shadow-2xs'
+                  : 'bg-white text-[#475569] border-[#cbd5e1] hover:border-[#15803d] hover:text-[#1e293b]'
+              }`}
             >
-              <option value="ALL">Todas las Áreas</option>
-              {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-            </select>
-          )}
-
-          <div className="h-10 w-full sm:w-60 bg-[#f8fafc] border border-[#cbd5e1] rounded-xl flex items-center gap-2 px-3 text-[#64748b] focus-within:bg-white focus-within:border-[#15803d] focus-within:ring-2 focus-within:ring-[#15803d]/20 transition-all shadow-2xs">
-            <Search className="w-4 h-4 shrink-0 text-[#94a3b8]" />
-            <input
-              type="text"
-              placeholder="Buscar evento..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-transparent border-0 outline-none text-xs text-[#1e293b] placeholder:text-[#94a3b8]"
-            />
-          </div>
+              {q.label}
+            </button>
+          ))}
         </div>
 
       </div>
@@ -234,10 +274,17 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                     alt={evt.title} 
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                   />
-                  {/* Badge de Área */}
-                  <span className="absolute top-3 left-3 bg-[#0e2738]/85 text-white backdrop-blur-xs px-2.5 py-0.5 rounded-lg text-[10px] font-bold border border-white/10">
-                    {evt.area}
-                  </span>
+                  {/* Badges de Área y Trimestre */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
+                    <span className="bg-[#0e2738]/85 text-white backdrop-blur-xs px-2.5 py-0.5 rounded-lg text-[10px] font-bold border border-white/10">
+                      {evt.area}
+                    </span>
+                    {evt.quarter && (
+                      <span className="bg-blue-600/90 text-white backdrop-blur-xs px-2 py-0.5 rounded-lg text-[9px] font-bold font-mono border border-blue-400/30">
+                        {evt.quarter.replace('Trimestre ', 'T')}
+                      </span>
+                    )}
+                  </div>
                   {/* Badge de Estado */}
                   <div className="absolute top-3 right-3 shadow-xs">
                     {getStatusBadge()}

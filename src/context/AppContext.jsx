@@ -288,50 +288,59 @@ export function AppProvider({ children }) {
   // 5. Registro de Nuevo Aprendiz
   const registerNewApprentice = (data) => {
     // Validar unicidad de documento
-    const docExists = usersList.some(u => u.documentNumber && u.documentNumber === data.documentNumber.trim());
+    const docNum = (data.documentNumber || '').trim();
+    const docExists = usersList.some(u => u.documentNumber && u.documentNumber === docNum);
     if (docExists) {
       return {
         success: false,
-        message: `El número de documento ${data.documentNumber} ya se encuentra registrado.`
+        message: `El número de documento ${docNum} ya se encuentra registrado.`
       };
     }
 
     // Validar unicidad de correo
-    const emailExists = usersList.some(u => 
-      (u.email && u.email.toLowerCase() === data.personalEmail.trim().toLowerCase()) ||
-      (u.personalEmail && u.personalEmail.toLowerCase() === data.personalEmail.trim().toLowerCase())
-    );
-    if (emailExists) {
-      return {
-        success: false,
-        message: 'Correo existente. Este correo ya se encuentra registrado con este método.'
-      };
+    const emailToCheck = (data.email || data.personalEmail || '').trim().toLowerCase();
+    if (emailToCheck) {
+      const emailExists = usersList.some(u => 
+        (u.email && u.email.toLowerCase() === emailToCheck) ||
+        (u.personalEmail && u.personalEmail.toLowerCase() === emailToCheck)
+      );
+      if (emailExists) {
+        return {
+          success: false,
+          message: 'Correo existente. Este correo ya se encuentra registrado con este método.'
+        };
+      }
     }
+
+    const isComplete = Boolean(data.ficha?.trim() && data.program?.trim() && data.trainingCenter?.trim());
 
     const newUser = {
       id: `user_apr_${Date.now()}`,
-      username: data.documentNumber.trim(),
-      name: data.name.trim(),
-      email: data.email || data.personalEmail.trim(),
-      personalEmail: data.personalEmail.trim(),
+      username: docNum || `apr_${Date.now()}`,
+      name: (data.name || '').trim(),
+      email: (data.email || data.personalEmail || '').trim(),
+      personalEmail: (data.personalEmail || data.email || '').trim(),
       role: 'aprendiz',
-      roleLabel: 'Aprendiz SENA // Recién Registrado',
-      shortRole: 'Aprendiz Nuevo',
+      roleLabel: isComplete ? 'Aprendiz SENA // Perfil Completo' : 'Aprendiz SENA // Recién Registrado',
+      shortRole: isComplete ? 'Aprendiz' : 'Aprendiz Nuevo',
       area: 'General',
       avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
-      description: 'Aprendiz registrado en plataforma. Requiere onboarding para habilitar la cartelera institucional.',
-      isProfileComplete: false,
-      documentType: data.documentType,
-      documentNumber: data.documentNumber.trim(),
-      gender: '',
-      ficha: '',
-      modality: '',
-      program: '',
-      jornada: '',
-      level: '',
-      trainingCenter: '',
-      phone: '',
-      profileLastUpdated: null
+      description: isComplete
+        ? 'Aprendiz regular de formación titulada con ficha activa y perfil institucional completado.'
+        : 'Aprendiz registrado en plataforma. Requiere onboarding para habilitar la cartelera institucional.',
+      isProfileComplete: isComplete,
+      password: data.password ? data.password.trim() : 'Sena2026*',
+      documentType: data.documentType || 'Cédula de Ciudadanía (CC)',
+      documentNumber: docNum,
+      gender: data.gender || 'Femenino',
+      ficha: (data.ficha || '').trim(),
+      modality: data.modality || 'Presencial',
+      program: (data.program || '').trim(),
+      jornada: data.jornada || 'Diurna',
+      level: data.level || 'Tecnólogo',
+      trainingCenter: (data.trainingCenter || '').trim(),
+      phone: (data.phone || '').trim(),
+      profileLastUpdated: isComplete ? new Date().toISOString().split('T')[0] : null
     };
 
     setUsersList(prev => [...prev, newUser]);
@@ -339,8 +348,10 @@ export function AppProvider({ children }) {
     setActiveTab('apprentice');
 
     addToast(
-      'Cuenta Creada Exitosamente',
-      `Bienvenido(a) ${newUser.name}. Completa los datos obligatorios para habilitar tu cartelera.`,
+      isComplete ? '¡Registro Exitoso!' : 'Cuenta Creada Exitosamente',
+      isComplete 
+        ? `Bienvenido(a) ${newUser.name}. Tu perfil institucional está completo y tienes acceso a la cartelera.`
+        : `Bienvenido(a) ${newUser.name}. Completa los datos obligatorios para habilitar tu cartelera.`,
       'success'
     );
     return { success: true, user: newUser };

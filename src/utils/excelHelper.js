@@ -93,7 +93,7 @@ const COLUMN_SYNONYMS = {
     'coordinacion', 'coordinación', 'dependencia'
   ],
   quarter: [
-    'trimestre', 'cuatrimestre', 'fase', 'periodo academico'
+    'trimestre de ejecucion', 'trimestre de ejecución', 'trimestre', 'cuatrimestre', 'fase', 'periodo academico', 'periodo', 'trim'
   ],
   code: [
     'código', 'codigo', 'cod', 'id', 'consecutivo', 'item', 'n°', 'num', 'numero'
@@ -498,8 +498,41 @@ export async function parseMultiSheetExcelFile(file) {
   });
 }
 
+// Normalizador institucional de trimestre a partir del texto explícito del documento o fecha
+export function normalizeQuarter(rawQuarter, dateStr = '') {
+  if (rawQuarter !== undefined && rawQuarter !== null && String(rawQuarter).trim() !== '') {
+    const qStr = String(rawQuarter).toLowerCase().trim();
+    if (qStr === '1' || qStr === 't1' || qStr === 'i' || qStr.includes('trimestre 1') || qStr.includes('1 trimestre') || qStr.includes('primer')) {
+      return 'Trimestre 1';
+    }
+    if (qStr === '2' || qStr === 't2' || qStr === 'ii' || qStr.includes('trimestre 2') || qStr.includes('2 trimestre') || qStr.includes('segundo')) {
+      return 'Trimestre 2';
+    }
+    if (qStr === '3' || qStr === 't3' || qStr === 'iii' || qStr.includes('trimestre 3') || qStr.includes('3 trimestre') || qStr.includes('tercer')) {
+      return 'Trimestre 3';
+    }
+    if (qStr === '4' || qStr === 't4' || qStr === 'iv' || qStr.includes('trimestre 4') || qStr.includes('4 trimestre') || qStr.includes('cuarto')) {
+      return 'Trimestre 4';
+    }
+    if (qStr.includes('anual') || qStr.includes('ano') || qStr.includes('año')) {
+      return 'Vigencia Anual';
+    }
+  }
+
+  // Deducción por mes de la fecha si no vino columna explícita
+  if (dateStr && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+    const month = parseInt(dateStr.split('-')[1], 10);
+    if (month >= 1 && month <= 3) return 'Trimestre 1';
+    if (month >= 4 && month <= 6) return 'Trimestre 2';
+    if (month >= 7 && month <= 9) return 'Trimestre 3';
+    if (month >= 10 && month <= 12) return 'Trimestre 4';
+  }
+
+  return 'Trimestre 1';
+}
+
 // 3. Procesamiento semántico del modelo de IA sobre filas del Plan Anual
-export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quarter = 'Trimestre 4', customColumnMap = null) {
+export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quarterFilter = 'all', customColumnMap = null) {
   // Manejar tanto el formato nuevo de sheetData como arrays directos de filas
   const rows = Array.isArray(rawRowsOrSheetData) 
     ? rawRowsOrSheetData 
@@ -507,7 +540,7 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
   
   const columnMap = customColumnMap || rawRowsOrSheetData?.columnMap || {};
 
-  return rows.map((row, index) => {
+  const mapped = rows.map((row, index) => {
     // 1. Título real de la actividad
     const title = (
       (columnMap.title && row[columnMap.title]) ||
@@ -545,19 +578,23 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
     const rawDateValue = columnMap.date ? row[columnMap.date] : (row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || row.mesFecha);
     const dateParsed = parseSmartDate(rawDateValue);
 
-    // 7. Responsable
+    // 7. Trimestre explícito extraído de la fila
+    const rawQuarterValue = (columnMap.quarter && row[columnMap.quarter]) || row['Trimestre'] || row['Periodo'] || row.trimestre;
+    const explicitQuarter = normalizeQuarter(rawQuarterValue, dateParsed.dateStr);
+
+    // 8. Responsable
     const responsible = (
       (columnMap.responsible && row[columnMap.responsible]) ||
       row['Responsable Sugerido'] || row['Responsable'] || row.responsable || 'Coordinación de Área'
     ).toString().trim();
 
-    // 8. Lugar
+    // 9. Lugar
     const location = (
       (columnMap.location && row[columnMap.location]) ||
       row['Lugar Sugerido'] || row['Lugar'] || row.location || 'Centro de Formación - Auditorio / Ambientes de Bienestar'
     ).toString().trim();
 
-    // 9. Propósito y Objetivo (Prioridad al texto real del Excel)
+    // 10. Propósito y Objetivo (Prioridad al texto real del Excel)
     const rawPurpose = (
       (columnMap.description && row[columnMap.description]) ||
       row['Descripción'] || row['Descripcion'] || row['Detalle'] || row['Metodología'] || row['Metodologia'] || row['Justificación'] || ''
@@ -571,22 +608,22 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
     const purpose = rawPurpose || `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación activa y convivencia comunitaria.`;
     const objective = rawObjective || `Desarrollar competencias socioemocionales e incentivar la integración y permanencia de las fichas de formación en el centro.`;
 
-    // 10. Población objetivo / Fichas convocadas
+    // 11. Población objetivo / Fichas convocadas
     const targetAudience = (
       (columnMap.targetAudience && row[columnMap.targetAudience]) ||
       row['Población Objetivo'] || row['Poblacion Objetivo'] || row['Dirigido a'] || row['Fichas'] || row['Programa'] || 'Todos los aprendices'
     ).toString().trim();
 
-    // 11. Costo / Presupuesto
+    // 12. Costo / Presupuesto
     const cost = (columnMap.cost && row[columnMap.cost]) || row['Costo Estimado (COP)'] || row['Costo'] || row['Presupuesto'] || 0;
 
-    // 12. Observaciones
+    // 13. Observaciones
     const observations = (
       (columnMap.observations && row[columnMap.observations]) ||
       row['Observaciones'] || row['Observacion'] || row['Notas'] || ''
     ).toString().trim();
 
-    // 13. Horario real
+    // 14. Horario real
     const rawTime = (
       (columnMap.time && row[columnMap.time]) ||
       row['Horario'] || row['Hora'] || row['Jornada'] || ''
@@ -600,7 +637,7 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       code,
       title,
       area: assignedArea,
-      quarter: (columnMap.quarter && row[columnMap.quarter]) || row['Trimestre'] || row.trimestre || quarter,
+      quarter: explicitQuarter,
       line,
       purpose,
       objective,
@@ -623,6 +660,13 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       originalRow: row // Preservar fila completa para auditoría celda a celda
     };
   });
+
+  // Si se seleccionó un filtro de trimestre específico (diferente de 'all'), filtrar
+  if (quarterFilter && quarterFilter !== 'all' && quarterFilter !== 'ALL') {
+    return mapped.filter(item => item.quarter === quarterFilter);
+  }
+
+  return mapped;
 }
 
 // 4. Validación de inconsistencias pre-exportación

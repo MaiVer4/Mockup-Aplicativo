@@ -40,11 +40,12 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
 
   const [step, setStep] = useState(1); // 1: Carga, 2: Revisión Inteligente, 3: Creados
   const [selectedSheet, setSelectedSheet] = useState(currentUser?.area || 'Cultura');
-  const [selectedQuarter, setSelectedQuarter] = useState('Trimestre 4');
+  const [selectedQuarter, setSelectedQuarter] = useState('all'); // 'all': Todo el Plan Anual
   const [processing, setProcessing] = useState(false);
   const [extractedItems, setExtractedItems] = useState([]);
   const [fileName, setFileName] = useState('');
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
+  const [step2QuarterFilter, setStep2QuarterFilter] = useState('ALL');
   const fileInputRef = useRef(null);
 
   // Estado para libros Excel reales multi-hoja y mapeo semántico
@@ -174,6 +175,9 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
     runAiExtraction(allRows, 'Plan_General_Bienestar_SENA_2026.xlsx', 'Plan General');
   };
 
+  const displayedItems = extractedItems.filter(i => step2QuarterFilter === 'ALL' || i.quarter === step2QuarterFilter);
+  const allSelected = displayedItems.length > 0 && displayedItems.every(i => i.selected);
+
   // Conmutar selección individual
   const toggleSelect = (tempId) => {
     setExtractedItems(prev => prev.map(item => 
@@ -181,10 +185,12 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
     ));
   };
 
-  // Seleccionar todas / Deseleccionar todas
+  // Seleccionar todas / Deseleccionar todas (sobre la vista filtrada)
   const toggleSelectAll = () => {
-    const allSelected = extractedItems.every(i => i.selected);
-    setExtractedItems(prev => prev.map(item => ({ ...item, selected: !allSelected })));
+    const displayedIds = new Set(displayedItems.map(i => i.tempId));
+    setExtractedItems(prev => prev.map(item => 
+      displayedIds.has(item.tempId) ? { ...item, selected: !allSelected } : item
+    ));
   };
 
   // Resolver ambigüedad en línea (RF-06)
@@ -290,8 +296,6 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
     );
   }
 
-  const allSelected = extractedItems.length > 0 && extractedItems.every(i => i.selected);
-
   return (
     <div className="max-w-5xl mx-auto space-y-6">
       
@@ -356,14 +360,18 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
 
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">
-                Trimestre de Ejecución
+                Vigencia y Alcance del Plan
               </label>
               <select
                 value={selectedQuarter}
                 onChange={(e) => setSelectedQuarter(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs bg-white font-medium text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
-                {TRIMESTRES.map(t => <option key={t} value={t}>{t}</option>)}
+                <option value="all">📅 Todo el Plan Anual (Trimestres 1 a 4)</option>
+                <option value="Trimestre 1">Trimestre 1 (Enero - Marzo)</option>
+                <option value="Trimestre 2">Trimestre 2 (Abril - Junio)</option>
+                <option value="Trimestre 3">Trimestre 3 (Julio - Septiembre)</option>
+                <option value="Trimestre 4">Trimestre 4 (Octubre - Diciembre)</option>
               </select>
             </div>
           </div>
@@ -463,13 +471,13 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             </span>
           </div>
 
-          {/* Botones de acción y prueba rápida */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+          {/* Botón de acción y prueba rápida */}
+          <div className="pt-2">
             <button
               type="button"
               disabled={processing}
               onClick={handleLoadDemoFile}
-              className="btn btn-secondary py-3 text-xs font-bold justify-center"
+              className="btn btn-secondary w-full py-3 text-xs font-bold justify-center"
             >
               {processing ? (
                 <>
@@ -479,19 +487,9 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
               ) : (
                 <>
                   <Sparkles className="w-4 h-4 text-[#15803d]" />
-                  <span>Probar con Plan Demo de {selectedSheet}</span>
+                  <span>Probar con Plan Anual Demo de {selectedSheet}</span>
                 </>
               )}
-            </button>
-
-            <button
-              type="button"
-              disabled={processing}
-              onClick={handleLoadGeneralPlanDemo}
-              className="btn btn-primary py-3 text-xs font-bold justify-center"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-white" />
-              <span>Probar con Plan General Multi-Área (PAA)</span>
             </button>
           </div>
 
@@ -690,8 +688,8 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             )}
           </div>
 
-          {/* BARRA DE HERRAMIENTAS: SELECCIÓN MASIVA Y CONMUTADOR DE VISTAS (TARJETAS vs TABLA) */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1 pb-1">
+          {/* BARRA DE HERRAMIENTAS: SELECCIÓN MASIVA, FILTRO TRIMESTRAL Y VISTAS */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1 pb-1 flex-wrap">
             <div className="flex items-center gap-3">
               <button
                 type="button"
@@ -699,12 +697,41 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                 className="text-xs font-semibold text-[#15803d] hover:text-[#166534] flex items-center gap-1.5 cursor-pointer"
               >
                 {allSelected ? <CheckSquare className="w-4 h-4" /> : <Square className="w-4 h-4 text-[#64748b]" />}
-                <span>{allSelected ? 'Deseleccionar todas' : 'Seleccionar todas'}</span>
+                <span>{allSelected ? 'Deseleccionar vista' : 'Seleccionar vista'}</span>
               </button>
 
               <span className="text-xs text-[#64748b]">
                 <strong>{extractedItems.filter(i => i.selected).length}</strong> de {extractedItems.length} seleccionadas
               </span>
+            </div>
+
+            {/* Filtro rápido por Trimestre */}
+            <div className="flex items-center gap-1 bg-[#f1f5f9] p-1 rounded-xl border border-[#cbd5e1] overflow-x-auto">
+              <span className="text-[10px] font-bold text-[#64748b] px-1.5 uppercase font-mono">Trimestre:</span>
+              {[
+                { id: 'ALL', label: 'Todos' },
+                { id: 'Trimestre 1', label: 'T1' },
+                { id: 'Trimestre 2', label: 'T2' },
+                { id: 'Trimestre 3', label: 'T3' },
+                { id: 'Trimestre 4', label: 'T4' }
+              ].map(q => {
+                const count = q.id === 'ALL' ? extractedItems.length : extractedItems.filter(i => i.quarter === q.id).length;
+                return (
+                  <button
+                    key={q.id}
+                    type="button"
+                    onClick={() => setStep2QuarterFilter(q.id)}
+                    className={`px-2 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1 ${
+                      step2QuarterFilter === q.id
+                        ? 'bg-white text-[#15803d] shadow-2xs border border-[#cbd5e1]'
+                        : 'text-[#64748b] hover:text-[#1e293b]'
+                    }`}
+                  >
+                    <span>{q.label}</span>
+                    <span className="text-[9px] font-mono opacity-80">({count})</span>
+                  </button>
+                );
+              })}
             </div>
 
             {/* Selector de Modo de Vista */}
@@ -719,7 +746,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                 }`}
               >
                 <LayoutGrid className="w-3.5 h-3.5" />
-                <span>Tarjetas Visuales</span>
+                <span>Tarjetas</span>
               </button>
 
               <button
@@ -732,7 +759,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                 }`}
               >
                 <TableIcon className="w-3.5 h-3.5" />
-                <span>Tabla de Datos Reales</span>
+                <span>Tabla</span>
               </button>
             </div>
           </div>
@@ -740,7 +767,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
           {/* MODO 1: VISTA DE TARJETAS ENRIQUECIDAS */}
           {viewMode === 'cards' && (
             <div className="space-y-3">
-              {extractedItems.map(item => (
+              {displayedItems.map(item => (
                 <div 
                   key={item.tempId}
                   className={`p-3.5 sm:p-4 rounded-xl border transition-all ${
@@ -773,6 +800,9 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                           </strong>
                           <span className="text-[10px] font-mono bg-slate-100 text-[#0e2738] border border-slate-200 px-1.5 py-0.2 rounded font-bold shrink-0">
                             {item.area}
+                          </span>
+                          <span className="text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.2 rounded font-bold shrink-0">
+                            {item.quarter || 'Plan Anual'}
                           </span>
                           {item.code && (
                             <span className="text-[10px] font-mono text-[#64748b] bg-white px-1.5 py-0.2 rounded border border-[#e2e8f0]">
@@ -859,6 +889,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                       <th className="py-2.5 px-3">CÓDIGO</th>
                       <th className="py-2.5 px-3 min-w-[220px]">ACTIVIDAD REAL</th>
                       <th className="py-2.5 px-3">ÁREA</th>
+                      <th className="py-2.5 px-3 min-w-[110px]">TRIMESTRE</th>
                       <th className="py-2.5 px-3 min-w-[160px]">LÍNEA DE ACCIÓN</th>
                       <th className="py-2.5 px-3 min-w-[140px]">FECHA PROGRAMADA</th>
                       <th className="py-2.5 px-3 text-center">CUPO</th>
@@ -868,7 +899,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-[#e2e8f0] bg-white">
-                    {extractedItems.map((item, idx) => (
+                    {displayedItems.map((item, idx) => (
                       <tr 
                         key={item.tempId}
                         className={`hover:bg-[#f8fafc] transition-colors ${item.selected ? 'bg-[#f0fdf4]/50' : 'opacity-70'}`}
@@ -891,6 +922,11 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                         <td className="py-2.5 px-3">
                           <span className="text-[10px] font-mono bg-slate-100 text-[#0e2738] border border-slate-200 px-1.5 py-0.2 rounded font-bold whitespace-nowrap">
                             {item.area}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3">
+                          <span className="text-[10px] font-mono bg-blue-50 text-blue-700 border border-blue-200 px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
+                            {item.quarter || 'Plan Anual'}
                           </span>
                         </td>
                         <td className="py-2.5 px-3 text-[11px] text-[#475569]">
