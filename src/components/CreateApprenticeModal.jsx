@@ -39,7 +39,7 @@ export default function CreateApprenticeModal({ isOpen, onClose }) {
     program: PROGRAMAS_FORMACION[0] || 'Análisis y Desarrollo de Software (ADSO)',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: CENTROS_FORMACION[0] || 'Centro de Electricidad, Electrónica y Telecomunicaciones',
+    trainingCenter: CENTROS_FORMACION[0] || 'SENA Centro de Comercio y Turismo Armenia Quindio',
     phone: ''
   };
 
@@ -69,7 +69,7 @@ export default function CreateApprenticeModal({ isOpen, onClose }) {
       program: 'Análisis y Desarrollo de Software (ADSO)',
       jornada: 'Diurna',
       level: 'Tecnólogo',
-      trainingCenter: 'Centro de Electricidad, Electrónica y Telecomunicaciones',
+      trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
       phone: '3158920491'
     });
     setError('');
@@ -279,7 +279,7 @@ export default function CreateApprenticeModal({ isOpen, onClose }) {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-[11px] font-bold text-[#334155] mb-1">
-                  Ficha / Grupo *
+                  Ficha *
                 </label>
                 <input
                   type="text"

@@ -201,10 +201,10 @@ export default function ApprenticeOnboardingModal() {
               </select>
             </div>
 
-            {/* Número de Ficha o Grupo */}
+            {/* Ficha */}
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">
-                Número de Ficha o Grupo *
+                Ficha *
               </label>
               <input
                 type="text"

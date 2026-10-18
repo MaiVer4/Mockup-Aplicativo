@@ -479,7 +479,7 @@ export function AppProvider({ children }) {
       program: data.program || 'Análisis y Desarrollo de Software (ADSO)',
       jornada: data.jornada || 'Diurna',
       level: data.level || 'Tecnólogo',
-      trainingCenter: data.trainingCenter || 'Centro de Electricidad, Electrónica y Telecomunicaciones',
+      trainingCenter: data.trainingCenter || 'SENA Centro de Comercio y Turismo Armenia Quindio',
       phone: data.phone ? data.phone.trim() : '3128491029',
       profileLastUpdated: new Date().toISOString()
     };
@@ -556,7 +556,7 @@ export function AppProvider({ children }) {
       program: 'Análisis y Desarrollo de Software (ADSO)',
       jornada: 'Diurna',
       level: 'Tecnólogo',
-      trainingCenter: 'Centro de Servicios Financieros - Regional Distrito Capital',
+      trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
       phone: '3114920194',
       personalEmail: currentUser.email || 'aprendiz.demo@gmail.com'
     });
@@ -813,7 +813,7 @@ export function AppProvider({ children }) {
           program: currentUser.program || 'Análisis y Desarrollo de Software (ADSO)',
           jornada: currentUser.jornada || 'Diurna',
           level: currentUser.level || 'Tecnólogo',
-          trainingCenter: currentUser.trainingCenter || 'Centro de Servicios Financieros',
+          trainingCenter: currentUser.trainingCenter || 'SENA Centro de Comercio y Turismo Armenia Quindio',
           email: currentUser.personalEmail || currentUser.email,
           phone: currentUser.phone || '3157849201',
           timestamp: timestampExact,

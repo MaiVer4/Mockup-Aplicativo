@@ -368,10 +368,10 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                 className="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs bg-white font-medium text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               >
                 <option value="all">📅 Todo el Plan Anual (Trimestres 1 a 4)</option>
-                <option value="Trimestre 1">Trimestre 1 (Enero - Marzo)</option>
-                <option value="Trimestre 2">Trimestre 2 (Abril - Junio)</option>
-                <option value="Trimestre 3">Trimestre 3 (Julio - Septiembre)</option>
-                <option value="Trimestre 4">Trimestre 4 (Octubre - Diciembre)</option>
+                <option value="Trimestre 1">Trimestre 1 (T1)</option>
+                <option value="Trimestre 2">Trimestre 2 (T2)</option>
+                <option value="Trimestre 3">Trimestre 3 (T3)</option>
+                <option value="Trimestre 4">Trimestre 4 (T4)</option>
               </select>
             </div>
           </div>

@@ -65,12 +65,7 @@ export const PROGRAMAS_FORMACION = [
 ];
 
 export const CENTROS_FORMACION = [
-  'Centro de Servicios Financieros - Regional Distrito Capital',
-  'Centro de Gestión de Mercados, Logística y TIC - Regional Distrito Capital',
-  'Centro de Electricidad, Electrónica y Telecomunicaciones - Regional Distrito Capital',
-  'Centro de Biotecnología Agropecuaria - Regional Cundinamarca',
-  'Centro Metalmecánico - Regional Distrito Capital',
-  'Centro de Tecnologías para la Construcción y la Madera - Regional Distrito Capital'
+  'SENA Centro de Comercio y Turismo Armenia Quindio'
 ];
 
 // Usuarios representativos de los 3 roles
@@ -144,7 +139,7 @@ export const USERS = [
     program: 'Análisis y Desarrollo de Software (ADSO)',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Servicios Financieros - Regional Distrito Capital',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     phone: '3157849201',
     profileLastUpdated: '2026-10-01'
   },
@@ -188,7 +183,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Análisis y Desarrollo de Software (ADSO)',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Servicios Financieros',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'sofia.castillo@misena.edu.co',
     phone: '3157849201',
     timestamp: '2026-10-13 14:05:12',
@@ -205,7 +200,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Análisis y Desarrollo de Software (ADSO)',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Servicios Financieros',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'camilo.rodriguez@misena.edu.co',
     phone: '3104928174',
     timestamp: '2026-10-13 14:06:40',
@@ -222,7 +217,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Gestión Empresarial',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Servicios Financieros',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'mariana.perez@misena.edu.co',
     phone: '3209182390',
     timestamp: '2026-10-13 14:08:15',
@@ -239,7 +234,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Análisis y Desarrollo de Software (ADSO)',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Servicios Financieros',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'david.morales@misena.edu.co',
     phone: '3119284710',
     timestamp: '2026-10-13 14:10:02',
@@ -256,7 +251,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Contabilización de Operaciones Comerciales',
     jornada: 'Nocturna',
     level: 'Técnico',
-    trainingCenter: 'Centro de Servicios Financieros',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'laura.beltran@misena.edu.co',
     phone: '3148920194',
     timestamp: '2026-10-13 14:12:33',
@@ -273,7 +268,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Análisis y Desarrollo de Software (ADSO)',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Servicios Financieros',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'brayan.gomez@misena.edu.co',
     phone: '3169284012',
     timestamp: '2026-10-13 14:15:50',
@@ -290,7 +285,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Gestión Empresarial',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Servicios Financieros',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'paula.munoz@misena.edu.co',
     phone: '3128491029',
     timestamp: '2026-10-13 14:18:22',
@@ -307,7 +302,7 @@ export const MOCK_PARTICIPANTS_DATABASE = [
     program: 'Animación Digital 3D',
     jornada: 'Mixta',
     level: 'Tecnólogo',
-    trainingCenter: 'Centro de Gestión de Mercados',
+    trainingCenter: 'SENA Centro de Comercio y Turismo Armenia Quindio',
     email: 'sebastian.vargas@misena.edu.co',
     phone: '3179283019',
     timestamp: '2026-10-13 14:20:10',

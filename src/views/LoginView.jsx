@@ -68,7 +68,7 @@ export default function LoginView() {
     program: PROGRAMAS_FORMACION[0] || 'Análisis y Desarrollo de Software (ADSO)',
     jornada: 'Diurna',
     level: 'Tecnólogo',
-    trainingCenter: CENTROS_FORMACION[0] || 'Centro de Servicios Financieros - Regional Distrito Capital',
+    trainingCenter: CENTROS_FORMACION[0] || 'SENA Centro de Comercio y Turismo Armenia Quindio',
     phone: '',
     password: '',
     confirmPassword: ''
@@ -120,7 +120,7 @@ export default function LoginView() {
       program: 'Análisis y Desarrollo de Software (ADSO)',
       jornada: 'Diurna',
       level: 'Tecnólogo',
-      trainingCenter: CENTROS_FORMACION[0] || 'Centro de Servicios Financieros - Regional Distrito Capital',
+      trainingCenter: CENTROS_FORMACION[0] || 'SENA Centro de Comercio y Turismo Armenia Quindio',
       phone: '3148920194',
       password: 'Sena2026*',
       confirmPassword: 'Sena2026*'
@@ -627,7 +627,7 @@ export default function LoginView() {
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Ficha / Grupo *</label>
+                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Ficha *</label>
                             <input
                               type="text"
                               required

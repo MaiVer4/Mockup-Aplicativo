@@ -210,10 +210,10 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
           </span>
           {[
             { id: 'ALL', label: 'Todo el Año (Anual)' },
-            { id: 'Trimestre 1', label: 'T1 (Ene - Mar)' },
-            { id: 'Trimestre 2', label: 'T2 (Abr - Jun)' },
-            { id: 'Trimestre 3', label: 'T3 (Jul - Sep)' },
-            { id: 'Trimestre 4', label: 'T4 (Oct - Dic)' }
+            { id: 'Trimestre 1', label: 'T1' },
+            { id: 'Trimestre 2', label: 'T2' },
+            { id: 'Trimestre 3', label: 'T3' },
+            { id: 'Trimestre 4', label: 'T4' }
           ].map(q => (
             <button
               key={q.id}

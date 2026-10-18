@@ -261,10 +261,10 @@ export default function ParticipantsView({ onOpenExportModal }) {
             </select>
           </div>
 
-          {/* 4. Ficha / Grupo */}
+          {/* 4. Ficha */}
           <div>
             <label className="block text-[10px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">
-              4. Ficha / Grupo
+              4. Ficha
             </label>
             <select
               value={filterFicha}
