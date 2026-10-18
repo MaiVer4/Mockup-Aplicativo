@@ -205,10 +205,21 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
 
           {/* Alerta de Ambigüedad para el Encargado */}
           {isEncargado && isDraft && event.isAmbiguous && (
-            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-1.5">
-              <div className="flex items-center gap-2">
-                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                <span className="font-bold text-xs">Fecha pendiente de confirmación</span>
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span className="font-bold text-xs">Fecha pendiente de confirmación</span>
+                </div>
+                {onOpenEditModal && (
+                  <button
+                    type="button"
+                    onClick={() => onOpenEditModal(event, { focusDate: true })}
+                    className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-bold shrink-0 transition-colors cursor-pointer"
+                  >
+                    Editar Fecha Exacta
+                  </button>
+                )}
               </div>
               <p className="text-[11px] text-amber-800 leading-relaxed">
                 {event.ambiguityReason || 'Esta actividad proviene del plan de bienestar con programación tentativa. Confirma la fecha para proceder a publicarla en la cartelera oficial.'}
