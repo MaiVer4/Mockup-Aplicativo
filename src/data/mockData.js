@@ -398,7 +398,7 @@ export const INITIAL_EVENTS = [
     purpose: 'Perfeccionar las habilidades comunicativas y de resolución no violenta de conflictos en equipos multidisciplinarios.',
     objective: 'Potenciar la empleabilidad mediante comunicación verbal y no verbal efectiva.',
     extendedDescription: 'Simulación de mesas de concertación y debates guiados bajo el método de negociación de Harvard. Aplicable a aprendices de etapas electiva y productiva.',
-    image: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80',
+    image: null,
     area: 'Habilidades',
     quarter: 'Trimestre 4',
     date: todayStr,

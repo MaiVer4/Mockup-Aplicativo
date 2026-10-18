@@ -1,11 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Check, Calendar, Clock, MapPin, Users, Sparkles, Building2 } from 'lucide-react';
+import { X, Check, Calendar, Clock, MapPin, Users, Sparkles, Building2, AlertTriangle } from 'lucide-react';
 import { AREAS, TRIMESTRES } from '../data/mockData';
 import { getSemanticImage } from '../utils/excelHelper';
 
-export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
+export default function EventModal({ isOpen, onClose, eventToEdit = null, focusDate = false }) {
   const { currentUser, createEvent, updateEvent } = useApp();
+  const dateInputRef = useRef(null);
+  const dateSectionRef = useRef(null);
+  const shouldHighlightDate = Boolean(focusDate || eventToEdit?.isAmbiguous);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -50,7 +53,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
         extendedDescription: '',
         area: defaultArea,
         quarter: 'Trimestre 4',
-        image: getSemanticImage(defaultArea, ''),
+        image: null,
         date: new Date().toISOString().split('T')[0],
         time: '14:00 - 17:00',
         duration: '3 horas',
@@ -59,6 +62,22 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
       });
     }
   }, [eventToEdit, isOpen, currentUser]);
+
+  useEffect(() => {
+    if (!isOpen || !shouldHighlightDate) return;
+    const timer = setTimeout(() => {
+      dateSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      if (dateInputRef.current) {
+        dateInputRef.current.focus();
+        try {
+          dateInputRef.current.showPicker?.();
+        } catch {
+          // Algunos navegadores restringen showPicker fuera de gesto directo; el focus y resaltado visual permanecen activos
+        }
+      }
+    }, 60);
+    return () => clearTimeout(timer);
+  }, [isOpen, shouldHighlightDate, eventToEdit]);
 
   if (!isOpen) return null;
 
@@ -215,18 +234,36 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
             />
           </div>
 
+          {/* Alerta contextual cuando se abre desde Fijar Fecha */}
+          {shouldHighlightDate && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-2.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <span className="font-bold text-xs block">Define la fecha exacta de ejecución</span>
+                <p className="text-[11px] text-amber-800 leading-snug">
+                  {eventToEdit?.ambiguityReason || 'Selecciona la fecha definitiva en el campo resaltado y guarda los cambios para habilitar la publicación del evento.'}
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Parámetros Operativos (Fecha, Horario, Duración, Capacidad) */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div ref={dateSectionRef} className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div>
-              <label className="block text-[11px] font-bold text-[#334155] mb-1">
+              <label className={`block text-[11px] font-bold mb-1 ${shouldHighlightDate ? 'text-amber-800' : 'text-[#334155]'}`}>
                 Fecha Exacta *
               </label>
               <input
+                ref={dateInputRef}
                 type="date"
                 required
                 value={formData.date}
                 onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-2.5 py-2 rounded-xl border border-[#cbd5e1] text-xs font-mono text-[#1e293b] focus:outline-none focus:border-[#15803d]"
+                className={`w-full px-2.5 py-2 rounded-xl border text-xs font-mono text-[#1e293b] focus:outline-none transition-all ${
+                  shouldHighlightDate
+                    ? 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-400/50 focus:border-[#15803d] focus:ring-[#15803d]/30'
+                    : 'border-[#cbd5e1] focus:border-[#15803d]'
+                }`}
               />
             </div>
 
@@ -283,34 +320,12 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null }) {
             />
           </div>
 
-          {/* Imagen de Portada IA */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-[11px] font-bold text-[#334155]">
-                Imagen de Portada
-              </label>
-              <button
-                type="button"
-                onClick={handleGenerateImage}
-                className="text-[10px] text-[#15803d] hover:text-[#166534] font-semibold inline-flex items-center gap-1 hover:underline"
-              >
-                <Sparkles className="w-3 h-3" />
-                <span>Regenerar con IA Temática</span>
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <img
-                src={formData.image}
-                alt="Preview"
-                className="w-16 h-12 rounded-xl object-cover border border-[#cbd5e1] shrink-0"
-              />
-              <input
-                type="url"
-                value={formData.image}
-                onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[11px] font-mono text-[#475569] focus:outline-none focus:border-[#15803d]"
-              />
-            </div>
+          {/* Nota sobre generación de imagen al publicar */}
+          <div className="p-3 rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] flex items-center gap-2.5 text-xs text-[#166534]">
+            <Sparkles className="w-4 h-4 text-[#15803d] shrink-0" />
+            <span>
+              <strong>Portada con IA:</strong> La imagen oficial de la actividad se generará exclusivamente al momento de <strong>publicar el evento</strong> en la cartelera.
+            </span>
           </div>
 
           {/* Botones de acción */}

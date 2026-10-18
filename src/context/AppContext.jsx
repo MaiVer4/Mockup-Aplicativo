@@ -584,8 +584,10 @@ export function AppProvider({ children }) {
 
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
+        const generatedCover = evt.image || getSemanticImage(evt.area, evt.title + ' ' + (evt.purpose || ''));
         return {
           ...evt,
+          image: generatedCover,
           status: 'publicado',
           isAmbiguous: false,
           ambiguityReason: null
@@ -595,8 +597,8 @@ export function AppProvider({ children }) {
     }));
 
     addToast(
-      'Evento Publicado con Éxito',
-      `"${targetEvent.title}" ya es visible en la cartelera de Bienestar al Aprendiz.`,
+      'Evento Publicado con Portada IA',
+      `"${targetEvent.title}" generó su portada institucional y ya es visible en la cartelera de Bienestar al Aprendiz.`,
       'success'
     );
 
@@ -695,7 +697,7 @@ export function AppProvider({ children }) {
       purpose: newEventData.purpose || 'Propósito formativo integral',
       objective: newEventData.objective || 'Fortalecer competencias socioemocionales',
       extendedDescription: newEventData.extendedDescription || 'Descripción detallada de la actividad de bienestar.',
-      image: newEventData.image || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
+      image: null,
       area: newEventData.area || (currentUser.area || 'Cultura'),
       quarter: newEventData.quarter || 'Trimestre 4',
       date: newEventData.date || new Date().toISOString().split('T')[0],
@@ -715,7 +717,7 @@ export function AppProvider({ children }) {
     };
 
     setEvents(prev => [newEvent, ...prev]);
-    addToast('Actividad Creada', `"${newEvent.title}" registrada en estado Borrador.`, 'success');
+    addToast('Actividad Creada', `"${newEvent.title}" registrada en estado Borrador (la portada IA se generará al publicar).`, 'success');
     return newEvent;
   };
 
@@ -725,7 +727,7 @@ export function AppProvider({ children }) {
     addToast('Actividad Eliminada', 'El evento ha sido removido del catálogo.', 'info');
   };
 
-  // Importar propuestas de IA al catálogo (pasan a Borrador)
+  // Importar propuestas de IA al catálogo (pasan a Borrador sin imagen)
   const importEventsFromAI = (extractedItems) => {
     const formatted = extractedItems.map((item, index) => ({
       id: `evt-ai-${Date.now()}-${index}`,
@@ -734,7 +736,7 @@ export function AppProvider({ children }) {
       purpose: item.purpose,
       objective: item.objective,
       extendedDescription: item.purpose ? `${item.purpose} Actividad abierta a aprendices en etapa lectiva y productiva.` : `Actividad programada en el marco del Plan Anual de Bienestar 2026 para la línea de ${item.line}. Actividad abierta a aprendices en etapa lectiva y productiva.`,
-      image: item.image,
+      image: null,
       area: item.area,
       quarter: item.quarter,
       date: item.date,

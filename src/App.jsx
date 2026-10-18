@@ -34,18 +34,21 @@ function AdminShell() {
   // Modales
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
+  const [focusDateOnModal, setFocusDateOnModal] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isCreateApprenticeModalOpen, setIsCreateApprenticeModalOpen] = useState(false);
   const [selectedEventForExport, setSelectedEventForExport] = useState(null);
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
 
-  const handleOpenEventModal = (event = null) => {
+  const handleOpenEventModal = (event = null, options = {}) => {
     setEventToEdit(event);
+    setFocusDateOnModal(Boolean(options.focusDate));
     setIsEventModalOpen(true);
   };
 
   const handleCloseEventModal = () => {
     setEventToEdit(null);
+    setFocusDateOnModal(false);
     setIsEventModalOpen(false);
   };
 
@@ -143,6 +146,7 @@ function AdminShell() {
           isOpen={isEventModalOpen}
           onClose={handleCloseEventModal}
           eventToEdit={eventToEdit}
+          focusDate={focusDateOnModal}
         />
       )}
 
@@ -170,6 +174,10 @@ function AdminShell() {
         isOpen={Boolean(selectedEventForDetail)}
         onClose={() => setSelectedEventForDetail(null)}
         event={selectedEventForDetail}
+        onOpenEditModal={(evt, opts = { focusDate: true }) => {
+          setSelectedEventForDetail(null);
+          handleOpenEventModal(evt, opts);
+        }}
       />
 
       {/* 6. Buzón de notificaciones automáticas por correo */}

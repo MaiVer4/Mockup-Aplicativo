@@ -263,17 +263,31 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                 key={evt.id} 
                 className="card-ergonomic overflow-hidden flex flex-col justify-between group"
               >
-                {/* Imagen de Portada */}
+                {/* Imagen de Portada o Bloque de Borrador sin Portada */}
                 <button
                   type="button"
                   onClick={() => onOpenDetailModal && onOpenDetailModal(evt)}
                   className="relative h-44 w-full block overflow-hidden text-left"
                 >
-                  <img 
-                    src={evt.image || 'https://images.unsplash.com/photo-1598588436316-1e65ffcffc0a?w=400&auto=format&fit=crop&q=80'} 
-                    alt={evt.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+                  {evt.image ? (
+                    <img 
+                      src={evt.image} 
+                      alt={evt.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] border-b border-[#e2e8f0] flex flex-col items-center justify-center p-4 text-center">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-[#cbd5e1] text-[#15803d] flex items-center justify-center shadow-2xs mb-2">
+                        <Sparkles className="w-5 h-5" />
+                      </div>
+                      <span className="text-xs font-bold text-[#334155] font-heading">
+                        Borrador sin portada
+                      </span>
+                      <span className="text-[10px] text-[#64748b] mt-0.5">
+                        La imagen se generará con IA al publicar
+                      </span>
+                    </div>
+                  )}
                   {/* Badges de Área y Trimestre */}
                   <div className="absolute top-3 left-3 flex items-center gap-1.5 flex-wrap">
                     <span className="bg-[#0e2738]/85 text-white backdrop-blur-xs px-2.5 py-0.5 rounded-lg text-[10px] font-bold border border-white/10">
@@ -353,8 +367,8 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                             </div>
                             <button
                               type="button"
-                              onClick={() => onOpenDetailModal && onOpenDetailModal(evt)}
-                              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors shadow-2xs"
+                              onClick={() => onOpenModal && onOpenModal(evt, { focusDate: true })}
+                              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors shadow-2xs cursor-pointer"
                             >
                               Fijar Fecha
                             </button>

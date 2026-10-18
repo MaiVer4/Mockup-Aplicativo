@@ -16,9 +16,10 @@ import {
   AlertTriangle
 } from 'lucide-react';
 
-export default function EventDetailModal({ isOpen, onClose, event }) {
+export default function EventDetailModal({ isOpen, onClose, event: propEvent, onOpenEditModal }) {
   const { 
     currentUser, 
+    events,
     registerAttendance,
     publishEvent,
     startEventAttendance,
@@ -26,7 +27,9 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
     generateAIEventCover
   } = useApp();
 
-  if (!isOpen || !event) return null;
+  if (!isOpen || !propEvent) return null;
+
+  const event = events.find(e => e.id === propEvent.id) || propEvent;
 
   const isLearner = currentUser.role === 'aprendiz';
   const isEncargado = currentUser.role === 'admin_area';
@@ -52,14 +55,23 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
           <X className="w-4 h-4" />
         </button>
 
-        {/* Hero de Portada estilo Functional Mockup */}
-        <div className="relative h-44 sm:h-60 w-full overflow-hidden shrink-0">
-          <img
-            src={event.image}
-            alt={event.title}
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0c2f3a]/95 via-[#0c2f3a]/40 to-transparent" />
+        {/* Hero de Portada o Cabecera de Borrador sin Portada */}
+        <div className="relative h-44 sm:h-60 w-full overflow-hidden shrink-0 bg-gradient-to-br from-[#0c2f3a] via-[#103a46] to-[#08242e]">
+          {event.image ? (
+            <>
+              <img
+                src={event.image}
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0c2f3a]/95 via-[#0c2f3a]/40 to-transparent" />
+            </>
+          ) : (
+            <div className="absolute top-4 left-4 sm:top-5 sm:left-6 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-[10px] font-bold text-[#c4f246]">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Borrador sin portada · Se generará al publicar</span>
+            </div>
+          )}
           
           <div className="absolute bottom-3 left-4 right-4 sm:bottom-5 sm:left-6 sm:right-6 text-white space-y-1 sm:space-y-2">
             <div className="flex items-center gap-1.5 sm:gap-2">
@@ -207,22 +219,24 @@ export default function EventDetailModal({ isOpen, onClose, event }) {
           {/* RF-07: Generación de Portada con IA al Publicar */}
           {isEncargado && isDraft && (
             <div className="p-3.5 rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] space-y-2">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#15803d]" />
-                  <span className="font-bold text-xs text-[#166534]">Portada con IA Institucional</span>
+                  <Sparkles className="w-4 h-4 text-[#15803d] shrink-0" />
+                  <span className="font-bold text-xs text-[#166534]">Portada con IA para Publicación</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => generateAIEventCover(event.id)}
-                  className="px-2.5 py-1 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                  className="px-2.5 py-1 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
                 >
                   <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>Regenerar Portada con IA</span>
+                  <span>{event.image ? 'Cambiar Portada con IA' : 'Generar Portada con IA'}</span>
                 </button>
               </div>
               <p className="text-[11px] text-[#166534]/90 leading-tight">
-                Genera una portada visual temática adaptada al área ({event.area}) y propósito antes de publicar formalmente.
+                {event.image
+                  ? 'Vista previa de portada lista. Puedes cambiarla si deseas otra variante o proceder a publicar.'
+                  : `Genera y previsualiza una portada visual con IA adaptada al área (${event.area}) antes de publicar, o presiona "Publicar Evento" para generarla automáticamente.`}
               </p>
             </div>
           )}

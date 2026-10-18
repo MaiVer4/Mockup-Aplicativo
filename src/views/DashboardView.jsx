@@ -408,12 +408,18 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                       <small className="text-[8px] font-medium">horas</small>
                     </div>
 
-                    {/* Portada */}
-                    <img 
-                      src={evt.image || 'https://images.unsplash.com/photo-1598588436316-1e65ffcffc0a?w=120&auto=format&fit=crop&q=80'} 
-                      alt={evt.title} 
-                      className="w-[52px] h-11 object-cover rounded-lg border border-[#e2e8f0]"
-                    />
+                    {/* Portada o Indicador de Borrador */}
+                    {evt.image ? (
+                      <img 
+                        src={evt.image} 
+                        alt={evt.title} 
+                        className="w-[52px] h-11 object-cover rounded-lg border border-[#e2e8f0]"
+                      />
+                    ) : (
+                      <div className="w-[52px] h-11 rounded-lg bg-[#f8fafc] border border-[#cbd5e1] flex items-center justify-center text-[#64748b]" title="Borrador sin portada">
+                        <Sparkles className="w-4 h-4 text-[#15803d]" />
+                      </div>
+                    )}
 
                     {/* Texto del Evento */}
                     <div className="min-w-0">

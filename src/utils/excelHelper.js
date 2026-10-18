@@ -630,8 +630,6 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
     ).toString().trim();
     const time = rawTime || '14:00 - 17:00';
 
-    const image = getSemanticImage(assignedArea, title + ' ' + line);
-
     return {
       tempId: `prop-${Date.now()}-${index}`,
       code,
@@ -650,7 +648,7 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       isAmbiguous: dateParsed.isAmbiguous,
       ambiguityReason: dateParsed.ambiguityReason,
       responsibleName: responsible,
-      image,
+      image: null,
       duration: '3 horas',
       time,
       location,

@@ -30,8 +30,7 @@ import {
 import { 
   downloadSampleAnnualPlanTemplate, 
   parseMultiSheetExcelFile, 
-  processPlanRowsWithAI,
-  getSemanticImage 
+  processPlanRowsWithAI
 } from '../utils/excelHelper';
 import { DEMO_ANNUAL_PLAN_SHEETS, AREAS, TRIMESTRES } from '../data/mockData';
 
@@ -207,14 +206,6 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
       return item;
     }));
     addToast('Fecha Confirmada', 'Se resolvió la ambigüedad. La actividad ya puede publicarse.', 'success');
-  };
-
-  // Regenerar imagen contextual con IA
-  const handleRegenerateImage = (tempId, area, text) => {
-    const newImg = getSemanticImage(area, text);
-    setExtractedItems(prev => prev.map(item => 
-      item.tempId === tempId ? { ...item, image: newImg } : item
-    ));
   };
 
   // Confirmar e incorporar hacia estado Borrador en catálogo
@@ -787,12 +778,6 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                         className="mt-1 w-4 h-4 rounded text-[#15803d] focus:ring-[#15803d] shrink-0"
                       />
 
-                      <img 
-                        src={item.image} 
-                        alt={item.title} 
-                        className="w-14 h-12 sm:w-16 sm:h-14 rounded-lg object-cover shrink-0 border border-[#e2e8f0]"
-                      />
-
                       <div className="min-w-0 flex-1 space-y-1">
                         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                           <strong className="text-xs text-[#1e293b] font-heading font-bold truncate max-w-full">
@@ -842,7 +827,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                       </div>
                     </div>
 
-                    {/* Acciones para resolver ambigüedad o regenerar imagen */}
+                    {/* Acciones para resolver ambigüedad */}
                     <div className="flex items-center justify-between sm:justify-end gap-2 w-full lg:w-auto pt-2 lg:pt-0 border-t lg:border-t-0 border-[#e2e8f0]/80 shrink-0">
                       {item.isAmbiguous ? (
                         <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2 py-1 rounded-lg flex-1 sm:flex-none">
@@ -861,15 +846,6 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                           <span>Fecha Válida</span>
                         </span>
                       )}
-
-                      <button
-                        type="button"
-                        onClick={() => handleRegenerateImage(item.tempId, item.area, item.title)}
-                        className="btn-ghost text-[10px] text-[#64748b] hover:text-[#1e293b] p-1.5 rounded-lg border border-[#e2e8f0] bg-white shrink-0"
-                        title="Regenerar portada temática con IA"
-                      >
-                        <Sparkles className="w-3.5 h-3.5 text-[#15803d]" />
-                      </button>
                     </div>
 
                   </div>
