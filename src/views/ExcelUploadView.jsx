@@ -422,8 +422,12 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
 
           {/* Dropzone Ergonómico */}
           <div
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full min-h-[190px] border-2 border-dashed border-[#cbd5e1] hover:border-[#15803d] bg-[#f8fafc] hover:bg-white rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all group"
+            onClick={() => !processing && fileInputRef.current?.click()}
+            className={`w-full min-h-[190px] border-2 border-dashed ${
+              processing
+                ? 'border-[#15803d] bg-emerald-50/20 cursor-wait'
+                : 'border-[#cbd5e1] hover:border-[#15803d] bg-[#f8fafc] hover:bg-white cursor-pointer'
+            } rounded-2xl flex flex-col items-center justify-center p-6 text-center transition-all group`}
           >
             <input
               ref={fileInputRef}
@@ -431,21 +435,38 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
               accept=".xlsx,.xls,.csv"
               onChange={handleFileUpload}
               hidden
+              disabled={processing}
             />
-            
-            <div className="w-14 h-14 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
-              <Upload className="w-6 h-6" />
-            </div>
 
-            <strong className="text-xs sm:text-sm text-[#1e293b]">
-              Arrastra tu archivo aquí o <u className="text-[#15803d]">selecciónalo en tu equipo</u>
-            </strong>
-            <span className="text-[11px] text-[#64748b] mt-1">
-              Admite formatos reales del SENA: XLSX multi-hoja, XLS y CSV
-            </span>
-            <small className="text-[10px] text-[#94a3b8] mt-0.5">
-              Propagación de celdas combinadas y descarte automático de totales/firmas
-            </small>
+            {processing ? (
+              <div className="flex flex-col items-center justify-center py-4 space-y-2.5">
+                <div className="w-14 h-14 rounded-full bg-[#eafaf1] border border-[#bbf7d0] flex items-center justify-center shadow-xs">
+                  <div className="w-6 h-6 rounded-full border-2 border-[#15803d] border-t-transparent animate-spin" />
+                </div>
+                <strong className="text-sm font-bold text-[#1e293b]">
+                  Procesando documento, por favor espere...
+                </strong>
+                <span className="text-[11px] text-[#64748b]">
+                  Analizando estructura de filas, fechas y aprendices convocados
+                </span>
+              </div>
+            ) : (
+              <>
+                <div className="w-14 h-14 rounded-full bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
+                  <Upload className="w-6 h-6" />
+                </div>
+
+                <strong className="text-xs sm:text-sm text-[#1e293b]">
+                  Arrastra tu archivo aquí o <u className="text-[#15803d]">selecciónalo en tu equipo</u>
+                </strong>
+                <span className="text-[11px] text-[#64748b] mt-1">
+                  Admite formatos reales del SENA: XLSX multi-hoja, XLS y CSV
+                </span>
+                <small className="text-[10px] text-[#94a3b8] mt-0.5">
+                  Propagación de celdas combinadas y descarte automático de totales/firmas
+                </small>
+              </>
+            )}
           </div>
 
           {/* Nota de análisis inteligente */}
