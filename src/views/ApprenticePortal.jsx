@@ -213,12 +213,29 @@ export default function ApprenticePortal() {
                       className="grid grid-cols-1 sm:grid-cols-[43%_57%] card-ergonomic overflow-hidden min-h-[300px]"
                     >
                       {/* Portada a la izquierda con Time Chip */}
-                      <div className="relative min-h-[180px] sm:min-h-full">
-                        <img 
-                          src={evt.image || 'https://images.unsplash.com/photo-1598588436316-1e65ffcffc0a?w=400&auto=format&fit=crop&q=80'} 
-                          alt={evt.title} 
-                          className="w-full h-full object-cover"
-                        />
+                      <div
+                        onClick={() => setSelectedEventForDetail(evt)}
+                        className="relative min-h-[180px] sm:min-h-full bg-[#f8fafc] cursor-pointer group overflow-hidden"
+                      >
+                        {evt.image ? (
+                          <img 
+                            src={evt.image} 
+                            alt={evt.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="w-full h-full min-h-[180px] bg-gradient-to-br from-[#0c2f39] via-[#103a46] to-[#08262f] flex flex-col items-center justify-center p-4 text-center">
+                            <div className="w-10 h-10 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center mb-2">
+                              <Sparkles className="w-5 h-5 text-[#c4f246]" />
+                            </div>
+                            <span className="text-[11px] font-bold text-white/90 leading-snug">
+                              Bienestar al Aprendiz
+                            </span>
+                            <span className="text-[9px] text-[#bfd3df] mt-0.5">
+                              Sin portada gráfica asignada
+                            </span>
+                          </div>
+                        )}
                         {/* Area Badge */}
                         <span className="absolute top-3 left-3 bg-[#0e2738]/85 text-white backdrop-blur-xs px-2.5 py-0.5 rounded-lg text-[9px] font-bold border border-white/10">
                           {evt.area}
@@ -234,9 +251,9 @@ export default function ApprenticePortal() {
                       </div>
 
                       {/* Cuerpo de la tarjeta */}
-                      <div className="p-5 flex flex-col justify-between space-y-3">
-                        <div>
-                          <h3 className="font-heading font-extrabold text-[#1e293b] text-base line-clamp-2">
+                      <div className="p-4 sm:p-5 min-w-0 flex flex-col justify-between space-y-3">
+                        <div className="min-w-0">
+                          <h3 className="font-heading font-extrabold text-[#1e293b] text-base leading-snug line-clamp-2">
                             {evt.title}
                           </h3>
                           <p className="text-[#475569] text-xs line-clamp-2 mt-1 leading-relaxed">
@@ -245,50 +262,74 @@ export default function ApprenticePortal() {
                         </div>
 
                         {/* Ubicación */}
-                        <div className="pt-2 border-t border-[#e2e8f0] flex items-center gap-2 text-[11px] text-[#64748b]">
+                        <div className="pt-2 border-t border-[#e2e8f0] flex items-center gap-2 text-[11px] text-[#64748b] min-w-0">
                           <MapPin className="w-3.5 h-3.5 text-[#94a3b8] shrink-0" />
                           <span className="truncate">{evt.location}</span>
                         </div>
 
                         {/* Avatares y aforo de asistentes */}
-                        <div className="flex items-center gap-2 text-[11px] text-[#64748b]">
-                          <div className="flex -space-x-1.5">
-                            <span className="w-6 h-6 rounded-full bg-[#eafaf1] text-[#15803d] border-2 border-white flex items-center justify-center font-bold text-[9px]">
+                        <div className="flex items-center justify-between gap-2 text-[11px] text-[#64748b]">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="w-6 h-6 rounded-full bg-[#eafaf1] text-[#15803d] border-2 border-white flex items-center justify-center font-bold text-[9px] shrink-0 shadow-2xs">
                               {evt.attendeesCount > 0 ? evt.attendeesCount : '0'}
                             </span>
+                            <span className="truncate">{evt.attendeesCount || 0} de {evt.capacity || 60} cupos</span>
                           </div>
-                          <span>{evt.attendeesCount || 0} de {evt.capacity || 60} cupos oficiales</span>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedEventForDetail(evt)}
+                            className="text-[11px] font-bold text-[#15803d] hover:text-[#166534] flex items-center gap-0.5 shrink-0 cursor-pointer"
+                          >
+                            <span>Ficha</span>
+                            <ArrowRight className="w-3 h-3" />
+                          </button>
                         </div>
 
-                        {/* Botón de Acción Presencial */}
-                        <div>
+                        {/* Botón de Acción Presencial con jerarquía editorial y sin recorte de texto */}
+                        <div className="pt-0.5">
                           {hasAttended ? (
-                            <button
-                              type="button"
-                              disabled
-                              className="w-full py-2.5 rounded-xl text-xs font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-center gap-2 cursor-default shadow-2xs"
-                            >
-                              <CheckCircle2 className="w-4 h-4 text-[#15803d]" />
-                              <span>Asistencia Confirmada ✓</span>
-                            </button>
+                            <div className="w-full px-3 py-2 rounded-xl bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] flex items-center justify-between gap-2 shadow-2xs">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <span className="w-6 h-6 rounded-lg bg-[#15803d] text-white flex items-center justify-center shrink-0">
+                                  <CheckCircle2 className="w-3.5 h-3.5" />
+                                </span>
+                                <span className="text-xs font-bold truncate">Asistencia Confirmada</span>
+                              </div>
+                              <span className="px-2 py-0.5 rounded-md bg-white/90 border border-[#bbf7d0] text-[10px] font-mono font-extrabold text-[#15803d] shrink-0">
+                                ACTA ✓
+                              </span>
+                            </div>
                           ) : isInProgress ? (
                             <button
                               type="button"
                               onClick={() => registerAttendance(evt.id)}
-                              className="btn btn-primary w-full py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                              className="btn btn-primary w-full px-3 py-2.5 rounded-xl flex items-center justify-center gap-2 group/cta shadow-xs"
                             >
-                              <Sparkles className="w-4 h-4 text-white" />
-                              <span>Confirmar Asistencia Presencial (1 Clic)</span>
+                              <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0 group-hover/cta:bg-[#c4f246] group-hover/cta:text-[#0e2738] transition-colors">
+                                <UserCheck className="w-3.5 h-3.5" />
+                              </span>
+                              <span className="text-xs font-extrabold tracking-tight">
+                                Confirmar Asistencia
+                              </span>
                             </button>
                           ) : isFinished ? (
-                            <div className="w-full py-2.5 rounded-xl text-xs font-semibold bg-[#f8fafc] text-[#64748b] border border-[#e2e8f0] flex items-center justify-center gap-2">
+                            <div className="w-full px-3 py-2 rounded-xl text-xs font-semibold bg-[#f8fafc] text-[#64748b] border border-[#e2e8f0] flex items-center justify-center gap-2">
                               <span>Actividad Finalizada</span>
                             </div>
                           ) : (
-                            <div className="w-full py-2.5 px-3 rounded-xl text-xs font-semibold bg-[#f0f9ff] text-[#0369a1] border border-[#bae6fd] flex items-center justify-center gap-2">
-                              <Clock className="w-3.5 h-3.5 text-[#0284c7]" />
-                              <span>Programado · Se habilita al iniciar</span>
-                            </div>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedEventForDetail(evt)}
+                              className="w-full px-3 py-2 rounded-xl text-xs font-bold bg-[#f8fafc] hover:bg-[#f0f9ff] text-[#334155] hover:text-[#0369a1] border border-[#cbd5e1] hover:border-[#bae6fd] flex items-center justify-between gap-2 transition-colors cursor-pointer"
+                            >
+                              <span className="flex items-center gap-2 min-w-0">
+                                <span className="w-6 h-6 rounded-lg bg-[#e0f2fe] text-[#0284c7] flex items-center justify-center shrink-0">
+                                  <Clock className="w-3.5 h-3.5" />
+                                </span>
+                                <span className="truncate">Programado · Al iniciar</span>
+                              </span>
+                              <ArrowRight className="w-3.5 h-3.5 text-[#64748b] shrink-0" />
+                            </button>
                           )}
                         </div>
 

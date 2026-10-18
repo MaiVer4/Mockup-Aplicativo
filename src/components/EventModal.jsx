@@ -1,14 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Check, Calendar, Clock, MapPin, Users, Sparkles, Building2, AlertTriangle } from 'lucide-react';
+import { X, Check, Calendar, Clock, MapPin, Users, Sparkles, Building2, AlertTriangle, Upload, Link2, RotateCcw, Image as ImageIcon } from 'lucide-react';
 import { AREAS, TRIMESTRES } from '../data/mockData';
-import { getSemanticImage } from '../utils/excelHelper';
+import { getSemanticImage, buildDefaultImagePrompt } from '../utils/excelHelper';
 
-export default function EventModal({ isOpen, onClose, eventToEdit = null, focusDate = false }) {
-  const { currentUser, createEvent, updateEvent } = useApp();
+export default function EventModal({ isOpen, onClose, eventToEdit = null, focusDate = false, focusCover = false }) {
+  const { currentUser, createEvent, updateEvent, addToast } = useApp();
   const dateInputRef = useRef(null);
   const dateSectionRef = useRef(null);
-  const shouldHighlightDate = Boolean(focusDate || eventToEdit?.isAmbiguous);
+  const coverSectionRef = useRef(null);
+  const generateCoverBtnRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [dateAlertTriggered, setDateAlertTriggered] = useState(false);
+  const shouldHighlightDate = Boolean(focusDate || dateAlertTriggered);
+  const shouldHighlightCover = Boolean(focusCover);
+
+  const [coverMode, setCoverMode] = useState('ai'); // 'ai' | 'external'
+  const [externalUrl, setExternalUrl] = useState('');
+  const [previewCandidate, setPreviewCandidate] = useState(null); // { url, source, prompt, optionNumber }
+  const [seenPreviewUrls, setSeenPreviewUrls] = useState([]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -19,6 +29,8 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
     area: currentUser.area || 'Cultura',
     quarter: 'Trimestre 4',
     image: '',
+    imagePrompt: '',
+    imageSource: 'ai',
     date: new Date().toISOString().split('T')[0],
     time: '14:00 - 17:00',
     duration: '3 horas',
@@ -27,7 +39,10 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
   });
 
   useEffect(() => {
+    setPreviewCandidate(null);
+    setDateAlertTriggered(false);
     if (eventToEdit) {
+      const initialPrompt = eventToEdit.imagePrompt || buildDefaultImagePrompt(eventToEdit);
       setFormData({
         title: eventToEdit.title,
         code: eventToEdit.code || '',
@@ -37,12 +52,21 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
         area: eventToEdit.area,
         quarter: eventToEdit.quarter || 'Trimestre 4',
         image: eventToEdit.image,
-        date: eventToEdit.date,
+        imagePrompt: initialPrompt,
+        imageSource: eventToEdit.imageSource || 'ai',
+        date: eventToEdit.isAmbiguous ? '' : (eventToEdit.date || ''),
         time: eventToEdit.time,
         duration: eventToEdit.duration || '3 horas',
         location: eventToEdit.location,
         capacity: eventToEdit.capacity
       });
+      setCoverMode(eventToEdit.imageSource === 'external' ? 'external' : 'ai');
+      setExternalUrl(
+        eventToEdit.imageSource === 'external' && eventToEdit.image && !eventToEdit.image.startsWith('data:')
+          ? eventToEdit.image
+          : ''
+      );
+      setSeenPreviewUrls(eventToEdit.image ? [eventToEdit.image] : []);
     } else {
       const defaultArea = currentUser.area || 'Cultura';
       setFormData({
@@ -54,32 +78,48 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
         area: defaultArea,
         quarter: 'Trimestre 4',
         image: null,
+        imagePrompt: buildDefaultImagePrompt({ title: '', area: defaultArea, purpose: '' }),
+        imageSource: 'ai',
         date: new Date().toISOString().split('T')[0],
         time: '14:00 - 17:00',
         duration: '3 horas',
         location: 'Centro de Formación - Auditorio Principal',
         capacity: 60
       });
+      setCoverMode('ai');
+      setExternalUrl('');
+      setSeenPreviewUrls([]);
     }
   }, [eventToEdit, isOpen, currentUser]);
 
   useEffect(() => {
-    if (!isOpen || !shouldHighlightDate) return;
-    const timer = setTimeout(() => {
-      dateSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      if (dateInputRef.current) {
-        dateInputRef.current.focus();
-        try {
-          dateInputRef.current.showPicker?.();
-        } catch {
-          // Algunos navegadores restringen showPicker fuera de gesto directo; el focus y resaltado visual permanecen activos
+    if (!isOpen) return;
+    if (shouldHighlightCover) {
+      const timer = setTimeout(() => {
+        coverSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        generateCoverBtnRef.current?.focus();
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+    if (shouldHighlightDate) {
+      const timer = setTimeout(() => {
+        dateSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (dateInputRef.current) {
+          dateInputRef.current.focus();
+          try {
+            dateInputRef.current.showPicker?.();
+          } catch {
+            // Algunos navegadores restringen showPicker fuera de gesto directo; el focus y resaltado visual permanecen activos
+          }
         }
-      }
-    }, 60);
-    return () => clearTimeout(timer);
-  }, [isOpen, shouldHighlightDate, eventToEdit]);
+      }, 60);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, shouldHighlightDate, shouldHighlightCover, eventToEdit]);
 
   if (!isOpen) return null;
+
+  const hasAssignedDate = Boolean(formData.date && /^\d{4}-\d{2}-\d{2}$/.test(formData.date.trim()));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -94,8 +134,81 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
   };
 
   const handleGenerateImage = () => {
-    const suggested = getSemanticImage(formData.area, formData.title + ' ' + formData.purpose);
-    setFormData(prev => ({ ...prev, image: suggested }));
+    if (!hasAssignedDate) {
+      setDateAlertTriggered(true);
+      addToast(
+        'Fecha Requerida para Vista Previa',
+        'Para generar la vista previa con IA, primero debes definir la Fecha Exacta arriba.',
+        'warning'
+      );
+      dateSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      dateInputRef.current?.focus();
+      try {
+        dateInputRef.current?.showPicker?.();
+      } catch {}
+      return;
+    }
+    setDateAlertTriggered(false);
+    const promptToUse = (formData.imagePrompt && formData.imagePrompt.trim())
+      || buildDefaultImagePrompt(formData);
+    const exclusions = [...seenPreviewUrls, formData.image, previewCandidate?.url].filter(Boolean);
+    const suggested = getSemanticImage(formData.area, promptToUse, exclusions);
+    const nextOption = (previewCandidate?.optionNumber || 0) + 1;
+
+    setPreviewCandidate({
+      url: suggested,
+      source: 'ai',
+      prompt: promptToUse,
+      optionNumber: nextOption
+    });
+    setSeenPreviewUrls(prev => [...prev, suggested]);
+  };
+
+  const handleConfirmPreview = () => {
+    if (!previewCandidate?.url) return;
+    setFormData(prev => ({
+      ...prev,
+      image: previewCandidate.url,
+      imagePrompt: previewCandidate.prompt || prev.imagePrompt,
+      imageSource: previewCandidate.source || 'ai'
+    }));
+    setPreviewCandidate(null);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      addToast('Formato no válido', 'Selecciona un archivo de imagen (.JPG, .PNG, .WEBP).', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result;
+      if (typeof dataUrl === 'string') {
+        setPreviewCandidate({
+          url: dataUrl,
+          source: 'external',
+          prompt: formData.imagePrompt,
+          optionNumber: 1
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleApplyExternalUrl = () => {
+    const trimmed = externalUrl.trim();
+    if (!trimmed) {
+      addToast('URL requerida', 'Ingresa un enlace directo a una imagen válida.', 'warning');
+      return;
+    }
+    setPreviewCandidate({
+      url: trimmed,
+      source: 'external',
+      prompt: formData.imagePrompt,
+      optionNumber: 1
+    });
   };
 
   return (
@@ -234,16 +347,11 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
             />
           </div>
 
-          {/* Alerta contextual cuando se abre desde Fijar Fecha */}
+          {/* Alerta contextual cuando se requiere fecha exacta */}
           {shouldHighlightDate && (
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-start gap-2.5">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <div className="space-y-0.5">
-                <span className="font-bold text-xs block">Define la fecha exacta de ejecución</span>
-                <p className="text-[11px] text-amber-800 leading-snug">
-                  {eventToEdit?.ambiguityReason || 'Selecciona la fecha definitiva en el campo resaltado y guarda los cambios para habilitar la publicación del evento.'}
-                </p>
-              </div>
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 animate-in fade-in duration-150">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              <span className="font-bold text-xs">Define la fecha exacta de ejecución</span>
             </div>
           )}
 
@@ -258,7 +366,10 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
                 type="date"
                 required
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                onChange={(e) => {
+                  setFormData({ ...formData, date: e.target.value });
+                  if (e.target.value) setDateAlertTriggered(false);
+                }}
                 className={`w-full px-2.5 py-2 rounded-xl border text-xs font-mono text-[#1e293b] focus:outline-none transition-all ${
                   shouldHighlightDate
                     ? 'border-amber-500 bg-amber-50/60 ring-2 ring-amber-400/50 focus:border-[#15803d] focus:ring-[#15803d]/30'
@@ -320,12 +431,262 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
             />
           </div>
 
-          {/* Nota sobre generación de imagen al publicar */}
-          <div className="p-3 rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] flex items-center gap-2.5 text-xs text-[#166534]">
-            <Sparkles className="w-4 h-4 text-[#15803d] shrink-0" />
-            <span>
-              <strong>Portada con IA:</strong> La imagen oficial de la actividad se generará exclusivamente al momento de <strong>publicar el evento</strong> en la cartelera.
-            </span>
+          {/* Portada de la Actividad (Prompt IA Editable + Imagen Externa) */}
+          <div
+            ref={coverSectionRef}
+            className={`p-3.5 rounded-xl border transition-all space-y-3 ${
+              shouldHighlightCover && !formData.image
+                ? 'bg-amber-50/70 border-amber-400 ring-2 ring-amber-400/50'
+                : formData.image
+                ? 'bg-[#f0fdf4] border-[#bbf7d0]'
+                : 'bg-[#f8fafc] border-[#cbd5e1]'
+            }`}
+          >
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className={`w-4 h-4 shrink-0 ${formData.image ? 'text-[#15803d]' : 'text-amber-600'}`} />
+                <div>
+                  <span className="font-bold text-xs text-[#1e293b] block">
+                    Portada de la Actividad
+                  </span>
+                  <span className="text-[10px] text-[#64748b] block">
+                    Edita el prompt para generar con IA o sube una imagen externa desde tu equipo o URL.
+                  </span>
+                </div>
+              </div>
+
+              {/* Pestañas de Modo: IA vs Imagen Externa */}
+              <div className="flex items-center bg-white p-1 rounded-xl border border-[#cbd5e1] self-start sm:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setCoverMode('ai')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    coverMode === 'ai'
+                      ? 'bg-[#15803d] text-white shadow-2xs'
+                      : 'text-[#64748b] hover:text-[#1e293b]'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  <span>Prompt IA</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCoverMode('external')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                    coverMode === 'external'
+                      ? 'bg-[#15803d] text-white shadow-2xs'
+                      : 'text-[#64748b] hover:text-[#1e293b]'
+                  }`}
+                >
+                  <Upload className="w-3 h-3" />
+                  <span>Imagen Externa</span>
+                </button>
+              </div>
+            </div>
+
+            {coverMode === 'ai' ? (
+              <div className="space-y-2 bg-white p-3 rounded-xl border border-[#cbd5e1]/80">
+                {dateAlertTriggered && !hasAssignedDate && (
+                  <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-in fade-in duration-150">
+                    <div className="flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                      <span className="text-[11px] font-semibold leading-snug">
+                        La portada generada por IA solo se puede generar si la fecha ya fue asignada.
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        dateSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        dateInputRef.current?.focus();
+                        try {
+                          dateInputRef.current?.showPicker?.();
+                        } catch {}
+                      }}
+                      className="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold shrink-0 transition-colors cursor-pointer"
+                    >
+                      Asignar Fecha Arriba
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between gap-2">
+                  <label className="text-[11px] font-bold text-[#334155]">
+                    Prompt de generación de imagen (editable):
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setFormData(prev => ({
+                      ...prev,
+                      imagePrompt: buildDefaultImagePrompt(prev)
+                    }))}
+                    className="text-[10px] font-semibold flex items-center gap-1 text-[#15803d] hover:underline cursor-pointer"
+                  >
+                    <RotateCcw className="w-3 h-3" />
+                    <span>Sugerir según título</span>
+                  </button>
+                </div>
+                <textarea
+                  rows={2}
+                  value={formData.imagePrompt}
+                  onChange={(e) => setFormData({ ...formData, imagePrompt: e.target.value })}
+                  placeholder="Describe la imagen que deseas generar para esta actividad..."
+                  className="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs text-[#1e293b] bg-white focus:outline-none focus:border-[#15803d] transition-colors resize-none leading-relaxed"
+                />
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[10px] text-[#64748b]">
+                    Ej: guitarra, danza, pintura, fútbol, gimnasio, salud, yoga, liderazgo...
+                  </span>
+                  <button
+                    ref={generateCoverBtnRef}
+                    type="button"
+                    onClick={handleGenerateImage}
+                    className="px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-colors shrink-0 shadow-2xs bg-[#15803d] hover:bg-[#166534] text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#15803d]/40"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                    <span>
+                      {previewCandidate
+                        ? 'Generar otra opción'
+                        : formData.image
+                        ? 'Generar Vista Previa con este Prompt'
+                        : 'Generar Vista Previa con IA'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2.5 bg-white p-3 rounded-xl border border-[#cbd5e1]/80">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-[#f8fafc] border border-dashed border-[#94a3b8]">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="w-4 h-4 text-[#15803d] shrink-0" />
+                    <div>
+                      <strong className="text-[11px] text-[#1e293b] block">Subir archivo desde tu computador</strong>
+                      <small className="text-[10px] text-[#64748b]">Formatos admitidos: JPG, PNG, WEBP</small>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-3 py-1.5 rounded-lg bg-[#0e2738] hover:bg-[#1e293b] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Seleccionar Archivo</span>
+                  </button>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[11px] font-bold text-[#334155] flex items-center gap-1">
+                    <Link2 className="w-3.5 h-3.5 text-[#64748b]" />
+                    <span>O pegar enlace URL directo de una imagen externa:</span>
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      value={externalUrl}
+                      onChange={(e) => setExternalUrl(e.target.value)}
+                      placeholder="https://ejemplo.com/imagen-evento.jpg"
+                      className="flex-1 px-3 py-1.5 rounded-lg border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d] font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleApplyExternalUrl}
+                      className="px-3 py-1.5 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                    >
+                      Previsualizar URL
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VISTA PREVIA INTERACTIVA DE LA IMAGEN GENERADA */}
+            {previewCandidate ? (
+              <div className="p-3 rounded-xl bg-white border-2 border-[#15803d] shadow-md space-y-2.5 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] text-[10px] font-extrabold">
+                      <Sparkles className="w-3 h-3" />
+                      {previewCandidate.source === 'external'
+                        ? 'Vista Previa · Imagen Externa'
+                        : `Vista Previa IA · Opción #${previewCandidate.optionNumber}`}
+                    </span>
+                    <span className="text-[10px] text-[#64748b] font-medium">
+                      ¿Eliges esta imagen o generas otra?
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setPreviewCandidate(null)}
+                    className="text-[10px] font-semibold text-[#64748b] hover:text-red-600 flex items-center gap-0.5 cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Descartar</span>
+                  </button>
+                </div>
+
+                <div className="relative h-36 sm:h-40 w-full rounded-xl overflow-hidden bg-[#0e2738] border border-[#cbd5e1]">
+                  <img
+                    src={previewCandidate.url}
+                    alt="Vista previa de portada generada"
+                    className="w-full h-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0c2f3a]/80 via-transparent to-transparent" />
+                  <div className="absolute bottom-2 left-2.5 right-2.5 flex items-center justify-between gap-2 text-white">
+                    <span className="text-[10px] font-medium text-white/90 truncate">
+                      {previewCandidate.source === 'ai'
+                        ? `Prompt: "${previewCandidate.prompt}"`
+                        : 'Imagen externa lista para confirmar'}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-amber-400 text-[#0e2738] text-[9px] font-extrabold shrink-0">
+                      VISTA PREVIA
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-end gap-2 pt-0.5">
+                  {previewCandidate.source === 'ai' && (
+                    <button
+                      type="button"
+                      onClick={handleGenerateImage}
+                      className="px-3 py-1.5 rounded-lg border border-[#cbd5e1] bg-[#f8fafc] hover:bg-[#f1f5f9] text-[#1e293b] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                    >
+                      <RotateCcw className="w-3.5 h-3.5 text-[#15803d]" />
+                      <span>Generar otra opción</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleConfirmPreview}
+                    className="px-3.5 py-1.5 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                  >
+                    <Check className="w-3.5 h-3.5 text-white" />
+                    <span>Elegir esta portada</span>
+                  </button>
+                </div>
+              </div>
+            ) : formData.image ? (
+              <div className="relative h-32 w-full rounded-xl overflow-hidden border border-[#bbf7d0] bg-[#0e2738]">
+                <img
+                  src={formData.image}
+                  alt={formData.title || 'Portada seleccionada'}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-[#0e2738]/80 text-white text-[10px] font-semibold backdrop-blur-xs">
+                  Portada elegida ✓ · {formData.imageSource === 'external' ? 'Imagen Externa' : `IA (${formData.area})`}
+                </div>
+              </div>
+            ) : (
+              <div className="py-2.5 px-3 rounded-lg border border-dashed border-amber-300 bg-white/80 text-center text-[11px] text-amber-900 font-medium">
+                Genera una vista previa con IA o carga una imagen externa para elegir la portada (opcional antes de publicar).
+              </div>
+            )}
           </div>
 
           {/* Botones de acción */}

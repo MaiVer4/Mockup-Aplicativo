@@ -267,7 +267,7 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                 <button
                   type="button"
                   onClick={() => onOpenDetailModal && onOpenDetailModal(evt)}
-                  className="relative h-44 w-full block overflow-hidden text-left"
+                  className="relative h-44 w-full block overflow-hidden text-left cursor-pointer"
                 >
                   {evt.image ? (
                     <img 
@@ -277,14 +277,18 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                     />
                   ) : (
                     <div className="w-full h-full bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] border-b border-[#e2e8f0] flex flex-col items-center justify-center p-4 text-center">
-                      <div className="w-10 h-10 rounded-xl bg-white border border-[#cbd5e1] text-[#15803d] flex items-center justify-center shadow-2xs mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-white border border-[#cbd5e1] text-[#15803d] flex items-center justify-center shadow-2xs mb-2 group-hover:scale-105 transition-transform">
                         <Sparkles className="w-5 h-5" />
                       </div>
                       <span className="text-xs font-bold text-[#334155] font-heading">
-                        Borrador sin portada
+                        Sin portada asignada
                       </span>
                       <span className="text-[10px] text-[#64748b] mt-0.5">
-                        La imagen se generará con IA al publicar
+                        {isFinished
+                          ? 'Actividad institucional sin fotografía'
+                          : evt.isAmbiguous || !evt.date
+                          ? 'Asigna primero la fecha para generar portada con IA'
+                          : 'Haz clic para añadir con Prompt IA o imagen externa'}
                       </span>
                     </div>
                   )}
@@ -358,17 +362,19 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                       {/* FILA 1: Acción Operativa Principal de Ancho Completo */}
                       {isDraft && (
                         evt.isAmbiguous ? (
-                          <div className="w-full flex items-center justify-between gap-2 p-2 bg-amber-50 border border-amber-200 rounded-xl">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                              <span className="text-[11px] text-amber-900 font-bold truncate">
+                          <div className="w-full flex items-center justify-between gap-2 p-2 bg-amber-50 border border-amber-200/90 rounded-xl shadow-2xs">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                                <AlertCircle className="w-3.5 h-3.5" />
+                              </span>
+                              <span className="text-[11px] text-amber-950 font-bold truncate">
                                 Fecha por confirmar
                               </span>
                             </div>
                             <button
                               type="button"
                               onClick={() => onOpenModal && onOpenModal(evt, { focusDate: true })}
-                              className="px-3 py-1 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors shadow-2xs cursor-pointer"
+                              className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white rounded-lg text-[11px] font-extrabold shrink-0 transition-colors shadow-2xs cursor-pointer"
                             >
                               Fijar Fecha
                             </button>
@@ -377,9 +383,20 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                           <button
                             type="button"
                             onClick={() => publishEvent(evt.id)}
-                            className="btn btn-primary w-full py-2 text-xs font-bold justify-center shadow-xs"
+                            className="btn btn-primary w-full px-3 py-2 rounded-xl flex items-center justify-between gap-2 group/pub"
                           >
-                            <span>Publicar Evento</span>
+                            <span className="flex items-center gap-2 min-w-0">
+                              <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0 group-hover/pub:bg-[#c4f246] group-hover/pub:text-[#0e2738] transition-colors">
+                                <CheckCircle2 className="w-3.5 h-3.5" />
+                              </span>
+                              <span className="text-xs font-extrabold tracking-tight truncate">
+                                Publicar Evento
+                              </span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded-md bg-[#0e2738]/35 border border-white/15 text-[10px] font-mono font-extrabold text-[#c4f246] shrink-0 flex items-center gap-1">
+                              <span> PUBLICAR</span>
+                              <ArrowRight className="w-3 h-3" />
+                            </span>
                           </button>
                         )
                       )}
@@ -388,10 +405,19 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                         <button
                           type="button"
                           onClick={() => startEventAttendance(evt.id)}
-                          className="btn btn-primary w-full py-2 text-xs font-bold justify-center shadow-xs"
+                          className="btn btn-primary w-full px-3 py-2 rounded-xl flex items-center justify-between gap-2 group/live"
                         >
-                          <Play className="w-3.5 h-3.5" />
-                          <span>Habilitar Asistencia</span>
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0 group-hover/live:bg-[#c4f246] group-hover/live:text-[#0e2738] transition-colors">
+                              <Play className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="text-xs font-extrabold tracking-tight truncate">
+                              Habilitar Asistencia
+                            </span>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-[#0e2738]/35 border border-white/15 text-[10px] font-mono font-extrabold text-[#c4f246] shrink-0">
+                            INICIAR
+                          </span>
                         </button>
                       )}
 
@@ -399,10 +425,19 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                         <button
                           type="button"
                           onClick={() => closeEventAttendance(evt.id)}
-                          className="btn btn-danger w-full py-2 text-xs font-bold justify-center shadow-xs"
+                          className="btn btn-danger w-full px-3 py-2 rounded-xl flex items-center justify-between gap-2"
                         >
-                          <Pause className="w-3.5 h-3.5" />
-                          <span>Finalizar Evento</span>
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                              <Pause className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="text-xs font-extrabold tracking-tight truncate">
+                              Finalizar Evento
+                            </span>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-white border border-rose-200 text-[10px] font-mono font-extrabold text-rose-700 shrink-0">
+                            CERRAR
+                          </span>
                         </button>
                       )}
 
@@ -410,11 +445,20 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                         <button
                           type="button"
                           onClick={() => onOpenExportModal && onOpenExportModal(evt)}
-                          className="btn btn-secondary w-full py-2 text-xs font-bold justify-center text-[#1e293b] border border-[#cbd5e1] hover:border-[#15803d]"
+                          className="btn btn-secondary w-full px-3 py-2 rounded-xl flex items-center justify-between gap-2 text-[#1e293b] border border-[#cbd5e1] hover:border-[#15803d]"
                           title="Exportar acta oficial de asistencia GOR-F-013"
                         >
-                          <FileSpreadsheet className="w-3.5 h-3.5 text-[#15803d]" />
-                          <span>Exportar Formato GOR-F-013 (.xlsx)</span>
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span className="w-6 h-6 rounded-lg bg-[#eafaf1] text-[#15803d] flex items-center justify-center shrink-0">
+                              <FileSpreadsheet className="w-3.5 h-3.5" />
+                            </span>
+                            <span className="text-xs font-extrabold tracking-tight truncate">
+                              Exportar Acta GOR-F-013
+                            </span>
+                          </span>
+                          <span className="px-2 py-0.5 rounded-md bg-[#f8fafc] border border-[#cbd5e1] text-[10px] font-mono font-extrabold text-[#15803d] shrink-0">
+                            .XLSX
+                          </span>
                         </button>
                       )}
 

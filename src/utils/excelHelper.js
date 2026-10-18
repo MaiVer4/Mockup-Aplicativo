@@ -7,45 +7,176 @@ const SENA_THEMATIC_IMAGES = {
     'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop&q=80'
   ],
   'Actividad Física': [
     'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1526676037777-05a232554f77?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80'
   ],
   'Prevención': [
     'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80'
   ],
   'Habilidades': [
     'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&auto=format&fit=crop&q=80'
   ],
   'Arte': [
     'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1452860606245-08befc0ff44b?w=800&auto=format&fit=crop&q=80'
   ],
   'Liderazgo': [
     'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&auto=format&fit=crop&q=80',
     'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&auto=format&fit=crop&q=80'
   ],
   'General': [
     'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&auto=format&fit=crop&q=80',
-    'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&auto=format&fit=crop&q=80'
+    'https://images.unsplash.com/photo-1505373877841-8d25f7d46678?w=800&auto=format&fit=crop&q=80',
+    'https://images.unsplash.com/photo-1523580494863-6f3031224c94?w=800&auto=format&fit=crop&q=80'
   ]
 };
 
-// Generador de imagen contextual según área y título
-export function getSemanticImage(area = '', text = '') {
-  const pool = SENA_THEMATIC_IMAGES[area] || SENA_THEMATIC_IMAGES['General'];
-  const index = Math.floor(Math.random() * pool.length);
-  return pool[index];
+// Catálogo semántico por palabras clave del prompt editable
+const PROMPT_KEYWORD_POOLS = [
+  {
+    keywords: ['musica', 'guitarra', 'concierto', 'canto', 'coro', 'banda', 'instrumento', 'sonido', 'festival'],
+    images: [
+      'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['danza', 'baile', 'folclor', 'coreografia', 'ritmo', 'comparsa', 'tradicion'],
+    images: [
+      'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1519892300165-cb5542fb47c7?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1547153760-18fc86324498?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['pintura', 'dibujo', 'mural', 'lienzo', 'pincel', 'plastica', 'ilustracion', 'manualidades', 'creatividad'],
+    images: [
+      'https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1513364776144-60967b0f800f?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['futbol', 'microfutbol', 'balon', 'cancha', 'torneo', 'campeonato', 'partido', 'voleibol', 'baloncesto'],
+    images: [
+      'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1526676037777-05a232554f77?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['gimnasio', 'fitness', 'cardio', 'entrenamiento', 'atletismo', 'correr', 'maraton', 'ejercicio', 'deporte'],
+    images: [
+      'https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['salud', 'prevencion', 'autocuidado', 'medico', 'nutricion', 'habitos', 'vida saludable', 'enfermeria'],
+    images: [
+      'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1527613426441-4da17471b66d?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['mental', 'psicologia', 'yoga', 'meditacion', 'mindfulness', 'emocional', 'estres', 'relajacion', 'pausa'],
+    images: [
+      'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['liderazgo', 'vocero', 'oratoria', 'conferencia', 'auditorio', 'debate', 'emprendimiento', 'equipo'],
+    images: [
+      'https://images.unsplash.com/photo-1475721027785-f74eccf877e2?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=800&auto=format&fit=crop&q=80'
+    ]
+  },
+  {
+    keywords: ['tecnologia', 'software', 'computador', 'programacion', 'digital', 'innovacion', 'hackathon'],
+    images: [
+      'https://images.unsplash.com/photo-1531482615713-2afd69097998?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80'
+    ]
+  }
+];
+
+// Construye un prompt sugerido por defecto a partir de los metadatos de la actividad
+export function buildDefaultImagePrompt({ title = '', area = 'Cultura', purpose = '' } = {}) {
+  const cleanTitle = (title || 'Actividad de Bienestar').trim();
+  const cleanArea = (area || 'Bienestar al Aprendiz').trim();
+  const cleanPurpose = (purpose || '').trim();
+  const purposeSnippet = cleanPurpose
+    ? `, enfocado en ${cleanPurpose.slice(0, 85).replace(/\.$/, '').toLowerCase()}`
+    : '';
+  return `Fotografía institucional de "${cleanTitle}", aprendices SENA participando en jornada de ${cleanArea}${purposeSnippet}, ambiente formativo moderno, iluminación natural`;
+}
+
+// Generador de imagen contextual según área y prompt editable (soporta historial de vistas previas)
+export function getSemanticImage(area = '', text = '', excludeImages = null) {
+  const normText = String(text || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+
+  const matchedImages = [];
+  for (const group of PROMPT_KEYWORD_POOLS) {
+    if (group.keywords.some(kw => normText.includes(kw))) {
+      matchedImages.push(...group.images);
+    }
+  }
+
+  const areaPool = SENA_THEMATIC_IMAGES[area] || SENA_THEMATIC_IMAGES['General'];
+  const uniqueMatched = [...new Set(matchedImages)];
+  const combinedPool = [...new Set([...uniqueMatched, ...areaPool])];
+
+  const excludedList = Array.isArray(excludeImages)
+    ? excludeImages.filter(Boolean)
+    : excludeImages
+    ? [excludeImages]
+    : [];
+  const immediateCurrent = excludedList[excludedList.length - 1] || null;
+
+  // 1. Priorizar imágenes que coincidan con palabras clave del prompt y aún no se hayan mostrado
+  const unseenMatched = uniqueMatched.filter(img => !excludedList.includes(img));
+  if (unseenMatched.length > 0) {
+    return unseenMatched[Math.floor(Math.random() * unseenMatched.length)];
+  }
+
+  // 2. Si ya vio las de palabras clave, mostrar otras opciones del área aún no vistas
+  const unseenCombined = combinedPool.filter(img => !excludedList.includes(img));
+  if (unseenCombined.length > 0) {
+    return unseenCombined[Math.floor(Math.random() * unseenCombined.length)];
+  }
+
+  // 3. Si ya recorrió todo el catálogo, reiniciar el ciclo evitando repetir la imagen inmediatamente actual
+  const nonRepeatingPool = immediateCurrent && combinedPool.length > 1
+    ? combinedPool.filter(img => img !== immediateCurrent)
+    : combinedPool;
+  return nonRepeatingPool[Math.floor(Math.random() * nonRepeatingPool.length)];
 }
 
 // Normalizador de texto para comparaciones semánticas difusas

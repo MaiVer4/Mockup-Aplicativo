@@ -35,6 +35,7 @@ function AdminShell() {
   const [isEventModalOpen, setIsEventModalOpen] = useState(false);
   const [eventToEdit, setEventToEdit] = useState(null);
   const [focusDateOnModal, setFocusDateOnModal] = useState(false);
+  const [focusCoverOnModal, setFocusCoverOnModal] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
   const [isCreateApprenticeModalOpen, setIsCreateApprenticeModalOpen] = useState(false);
   const [selectedEventForExport, setSelectedEventForExport] = useState(null);
@@ -43,12 +44,14 @@ function AdminShell() {
   const handleOpenEventModal = (event = null, options = {}) => {
     setEventToEdit(event);
     setFocusDateOnModal(Boolean(options.focusDate));
+    setFocusCoverOnModal(Boolean(options.focusCover));
     setIsEventModalOpen(true);
   };
 
   const handleCloseEventModal = () => {
     setEventToEdit(null);
     setFocusDateOnModal(false);
+    setFocusCoverOnModal(false);
     setIsEventModalOpen(false);
   };
 
@@ -147,6 +150,7 @@ function AdminShell() {
           onClose={handleCloseEventModal}
           eventToEdit={eventToEdit}
           focusDate={focusDateOnModal}
+          focusCover={focusCoverOnModal}
         />
       )}
 

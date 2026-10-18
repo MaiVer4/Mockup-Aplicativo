@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   X, 
@@ -13,8 +13,13 @@ import {
   Pause,
   FileSpreadsheet,
   ArrowRight,
-  AlertTriangle
+  AlertTriangle,
+  Upload,
+  Link2,
+  RotateCcw,
+  Image as ImageIcon
 } from 'lucide-react';
+import { buildDefaultImagePrompt, getSemanticImage } from '../utils/excelHelper';
 
 export default function EventDetailModal({ isOpen, onClose, event: propEvent, onOpenEditModal }) {
   const { 
@@ -24,12 +29,36 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
     publishEvent,
     startEventAttendance,
     closeEventAttendance,
-    generateAIEventCover
+    updateEventCover,
+    addToast
   } = useApp();
 
-  if (!isOpen || !propEvent) return null;
+  const fileInputRef = useRef(null);
+  const promptInputRef = useRef(null);
+  const [coverMode, setCoverMode] = useState('ai'); // 'ai' | 'external'
+  const [promptText, setPromptText] = useState('');
+  const [externalUrl, setExternalUrl] = useState('');
+  const [previewCandidate, setPreviewCandidate] = useState(null); // { url, source, prompt, optionNumber }
+  const [seenPreviewUrls, setSeenPreviewUrls] = useState([]);
+  const [dateAlertTriggered, setDateAlertTriggered] = useState(false);
 
-  const event = events.find(e => e.id === propEvent.id) || propEvent;
+  const event = (propEvent && events.find(e => e.id === propEvent.id)) || propEvent;
+
+  useEffect(() => {
+    if (!isOpen || !event) return;
+    setPromptText(event.imagePrompt || buildDefaultImagePrompt(event));
+    setExternalUrl(
+      event.imageSource === 'external' && event.image && !event.image.startsWith('data:')
+        ? event.image
+        : ''
+    );
+    setCoverMode(event.imageSource === 'external' ? 'external' : 'ai');
+    setPreviewCandidate(null);
+    setSeenPreviewUrls(event.image ? [event.image] : []);
+    setDateAlertTriggered(false);
+  }, [isOpen, event?.id]);
+
+  if (!isOpen || !propEvent || !event) return null;
 
   const isLearner = currentUser.role === 'aprendiz';
   const isEncargado = currentUser.role === 'admin_area';
@@ -38,10 +67,83 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
   const isPublicado = event.status === 'publicado';
   const isFinalizado = event.status === 'finalizado';
   const isDraft = event.status === 'borrador';
+  const hasAssignedDate = Boolean(event.date && !event.isAmbiguous);
 
   const capacity = event.capacity || 50;
   const attendeesCount = event.attendeesCount || 0;
   const percent = Math.min(100, Math.round((attendeesCount / capacity) * 100));
+
+  const handleGeneratePreview = () => {
+    if (!hasAssignedDate) {
+      setDateAlertTriggered(true);
+      addToast(
+        'Fecha Requerida para Vista Previa',
+        'La portada generada por IA solo se puede generar si la fecha de la actividad ya fue asignada.',
+        'warning'
+      );
+      return;
+    }
+    setDateAlertTriggered(false);
+    const effectivePrompt = (promptText && promptText.trim())
+      ? promptText.trim()
+      : buildDefaultImagePrompt(event);
+    const exclusions = [...seenPreviewUrls, event.image, previewCandidate?.url].filter(Boolean);
+    const candidateUrl = getSemanticImage(event.area, effectivePrompt, exclusions);
+    const nextOption = (previewCandidate?.optionNumber || 0) + 1;
+
+    setPreviewCandidate({
+      url: candidateUrl,
+      source: 'ai',
+      prompt: effectivePrompt,
+      optionNumber: nextOption
+    });
+    setSeenPreviewUrls(prev => [...prev, candidateUrl]);
+  };
+
+  const handleConfirmPreview = () => {
+    if (!previewCandidate?.url) return;
+    updateEventCover(event.id, previewCandidate.url, {
+      imageSource: previewCandidate.source || 'ai',
+      imagePrompt: previewCandidate.prompt || promptText
+    });
+    setPreviewCandidate(null);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      addToast('Formato no válido', 'Selecciona un archivo de imagen (.JPG, .PNG, .WEBP).', 'warning');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const dataUrl = ev.target?.result;
+      if (typeof dataUrl === 'string') {
+        setPreviewCandidate({
+          url: dataUrl,
+          source: 'external',
+          prompt: promptText,
+          optionNumber: 1
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleApplyExternalUrl = () => {
+    const trimmed = externalUrl.trim();
+    if (!trimmed) {
+      addToast('URL requerida', 'Ingresa o pega un enlace directo a una imagen válida.', 'warning');
+      return;
+    }
+    setPreviewCandidate({
+      url: trimmed,
+      source: 'external',
+      prompt: promptText,
+      optionNumber: 1
+    });
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
@@ -69,7 +171,11 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           ) : (
             <div className="absolute top-4 left-4 sm:top-5 sm:left-6 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/10 border border-white/15 text-[10px] font-bold text-[#c4f246]">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Borrador sin portada · Se generará al publicar</span>
+              <span>
+                {isEncargado && !isFinalizado
+                  ? 'Sin portada asignada · Puedes añadirla abajo con Prompt IA o imagen externa'
+                  : 'Actividad Institucional de Bienestar al Aprendiz'}
+              </span>
             </div>
           )}
           
@@ -188,7 +294,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                   className="w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm bg-[#15803d] text-white hover:bg-[#166534] transition-colors"
                 >
                   <Sparkles className="w-4 h-4 text-emerald-200" />
-                  <span>Confirmar Asistencia Presencial (1 Clic)</span>
+                  <span>Confirmar Asistencia Presencial</span>
                 </button>
               ) : isFinalizado ? (
                 <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] text-center text-xs font-semibold">
@@ -227,28 +333,244 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
             </div>
           )}
 
-          {/* RF-07: Generación de Portada con IA al Publicar */}
-          {isEncargado && isDraft && (
-            <div className="p-3.5 rounded-xl bg-[#f0fdf4] border border-[#bbf7d0] space-y-2">
-              <div className="flex items-center justify-between gap-2">
+          {/* Gestión de Portada (Prompt IA Editable + Carga de Imagen Externa en Borrador, Publicado o En Curso) */}
+          {isEncargado && !isFinalizado && (
+            <div className={`p-3.5 sm:p-4 rounded-xl border space-y-3 ${event.image ? 'bg-[#f0fdf4] border-[#bbf7d0]' : 'bg-[#f8fafc] border-[#cbd5e1]'}`}>
+              {/* Cabecera y selector de modo */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-[#15803d] shrink-0" />
-                  <span className="font-bold text-xs text-[#166534]">Portada con IA para Publicación</span>
+                  <Sparkles className="w-4 h-4 shrink-0 text-[#15803d]" />
+                  <div>
+                    <span className="font-bold text-xs block text-[#1e293b]">
+                      {event.image ? 'Portada de la Actividad Asignada' : 'Portada de la Actividad'}
+                    </span>
+                    <span className="text-[10px] text-[#64748b] block">
+                      Edita el prompt para generar con IA o sube una imagen externa desde tu equipo o URL.
+                    </span>
+                  </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => generateAIEventCover(event.id)}
-                  className="px-2.5 py-1 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>{event.image ? 'Cambiar Portada con IA' : 'Generar Portada con IA'}</span>
-                </button>
+
+                {/* Pestañas de Modo: IA vs Imagen Externa */}
+                <div className="flex items-center bg-white/90 p-1 rounded-xl border border-[#cbd5e1] self-start sm:self-auto shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setCoverMode('ai')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      coverMode === 'ai'
+                        ? 'bg-[#15803d] text-white shadow-2xs'
+                        : 'text-[#64748b] hover:text-[#1e293b]'
+                    }`}
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    <span>Prompt IA</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCoverMode('external')}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
+                      coverMode === 'external'
+                        ? 'bg-[#15803d] text-white shadow-2xs'
+                        : 'text-[#64748b] hover:text-[#1e293b]'
+                    }`}
+                  >
+                    <Upload className="w-3 h-3" />
+                    <span>Imagen Externa</span>
+                  </button>
+                </div>
               </div>
-              <p className="text-[11px] text-[#166534]/90 leading-tight">
-                {event.image
-                  ? 'Vista previa de portada lista. Puedes cambiarla si deseas otra variante o proceder a publicar.'
-                  : `Genera y previsualiza una portada visual con IA adaptada al área (${event.area}) antes de publicar, o presiona "Publicar Evento" para generarla automáticamente.`}
-              </p>
+
+              {/* MODO 1: PROMPT DE IA EDITABLE */}
+              {coverMode === 'ai' && (
+                <div className="space-y-2 bg-white p-3 rounded-xl border border-[#cbd5e1]/80">
+                  {dateAlertTriggered && !hasAssignedDate && (
+                    <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-300 text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2 animate-in fade-in duration-150">
+                      <div className="flex items-start gap-2">
+                        <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <span className="text-[11px] font-semibold leading-snug">
+                          La portada generada por IA solo se puede generar si la fecha de la actividad ya fue asignada.
+                        </span>
+                      </div>
+                      {onOpenEditModal && (
+                        <button
+                          type="button"
+                          onClick={() => onOpenEditModal(event, { focusDate: true })}
+                          className="px-2.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-bold shrink-0 transition-colors cursor-pointer"
+                        >
+                          Asignar Fecha Primero
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-2">
+                    <label className="text-[11px] font-bold text-[#334155] flex items-center gap-1.5">
+                      <span>Prompt de generación de imagen (editable):</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setPromptText(buildDefaultImagePrompt(event))}
+                      className="text-[10px] font-semibold flex items-center gap-1 text-[#15803d] hover:underline cursor-pointer"
+                      title="Restaurar prompt sugerido por defecto"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Restaurar sugerido</span>
+                    </button>
+                  </div>
+
+                  <textarea
+                    ref={promptInputRef}
+                    rows={2}
+                    value={promptText}
+                    onChange={(e) => setPromptText(e.target.value)}
+                    placeholder="Describe la imagen que deseas generar para esta actividad..."
+                    className="w-full px-3 py-2 rounded-lg border border-[#cbd5e1] text-xs text-[#1e293b] bg-white focus:outline-none focus:border-[#15803d] transition-colors resize-none leading-relaxed"
+                  />
+
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pt-0.5">
+                    <span className="text-[10px] text-[#64748b]">
+                      Palabras clave reconocidas: música, danza, pintura, fútbol, gimnasio, salud, yoga, liderazgo, tecnología...
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleGeneratePreview}
+                      className="px-3 py-1.5 rounded-lg text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors shrink-0 shadow-2xs bg-[#15803d] hover:bg-[#166534] text-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#15803d]/40"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
+                      <span>
+                        {previewCandidate
+                          ? 'Generar otra opción'
+                          : event.image
+                          ? 'Generar Vista Previa con este Prompt'
+                          : 'Generar Vista Previa con IA'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* MODO 2: CARGAR IMAGEN EXTERNA (ARCHIVO LOCAL O URL) */}
+              {coverMode === 'external' && (
+                <div className="space-y-3 bg-white p-3 rounded-xl border border-[#cbd5e1]/80">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+
+                  {/* Subir archivo desde el equipo */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-[#f8fafc] border border-dashed border-[#94a3b8]">
+                    <div className="flex items-center gap-2">
+                      <ImageIcon className="w-4 h-4 text-[#15803d] shrink-0" />
+                      <div>
+                        <strong className="text-[11px] text-[#1e293b] block">Subir imagen desde tu computador</strong>
+                        <small className="text-[10px] text-[#64748b]">Formatos admitidos: JPG, PNG, WEBP</small>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="px-3 py-1.5 rounded-lg bg-[#0e2738] hover:bg-[#1e293b] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    >
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Seleccionar Archivo</span>
+                    </button>
+                  </div>
+
+                  {/* O pegar enlace URL */}
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-[#334155] flex items-center gap-1">
+                      <Link2 className="w-3.5 h-3.5 text-[#64748b]" />
+                      <span>O pegar enlace URL directo de una imagen externa:</span>
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="url"
+                        value={externalUrl}
+                        onChange={(e) => setExternalUrl(e.target.value)}
+                        placeholder="https://ejemplo.com/imagen-evento.jpg"
+                        className="flex-1 px-3 py-1.5 rounded-lg border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d] font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={handleApplyExternalUrl}
+                        className="px-3 py-1.5 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold transition-colors cursor-pointer shrink-0"
+                      >
+                        Previsualizar URL
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* VISTA PREVIA INTERACTIVA DE LA IMAGEN GENERADA / CARGADA */}
+              {previewCandidate && (
+                <div className="p-3 rounded-xl bg-white border-2 border-[#15803d] shadow-md space-y-2.5 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] text-[10px] font-extrabold">
+                        <Sparkles className="w-3 h-3" />
+                        {previewCandidate.source === 'external'
+                          ? 'Vista Previa · Imagen Externa'
+                          : `Vista Previa IA · Opción #${previewCandidate.optionNumber}`}
+                      </span>
+                      <span className="text-[10px] text-[#64748b] font-medium">
+                        ¿Deseas usar esta imagen como portada o generar otra?
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPreviewCandidate(null)}
+                      className="text-[10px] font-semibold text-[#64748b] hover:text-red-600 flex items-center gap-0.5 cursor-pointer"
+                      title="Descartar vista previa"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                      <span>Descartar</span>
+                    </button>
+                  </div>
+
+                  <div className="relative h-40 sm:h-48 w-full rounded-xl overflow-hidden bg-[#0e2738] border border-[#cbd5e1]">
+                    <img
+                      src={previewCandidate.url}
+                      alt="Vista previa de portada generada"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0c2f3a]/80 via-transparent to-transparent" />
+                    <div className="absolute bottom-2.5 left-3 right-3 flex items-center justify-between gap-2 text-white">
+                      <span className="text-[10px] font-medium text-white/90 truncate">
+                        {previewCandidate.source === 'ai'
+                          ? `Prompt: "${previewCandidate.prompt}"`
+                          : 'Imagen externa lista para aplicar'}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-amber-400 text-[#0e2738] text-[9px] font-extrabold shrink-0">
+                        VISTA PREVIA
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-0.5">
+                    {previewCandidate.source === 'ai' && (
+                      <button
+                        type="button"
+                        onClick={handleGeneratePreview}
+                        className="px-3 py-2 rounded-lg border border-[#cbd5e1] bg-[#f8fafc] hover:bg-[#f1f5f9] text-[#1e293b] text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5 text-[#15803d]" />
+                        <span>Generar otra opción</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleConfirmPreview}
+                      className="px-3.5 py-2 rounded-lg bg-[#15803d] hover:bg-[#166534] text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                    >
+                      <Check className="w-3.5 h-3.5 text-white" />
+                      <span>Elegir esta portada</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -259,14 +581,16 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                 event.isAmbiguous ? (
                   <button
                     type="button"
-                    onClick={() => {
-                      const success = publishEvent(event.id, { confirmAmbiguity: true });
-                      if (success) onClose();
-                    }}
-                    className="btn bg-[#15803d] hover:bg-[#166534] text-white flex-1 py-2 text-xs font-bold shadow-sm flex items-center justify-center gap-1.5 transition-colors"
+                    onClick={() => onOpenEditModal && onOpenEditModal(event, { focusDate: true })}
+                    className="btn bg-amber-600 hover:bg-amber-700 text-white flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold shadow-sm flex items-center justify-between gap-2 transition-colors cursor-pointer"
                   >
-                    <Check className="w-4 h-4" />
-                    <span>Confirmar Fecha Sugerida y Publicar</span>
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0">
+                        <Calendar className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="truncate">Fijar Fecha Exacta en Editor</span>
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 shrink-0" />
                   </button>
                 ) : (
                   <button
@@ -275,9 +599,18 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                       const success = publishEvent(event.id);
                       if (success) onClose();
                     }}
-                    className="btn btn-primary flex-1 py-2 text-xs font-bold"
+                    className="btn btn-primary flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2 group/pub"
                   >
-                    <span>Publicar Evento</span>
+                    <span className="flex items-center gap-2 min-w-0">
+                      <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0 group-hover/pub:bg-[#c4f246] group-hover/pub:text-[#0e2738] transition-colors">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                      </span>
+                      <span className="truncate">Publicar Evento en Cartelera</span>
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-[#0e2738]/35 border border-white/15 text-[10px] font-mono font-extrabold text-[#c4f246] shrink-0 flex items-center gap-1">
+                      <span>PUBLICAR</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </span>
                   </button>
                 )
               )}
@@ -289,10 +622,17 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                     startEventAttendance(event.id);
                     onClose();
                   }}
-                  className="btn btn-sena flex-1 py-2 text-xs font-bold"
+                  className="btn btn-sena flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2 group/live"
                 >
-                  <Play className="w-3.5 h-3.5" />
-                  <span>Habilitar Asistencia Presencial</span>
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="w-6 h-6 rounded-lg bg-white/15 border border-white/20 flex items-center justify-center shrink-0 group-hover/live:bg-[#c4f246] group-hover/live:text-[#0e2738] transition-colors">
+                      <Play className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="truncate">Habilitar Asistencia Presencial</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-[#0e2738]/35 border border-white/15 text-[10px] font-mono font-extrabold text-[#c4f246] shrink-0">
+                    INICIAR
+                  </span>
                 </button>
               )}
 
@@ -303,10 +643,17 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                     closeEventAttendance(event.id);
                     onClose();
                   }}
-                  className="btn btn-danger flex-1 py-2 text-xs font-bold"
+                  className="btn btn-danger flex-1 px-3.5 py-2.5 rounded-xl text-xs font-extrabold flex items-center justify-between gap-2"
                 >
-                  <Pause className="w-3.5 h-3.5" />
-                  <span>Finalizar Evento</span>
+                  <span className="flex items-center gap-2 min-w-0">
+                    <span className="w-6 h-6 rounded-lg bg-rose-100 text-rose-700 flex items-center justify-center shrink-0">
+                      <Pause className="w-3.5 h-3.5" />
+                    </span>
+                    <span className="truncate">Finalizar Evento</span>
+                  </span>
+                  <span className="px-2 py-0.5 rounded-md bg-white border border-rose-200 text-[10px] font-mono font-extrabold text-rose-700 shrink-0">
+                    CERRAR
+                  </span>
                 </button>
               )}
             </div>

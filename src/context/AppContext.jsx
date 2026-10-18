@@ -6,7 +6,7 @@ import {
   MOCK_PARTICIPANTS_DATABASE,
   AREAS 
 } from '../data/mockData';
-import { getSemanticImage } from '../utils/excelHelper';
+import { getSemanticImage, buildDefaultImagePrompt } from '../utils/excelHelper';
 import confetti from 'canvas-confetti';
 
 const AppContext = createContext();
@@ -515,14 +515,58 @@ export function AppProvider({ children }) {
     return { success: true };
   };
 
-  // 8. Generar Portada de Evento con IA (RF-07)
-  const generateAIEventCover = (eventId) => {
+  // 8. Generar Portada de Evento con IA usando Prompt Editable (RF-07)
+  const generateAIEventCover = (eventId, customPrompt = null) => {
     const target = events.find(e => e.id === eventId);
     if (!target) return null;
-    const newCover = getSemanticImage(target.area, target.title + ' ' + (target.purpose || ''));
-    setEvents(prev => prev.map(e => e.id === eventId ? { ...e, image: newCover } : e));
-    addToast('Portada con IA Generada', 'Se ha generado una nueva imagen contextual para la portada del evento.', 'success');
+    if (!target.date || target.isAmbiguous) {
+      addToast(
+        'Fecha Requerida para IA',
+        'La portada generada por IA solo se puede generar cuando la fecha de la actividad ya fue asignada.',
+        'warning'
+      );
+      return null;
+    }
+    const promptToUse = (customPrompt && customPrompt.trim())
+      || target.imagePrompt
+      || buildDefaultImagePrompt(target);
+    const newCover = getSemanticImage(target.area, promptToUse, target.image);
+    setEvents(prev => prev.map(e => e.id === eventId ? {
+      ...e,
+      image: newCover,
+      imagePrompt: promptToUse,
+      imageSource: 'ai'
+    } : e));
+    addToast('Portada con IA Generada', 'Se generó la portada de la actividad a partir del prompt configurado.', 'success');
     return newCover;
+  };
+
+  // 8b. Actualizar Portada de Evento con Imagen Externa o Prompt Personalizado
+  const updateEventCover = (eventId, imageUrl, options = {}) => {
+    const target = events.find(e => e.id === eventId);
+    if (!target) return false;
+    if (options.imageSource === 'ai' && (!target.date || target.isAmbiguous)) {
+      addToast(
+        'Fecha Requerida para IA',
+        'Debes asignar primero la fecha exacta de la actividad antes de generar su portada con IA.',
+        'warning'
+      );
+      return false;
+    }
+    setEvents(prev => prev.map(e => e.id === eventId ? {
+      ...e,
+      image: imageUrl,
+      imagePrompt: options.imagePrompt !== undefined ? options.imagePrompt : (e.imagePrompt || buildDefaultImagePrompt(e)),
+      imageSource: options.imageSource || 'external'
+    } : e));
+    addToast(
+      options.imageSource === 'ai' ? 'Portada con IA Actualizada' : 'Imagen Externa Cargada',
+      options.imageSource === 'ai'
+        ? 'Se actualizó la portada generada con IA para la actividad.'
+        : 'La imagen externa ha sido asignada como portada de la actividad.',
+      'success'
+    );
+    return true;
   };
 
   // Actualizar perfil de aprendiz (RF-04: cambios aplican solo a futuras participaciones, conservando instantánea histórica)
@@ -576,7 +620,7 @@ export function AppProvider({ children }) {
     if (targetEvent.isAmbiguous && !options.confirmAmbiguity) {
       addToast(
         'Publicación en Pausa: Fecha por Confirmar',
-        targetEvent.ambiguityReason || 'Esta actividad tiene una fecha o programación pendiente por definir. Confirma la fecha en el detalle antes de publicar.',
+        targetEvent.ambiguityReason || 'Esta actividad tiene una fecha o programación pendiente por definir. Confirma la fecha antes de publicar.',
         'warning'
       );
       return false;
@@ -584,10 +628,8 @@ export function AppProvider({ children }) {
 
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
-        const generatedCover = evt.image || getSemanticImage(evt.area, evt.title + ' ' + (evt.purpose || ''));
         return {
           ...evt,
-          image: generatedCover,
           status: 'publicado',
           isAmbiguous: false,
           ambiguityReason: null
@@ -597,8 +639,10 @@ export function AppProvider({ children }) {
     }));
 
     addToast(
-      'Evento Publicado con Portada IA',
-      `"${targetEvent.title}" generó su portada institucional y ya es visible en la cartelera de Bienestar al Aprendiz.`,
+      'Evento Publicado',
+      targetEvent.image
+        ? `"${targetEvent.title}" ya es visible con su portada en la cartelera de Bienestar al Aprendiz.`
+        : `"${targetEvent.title}" fue publicado sin portada. Puedes añadir o actualizar su portada en cualquier momento desde "Ver detalle".`,
       'success'
     );
 
@@ -697,7 +741,9 @@ export function AppProvider({ children }) {
       purpose: newEventData.purpose || 'Propósito formativo integral',
       objective: newEventData.objective || 'Fortalecer competencias socioemocionales',
       extendedDescription: newEventData.extendedDescription || 'Descripción detallada de la actividad de bienestar.',
-      image: null,
+      image: newEventData.image || null,
+      imagePrompt: newEventData.imagePrompt || buildDefaultImagePrompt(newEventData),
+      imageSource: newEventData.imageSource || (newEventData.image ? 'ai' : null),
       area: newEventData.area || (currentUser.area || 'Cultura'),
       quarter: newEventData.quarter || 'Trimestre 4',
       date: newEventData.date || new Date().toISOString().split('T')[0],
@@ -717,7 +763,13 @@ export function AppProvider({ children }) {
     };
 
     setEvents(prev => [newEvent, ...prev]);
-    addToast('Actividad Creada', `"${newEvent.title}" registrada en estado Borrador (la portada IA se generará al publicar).`, 'success');
+    addToast(
+      'Actividad Creada',
+      newEvent.image
+        ? `"${newEvent.title}" registrada en Borrador con su portada asignada.`
+        : `"${newEvent.title}" registrada en Borrador (puedes añadirle una portada cuando desees).`,
+      'success'
+    );
     return newEvent;
   };
 
@@ -727,7 +779,7 @@ export function AppProvider({ children }) {
     addToast('Actividad Eliminada', 'El evento ha sido removido del catálogo.', 'info');
   };
 
-  // Importar propuestas de IA al catálogo (pasan a Borrador sin imagen)
+  // Importar propuestas de IA al catálogo (conservando imagen o prompt si fue personalizado)
   const importEventsFromAI = (extractedItems) => {
     const formatted = extractedItems.map((item, index) => ({
       id: `evt-ai-${Date.now()}-${index}`,
@@ -735,8 +787,10 @@ export function AppProvider({ children }) {
       title: item.title,
       purpose: item.purpose,
       objective: item.objective,
-      extendedDescription: item.purpose ? `${item.purpose} Actividad abierta a aprendices en etapa lectiva y productiva.` : `Actividad programada en el marco del Plan Anual de Bienestar 2026 para la línea de ${item.line}. Actividad abierta a aprendices en etapa lectiva y productiva.`,
-      image: null,
+      extendedDescription: item.extendedDescription || (item.purpose ? `${item.purpose} Actividad abierta a aprendices en etapa lectiva y productiva.` : `Actividad programada en el marco del Plan Anual de Bienestar 2026 para la línea de ${item.line}. Actividad abierta a aprendices en etapa lectiva y productiva.`),
+      image: item.image || null,
+      imagePrompt: item.imagePrompt || buildDefaultImagePrompt(item),
+      imageSource: item.imageSource || (item.image ? 'ai' : null),
       area: item.area,
       quarter: item.quarter,
       date: item.date,
@@ -943,6 +997,7 @@ export function AppProvider({ children }) {
         changeUserPassword,
         toggleUserStatus,
         generateAIEventCover,
+        updateEventCover,
         switchUser,
         updateApprenticeProfile,
         quickFillApprenticeProfile,
