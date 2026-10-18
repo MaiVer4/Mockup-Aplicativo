@@ -607,10 +607,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                       </span>
                       <span className="truncate">Publicar Evento en Cartelera</span>
                     </span>
-                    <span className="px-2 py-0.5 rounded-md bg-[#0e2738]/35 border border-white/15 text-[10px] font-mono font-extrabold text-[#c4f246] shrink-0 flex items-center gap-1">
-                      <span>PUBLICAR</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </span>
+                    <ArrowRight className="w-4 h-4 text-white/80 group-hover/pub:translate-x-0.5 group-hover/pub:text-[#c4f246] transition-all shrink-0" />
                   </button>
                 )
               )}
