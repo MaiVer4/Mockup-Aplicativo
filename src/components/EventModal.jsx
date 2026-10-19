@@ -233,6 +233,22 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </button>
         </div>
 
+        {/* Flujo RF-08: una actividad se revisa y aprueba antes de publicarse */}
+        <div className="px-5 py-2.5 border-b border-[#e2e8f0] bg-white">
+          <div className="flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-wide">
+            <span className="text-amber-700">1. Borrador / revisión</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-slate-500">2. Aprobada</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-slate-500">3. Publicada</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-slate-500">4. Ventana activa / cierre</span>
+          </div>
+          <p className="text-[10px] text-[#64748b] mt-1">
+            Guardar conserva la actividad en borrador; la publicación y la apertura de asistencia son pasos separados del Encargado de Área.
+          </p>
+        </div>
+
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto overscroll-contain space-y-3.5 flex-1 text-xs">
           
@@ -356,7 +372,12 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           )}
 
           {/* Parámetros Operativos (Fecha, Horario, Duración, Capacidad) */}
-          <div ref={dateSectionRef} className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div ref={dateSectionRef} className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold text-[#334155]">Ventana de apertura y cierre</span>
+              <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-0.5 font-semibold">Participación solo durante la ventana activa</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div>
               <label className={`block text-[11px] font-bold mb-1 ${shouldHighlightDate ? 'text-amber-800' : 'text-[#334155]'}`}>
                 Fecha Exacta *
@@ -415,6 +436,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
                 onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                 className="w-full px-2.5 py-2 rounded-xl border border-[#cbd5e1] text-xs font-mono text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               />
+            </div>
             </div>
           </div>
 

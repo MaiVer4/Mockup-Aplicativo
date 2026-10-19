@@ -17,7 +17,9 @@ import {
   ArrowRight,
   X,
   Check,
-  UserCheck
+  UserCheck,
+  History,
+  LockKeyhole
 } from 'lucide-react';
 import EventDetailModal from '../components/EventDetailModal';
 
@@ -29,10 +31,21 @@ export default function ApprenticePortal() {
     registerAttendance, 
     activeTab, 
     setActiveTab,
+    allParticipantsList,
+    updateApprenticeProfile,
     addToast 
   } = useApp();
 
-  const [currentSection, setCurrentSection] = useState('billboard'); // 'billboard' | 'profile'
+  const [currentSection, setCurrentSection] = useState('billboard'); // 'billboard' | 'profile' | 'history'
+  const [profileDraft, setProfileDraft] = useState({
+    ficha: currentUser.ficha || '',
+    phone: currentUser.phone || ''
+  });
+
+  const learnerHistory = allParticipantsList.filter(participant =>
+    participant.documentNumber === currentUser.documentNumber ||
+    participant.name === currentUser.name
+  );
   const [filterArea, setFilterArea] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
@@ -88,6 +101,19 @@ export default function ApprenticePortal() {
             }`}
           >
             Mi Perfil
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setCurrentSection('history')}
+            className={`text-xs md:text-sm font-heading font-bold transition-all relative py-2 whitespace-nowrap flex items-center gap-1.5 ${
+              currentSection === 'history'
+                ? 'text-[#15803d] border-b-2 border-[#15803d]'
+                : 'text-[#64748b] hover:text-[#1e293b]'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            Mi historial
           </button>
         </div>
 
@@ -380,6 +406,14 @@ export default function ApprenticePortal() {
             <strong>Trazabilidad Institucional:</strong> Los cambios que realices en tu ficha o contacto aplicarán únicamente para futuras actividades. Las participaciones ya registradas en actas anteriores conservan su instantánea histórica inalterada.
           </div>
 
+          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900">
+            <LockKeyhole className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
+            <div>
+              <strong className="block text-[11px]">Regla de edición mensual</strong>
+              <p className="text-[10px] leading-relaxed mt-0.5">Cada campo institucional puede actualizarse una vez por mes. La última modificación registrada fue el {currentUser.profileLastUpdated || 'pendiente de completar'}.</p>
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">Nombre Completo</label>
@@ -394,12 +428,12 @@ export default function ApprenticePortal() {
 
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">Ficha de Formación</label>
-              <input type="text" defaultValue={currentUser.ficha || '2670192'} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] font-mono text-[#1e293b]" />
+              <input type="text" value={profileDraft.ficha} onChange={(e) => setProfileDraft(prev => ({ ...prev, ficha: e.target.value }))} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] font-mono text-[#1e293b]" />
             </div>
 
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">Teléfono de Contacto</label>
-              <input type="tel" defaultValue={currentUser.phone || '3157849201'} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[#1e293b]" />
+              <input type="tel" value={profileDraft.phone} onChange={(e) => setProfileDraft(prev => ({ ...prev, phone: e.target.value }))} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[#1e293b]" />
             </div>
           </div>
 
@@ -409,12 +443,66 @@ export default function ApprenticePortal() {
             </span>
             <button
               type="button"
-              onClick={() => addToast('Perfil Actualizado', 'Se han guardado tus modificaciones institucionales.', 'success')}
+              onClick={() => updateApprenticeProfile(profileDraft)}
               className="btn btn-primary text-xs font-bold"
             >
               Guardar Modificaciones
             </button>
           </div>
+        </div>
+      )}
+
+      {/* SECCIÓN 3: HISTORIAL DE PARTICIPACIONES (RF-05, RF-04) */}
+      {currentSection === 'history' && (
+        <div className="space-y-4">
+          <div className="p-5 card-ergonomic bg-white">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <span className="text-[10px] font-extrabold tracking-[1.5px] uppercase text-[#15803d] font-mono">
+                  TRAZABILIDAD PERSONAL
+                </span>
+                <h2 className="text-xl font-bold text-[#1e293b] font-heading mt-1">Mi historial de participaciones</h2>
+                <p className="text-xs text-[#64748b] mt-1 max-w-2xl">
+                  Consulta tus asistencias acreditadas y conserva la instantánea institucional registrada en cada actividad.
+                </p>
+              </div>
+              <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-[#eafaf1] border border-[#bbf7d0] text-[10px] font-bold text-[#15803d]">
+                <LockKeyhole className="w-3.5 h-3.5" />
+                REGISTRO INMUTABLE
+              </div>
+            </div>
+          </div>
+
+          {learnerHistory.length === 0 ? (
+            <div className="p-10 text-center card-ergonomic bg-white space-y-2">
+              <History className="w-8 h-8 mx-auto text-[#94a3b8] stroke-1" />
+              <p className="text-sm font-bold text-[#1e293b]">Todavía no tienes participaciones registradas</p>
+              <p className="text-xs text-[#64748b]">Cuando confirmes asistencia, aparecerá aquí con su marca temporal.</p>
+              <button type="button" onClick={() => setCurrentSection('billboard')} className="text-xs font-bold text-[#15803d] hover:underline">
+                Explorar cartelera
+              </button>
+            </div>
+          ) : (
+            <div className="card-ergonomic overflow-hidden bg-white divide-y divide-[#e2e8f0]">
+              {learnerHistory.map(participation => (
+                <div key={participation.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#eafaf1] text-[#15803d] flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <strong className="block text-xs font-bold text-[#1e293b]">{participation.eventTitle || 'Actividad de Bienestar'}</strong>
+                      <span className="block text-[11px] text-[#64748b] mt-0.5">{participation.eventArea || 'Bienestar'} · {participation.eventDate || 'Fecha institucional'}</span>
+                    </div>
+                  </div>
+                  <div className="sm:text-right text-[10px] font-mono text-[#15803d] font-bold">
+                    <span className="block text-[#64748b] font-sans font-medium">Marca temporal del registro</span>
+                    {participation.timestamp || 'Pendiente de timestamp'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 

@@ -240,6 +240,21 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
             </div>
           </div>
 
+          {/* Flujo RF-08: estados controlados y límites del rol operativo */}
+          <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-[11px] font-bold text-[#1e293b]">Ciclo de publicación y participación</h4>
+              <span className="text-[10px] text-[#64748b] font-medium">Solo publicada + ventana activa acepta asistencia</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5 text-center text-[9px] font-bold uppercase tracking-wide">
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isDraft ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Revisión</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isPublicado || isEnCurso || isFinalizado ? 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Aprobada / publicada</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isEnCurso ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Apertura activa</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isFinalizado ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Cierre / cancelación</span>
+            </div>
+            <p className="text-[10px] text-[#64748b]">El Encargado de Área opera publicación, apertura y cierre. El Administrador observa el ciclo y sus métricas sin ejecutar estas acciones.</p>
+          </div>
+
           {/* Información y Parámetros con Iconos */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
             <div className="flex items-center gap-2.5">
@@ -299,7 +314,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                 </button>
               ) : isFinalizado ? (
                 <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] text-center text-xs font-semibold">
-                  Evento finalizado · Acreditación presencial cerrada
+                  Evento finalizado · Acreditación presencial cerrada · Estado terminal; una cancelación se comunica como novedad separada
                 </div>
               ) : (
                 <div className="p-3.5 rounded-xl bg-[#f0f9ff] border border-[#bae6fd] text-[#0369a1] text-xs font-medium flex items-center justify-center gap-2">

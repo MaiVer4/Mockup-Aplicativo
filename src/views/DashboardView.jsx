@@ -234,6 +234,23 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
         </div>
       )}
 
+      {currentUser.role === 'admin_general' && (
+        <div className="p-3.5 rounded-2xl bg-blue-50 border border-blue-200 flex items-start gap-2.5">
+          <ShieldCheck className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
+          <div>
+            <strong className="text-xs text-blue-950 block">Rol administrador · supervisión institucional</strong>
+            <p className="text-[11px] text-blue-900 mt-0.5 leading-relaxed">
+              Esta vista consolida actividades, métricas de encargados, asistencias y usuarios. No publica, abre ni cierra actividades: esas acciones pertenecen al Encargado de Área.
+            </p>
+            <div className="flex flex-wrap gap-1.5 mt-2 text-[10px] font-bold">
+              <span className="px-2 py-1 rounded-lg bg-white/80 border border-blue-200 text-blue-800">Ver actividades</span>
+              <span className="px-2 py-1 rounded-lg bg-white/80 border border-blue-200 text-blue-800">Métricas por encargado</span>
+              <span className="px-2 py-1 rounded-lg bg-white/80 border border-blue-200 text-blue-800">Censo y auditoría</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ========================================================= */}
       {/* PESTAÑA 1: VISIÓN GLOBAL Y TODAS LAS ACTIVIDADES (RF-15) */}
       {/* ========================================================= */}

@@ -24,6 +24,12 @@ export default function EmailNotificationDrawer({ isOpen, onClose }) {
         return { label: 'REGISTRO DE ASISTENCIA', color: 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]' };
       case 'publicacion':
         return { label: 'EVENTO PUBLICADO', color: 'bg-[#f3e8ff] text-[#7e22ce] border-[#e9d5ff]' };
+      case 'apertura':
+        return { label: 'APERTURA DE VENTANA', color: 'bg-amber-50 text-amber-800 border-amber-200' };
+      case 'cierre':
+        return { label: 'CIERRE DE VENTANA', color: 'bg-slate-100 text-slate-700 border-slate-200' };
+      case 'cancelacion':
+        return { label: 'ACTIVIDAD CANCELADA', color: 'bg-rose-50 text-rose-700 border-rose-200' };
       default:
         return { label: 'NOTIFICACIÓN', color: 'bg-[#f1f5f9] text-[#475569] border-[#cbd5e1]' };
     }
@@ -55,6 +61,19 @@ export default function EmailNotificationDrawer({ isOpen, onClose }) {
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Tipos de aviso visibles para el flujo RF-11 */}
+        <div className="px-4 pt-3 pb-1 flex flex-wrap gap-1.5">
+          {[
+            ['publicacion', 'Publicación'],
+            ['apertura', 'Apertura'],
+            ['cierre', 'Cierre'],
+            ['cancelacion', 'Cancelación']
+          ].map(([type, label]) => {
+            const badge = getTypeBadge(type);
+            return <span key={type} className={`px-2 py-1 rounded-lg border text-[9px] font-bold ${badge.color}`}>{label}</span>;
+          })}
         </div>
 
         {/* Lista de correos emitidos */}
@@ -105,7 +124,7 @@ export default function EmailNotificationDrawer({ isOpen, onClose }) {
 
         {/* Pie */}
         <div className="p-3 border-t border-[#e2e8f0] bg-[#f8fafc] text-[11px] text-[#64748b] text-center font-medium">
-          Demostración de eventos automáticos por correo según especificación SENA v2.
+          Demostración visual de avisos automáticos RF-11: publicación, cambios, apertura, cierre y cancelación. Los correos reales dependen del flujo operativo.
         </div>
 
       </div>

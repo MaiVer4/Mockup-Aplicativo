@@ -54,6 +54,9 @@ export default function LoginView() {
   // Estados para recuperación de contraseña
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoverySuccess, setRecoverySuccess] = useState(false);
+  const [recoveryPassword, setRecoveryPassword] = useState('');
+  const [recoveryPasswordConfirmation, setRecoveryPasswordConfirmation] = useState('');
+  const [recoveryPasswordSaved, setRecoveryPasswordSaved] = useState(false);
 
   // Estados para registro nuevo de aprendiz (RF-APR-01 a RF-APR-08)
   const [registerData, setRegisterData] = useState({
@@ -745,20 +748,67 @@ export default function LoginView() {
               {activeTab === 'recovery' && (
                 <div className="pt-4 space-y-3">
                   {recoverySuccess ? (
-                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2">
-                      <div className="flex items-center gap-2 font-bold text-xs">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span>Instrucciones Emitidas</span>
+                    <div className="space-y-3">
+                      <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2">
+                        <div className="flex items-center gap-2 font-bold text-xs">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>Paso 1 de 2 · Enlace de recuperación emitido</span>
+                        </div>
+                        <p className="text-[11px] leading-relaxed">
+                          Revisa <strong>{recoveryEmail}</strong> y abre el enlace seguro para continuar con el cambio de contraseña.
+                        </p>
                       </div>
-                      <p className="text-[11px] leading-relaxed">
-                        Revisa tu bandeja de entrada en <strong>{recoveryEmail}</strong> o el buzón de notificaciones automáticas en la barra superior.
-                      </p>
-                      <button
-                        onClick={() => { setActiveTab('login'); setRecoverySuccess(false); }}
-                        className="btn btn-sena px-3 py-1.5 rounded-lg text-xs font-bold transition-all mt-2"
-                      >
-                        Volver a Iniciar Sesión
-                      </button>
+
+                      {!recoveryPasswordSaved ? (
+                        <form
+                          className="p-4 rounded-xl border border-[#cbd5e1] bg-white space-y-3"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            if (recoveryPassword.length >= 6 && recoveryPassword === recoveryPasswordConfirmation) {
+                              setRecoveryPasswordSaved(true);
+                            }
+                          }}
+                        >
+                          <div>
+                            <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#15803d]">Paso 2 de 2</span>
+                            <h3 className="text-sm font-bold text-[#1e293b] mt-1">Define una nueva contraseña</h3>
+                            <p className="text-[11px] text-[#64748b] mt-0.5">La nueva clave debe tener mínimo 6 caracteres.</p>
+                          </div>
+                          <input
+                            type="password"
+                            required
+                            minLength={6}
+                            placeholder="Nueva contraseña"
+                            value={recoveryPassword}
+                            onChange={(e) => setRecoveryPassword(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs focus:bg-white focus:outline-none focus:border-[#15803d]"
+                          />
+                          <input
+                            type="password"
+                            required
+                            minLength={6}
+                            placeholder="Confirmar nueva contraseña"
+                            value={recoveryPasswordConfirmation}
+                            onChange={(e) => setRecoveryPasswordConfirmation(e.target.value)}
+                            className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs focus:bg-white focus:outline-none focus:border-[#15803d]"
+                          />
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => setActiveTab('login')} className="btn btn-secondary flex-1 py-2 rounded-xl text-xs">Cancelar</button>
+                            <button type="submit" className="btn btn-primary flex-1 py-2 rounded-xl text-xs font-bold">Guardar nueva clave</button>
+                          </div>
+                        </form>
+                      ) : (
+                        <div className="p-4 rounded-xl bg-[#eafaf1] border border-[#bbf7d0] text-[#166534] space-y-2">
+                          <strong className="flex items-center gap-2 text-xs"><CheckCircle2 className="w-4 h-4" /> Contraseña actualizada visualmente</strong>
+                          <p className="text-[11px]">El flujo de recuperación terminó. Ya puedes volver al acceso institucional.</p>
+                          <button
+                            onClick={() => { setActiveTab('login'); setRecoverySuccess(false); setRecoveryPasswordSaved(false); setRecoveryPassword(''); setRecoveryPasswordConfirmation(''); }}
+                            className="btn btn-sena px-3 py-1.5 rounded-lg text-xs font-bold transition-all mt-2"
+                          >
+                            Volver a Iniciar Sesión
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <form onSubmit={handleRecoverySubmit} className="space-y-3">
