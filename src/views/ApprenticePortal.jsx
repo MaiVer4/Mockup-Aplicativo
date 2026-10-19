@@ -19,7 +19,8 @@ import {
   Check,
   UserCheck,
   History,
-  LockKeyhole
+  LockKeyhole,
+  KeyRound
 } from 'lucide-react';
 import EventDetailModal from '../components/EventDetailModal';
 import {
@@ -32,7 +33,7 @@ import {
   CENTROS_FORMACION
 } from '../data/mockData';
 
-export default function ApprenticePortal() {
+export default function ApprenticePortal({ onOpenChangePassword }) {
   const { 
     currentUser, 
     visibleEvents, 
@@ -529,13 +530,23 @@ export default function ApprenticePortal() {
             <span className="text-[11px] text-[#64748b]">
               Los cambios se reflejarán en próximas actividades
             </span>
-            <button
-              type="button"
-              onClick={() => updateApprenticeProfile(profileDraft)}
-              className="btn btn-primary text-xs font-bold w-full sm:w-auto"
-            >
-              Guardar Modificaciones
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={onOpenChangePassword}
+                className="btn btn-secondary text-xs font-bold w-full sm:w-auto inline-flex items-center justify-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-[#15803d]" />
+                Cambiar contraseña
+              </button>
+              <button
+                type="button"
+                onClick={() => updateApprenticeProfile(profileDraft)}
+                className="btn btn-primary text-xs font-bold w-full sm:w-auto"
+              >
+                Guardar Modificaciones
+              </button>
+            </div>
           </div>
         </div>
       )}

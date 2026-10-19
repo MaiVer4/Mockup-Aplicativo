@@ -254,14 +254,6 @@ function LearnerShell() {
             
             <button
               type="button"
-              onClick={() => setIsChangePasswordOpen(true)}
-              className="px-2 py-1.5 rounded-xl text-[10px] font-bold text-[#15803d] hover:bg-[#eafaf1] transition-colors ml-0.5"
-              title="Cambiar contraseña"
-            >
-              Clave
-            </button>
-            <button
-              type="button"
               onClick={logout}
               className="p-1.5 sm:p-2 rounded-xl text-[#64748b] hover:text-rose-600 hover:bg-rose-50 transition-colors ml-0.5"
               title="Cerrar sesión"
@@ -276,7 +268,7 @@ function LearnerShell() {
 
       {/* Contenido Principal del Aprendiz */}
       <main className="flex-1 p-3.5 sm:p-5 md:p-8 max-w-6xl w-full mx-auto">
-        <ApprenticePortal />
+        <ApprenticePortal onOpenChangePassword={() => setIsChangePasswordOpen(true)} />
       </main>
 
       {/* Footer del Aprendiz */}
