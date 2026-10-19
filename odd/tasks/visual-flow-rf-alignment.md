@@ -38,3 +38,4 @@ L9: User requirement change: "quiero que se puedan editar todos los campos de es
 L10: T1 implementation evidence: all permitted learner profile fields are editable from Mi Perfil, Centro de Formación remains institution-controlled, the learner shell exposes Cambiar contraseña, and registration accepts any email while treating Correo SENA as optional. `git diff --check` passed and Vite returned HTTP 200 for `/`, `/src/App.jsx`, and `/src/views/ApprenticePortal.jsx`.
 L11: User correction: "Quiero que el centro de formacion en el perfil no se pueda modificar". Keep the field visible but disabled/read-only in Mi Perfil.
 L12: Profile-entry correction: moved Cambiar contraseña from the learner header into Mi Perfil, alongside Guardar Modificaciones, while retaining the existing modal.
+L13: User decision: "Listo quitalo" — remove the redundant administrator supervision banner from the dashboard while preserving contextual role boundaries elsewhere.
