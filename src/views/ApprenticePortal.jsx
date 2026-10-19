@@ -513,9 +513,15 @@ export default function ApprenticePortal() {
 
             <div className="sm:col-span-2">
               <label className="block text-[11px] font-bold text-[#334155] mb-1">Centro de Formación / Sede *</label>
-              <select value={profileDraft.trainingCenter} onChange={(e) => handleProfileChange('trainingCenter', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+              <select
+                value={profileDraft.trainingCenter}
+                disabled
+                aria-describedby="training-center-lock-note"
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f1f5f9] text-[#64748b] cursor-not-allowed"
+              >
                 {CENTROS_FORMACION.map(center => <option key={center} value={center}>{center}</option>)}
               </select>
+              <span id="training-center-lock-note" className="text-[10px] text-[#64748b] mt-0.5 block">Este dato es asignado por el centro de formación y no puede modificarse desde el perfil.</span>
             </div>
           </div>
 
