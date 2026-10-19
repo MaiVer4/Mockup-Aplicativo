@@ -22,13 +22,13 @@ export default function Sidebar({ view, setView, open, close }) {
 
   const navItems = currentUser.role === 'admin_area'
     ? [
-        { id: 'events', icon: Calendar, label: 'Mis Actividades', count: activeEventsCount },
+        { id: 'events', icon: Calendar, label: 'Actividades de Área', count: activeEventsCount },
         { id: 'upload', icon: Upload, label: 'Cargar Plan XLSX' },
-        { id: 'participants', icon: Users, label: 'Participantes' }
+        { id: 'participants', icon: Users, label: 'Participantes de Área' }
       ]
     : [
-        { id: 'dashboard', icon: LayoutGrid, label: 'Supervisión' },
-        { id: 'events', icon: Calendar, label: 'Todas las Actividades', count: activeEventsCount },
+        { id: 'dashboard', icon: LayoutGrid, label: 'Supervisión General' },
+        { id: 'events', icon: Calendar, label: 'Actividades de Bienestar', count: activeEventsCount },
         { id: 'participants', icon: Users, label: 'Participantes Globales' },
         { id: 'aprendices', icon: GraduationCap, label: 'Gestión de Aprendices' },
         { id: 'encargados', icon: UserCheck, label: 'Encargados de Área' }
@@ -58,7 +58,7 @@ export default function Sidebar({ view, setView, open, close }) {
         </button>
 
         {/* Logo de Bienestar SENA */}
-        <div className="logo-wrap px-1 pt-1 pb-4">
+        <div className="logo-wrap px-1 pt-1 pb-3">
           <div className="logo-mark logo-dark">
             <span>S</span>
           </div>
@@ -68,8 +68,18 @@ export default function Sidebar({ view, setView, open, close }) {
           </div>
         </div>
 
+        {/* Badge de Rol y Capacidades Institucionales (Item 8) */}
+        <div className="mx-1 my-2 p-2.5 rounded-xl bg-white/[0.06] border border-white/10 space-y-1">
+          <span className="text-[9px] font-mono font-extrabold uppercase tracking-wider text-[#c4f246] block">
+            {currentUser.role === 'admin_general' ? 'COORDINACIÓN GENERAL' : 'ENCARGADO OPERATIVO'}
+          </span>
+          <strong className="block text-xs font-bold text-white truncate">
+            {currentUser.role === 'admin_general' ? 'Supervisión 6 Áreas' : `Área de ${currentUser.area || 'Cultura'}`}
+          </strong>
+        </div>
+
         {/* Etiqueta de sección suave */}
-        <div className="text-[10px] font-extrabold tracking-[1.5px] uppercase text-[#64748b] px-2 pt-6 pb-2">
+        <div className="text-[10px] font-extrabold tracking-[1.5px] uppercase text-[#64748b] px-2 pt-4 pb-2">
           MENÚ PRINCIPAL
         </div>
 

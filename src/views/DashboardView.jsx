@@ -27,6 +27,7 @@ import {
   UserPlus
 } from 'lucide-react';
 import { AREAS } from '../data/mockData';
+import EmptyState from '../components/EmptyState';
 
 export default function DashboardView({ onOpenRegisterModal, onNavigateView, onOpenEventDetail }) {
   const { 
@@ -73,9 +74,11 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
   // Métricas Consolidadas Globales (RF-15)
   const totalEvents = relevantEvents.length;
   const draftEvents = relevantEvents.filter(e => e.status === 'borrador').length;
+  const pendingEvents = relevantEvents.filter(e => e.status === 'pendiente_aprobacion').length;
   const publishedEvents = relevantEvents.filter(e => e.status === 'publicado').length;
   const inProgressEvents = relevantEvents.filter(e => e.status === 'en_curso').length;
   const finishedEvents = relevantEvents.filter(e => e.status === 'finalizado').length;
+  const cancelledEvents = relevantEvents.filter(e => e.status === 'cancelada').length;
 
   const totalAttendees = relevantEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
   const totalCapacity = relevantEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
@@ -97,6 +100,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
     const inProgress = encEvents.filter(e => e.status === 'en_curso').length;
     const finished = encEvents.filter(e => e.status === 'finalizado').length;
     const draft = encEvents.filter(e => e.status === 'borrador').length;
+    const pending = encEvents.filter(e => e.status === 'pendiente_aprobacion').length;
+    const cancelled = encEvents.filter(e => e.status === 'cancelada').length;
 
     return {
       ...enc,
@@ -105,6 +110,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       inProgress,
       finished,
       draft,
+      pending,
+      cancelled,
       totalCapacity: encCapacity,
       totalAttendees: encAttendees,
       avgAttendees,
@@ -451,7 +458,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   Supervisión de Actividades Institucionales ({filteredEvents.length})
                 </strong>
                 <p className="text-[11px] text-[#64748b]">
-                  Control de ciclo de vida de 4 estados, asistencia acumulada y cupo planificado en Excel.
+                  Control normativo de ciclo de vida (Borrador, En Revisión, Publicado, En Curso, Finalizado, Cancelada).
                 </p>
               </div>
 
@@ -474,8 +481,10 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   <option value="Todos">Todos los Estados</option>
                   <option value="publicado">Publicado</option>
                   <option value="en_curso">En Curso</option>
-                  <option value="finalizado">Finalizado</option>
+                  <option value="pendiente_aprobacion">En Revisión (Pendiente)</option>
                   <option value="borrador">Borrador</option>
+                  <option value="finalizado">Finalizado</option>
+                  <option value="cancelada">Cancelada</option>
                 </select>
 
                 <button
@@ -489,83 +498,101 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
               </div>
             </div>
 
-            <div className="overflow-x-auto mt-2">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
-                    <th className="py-3 px-3">ACTIVIDAD / ÁREA</th>
-                    <th className="py-3 px-3">FECHA Y HORA</th>
-                    <th className="py-3 px-3">ESTADO</th>
-                    <th className="py-3 px-3">ASISTENCIA / CAPACIDAD</th>
-                    <th className="py-3 px-3 text-right">ACCIÓN</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
-                  {filteredEvents.map(evt => {
-                    const capacity = evt.capacity || 50;
-                    const count = evt.attendeesCount || 0;
-                    const percent = Math.min(100, Math.round((count / capacity) * 100));
+            {filteredEvents.length === 0 ? (
+              <div className="py-8">
+                <EmptyState
+                  title="Sin actividades con los filtros seleccionados"
+                  description="No se encontraron registros que coincidan con el área o estado institucional seleccionado."
+                  actionLabel="Restablecer Filtros"
+                  onAction={() => {
+                    setSelectedAreaFilter('Todas');
+                    setSelectedStatusFilter('Todos');
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto mt-2">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
+                      <th className="py-3 px-3">ACTIVIDAD / ÁREA</th>
+                      <th className="py-3 px-3">FECHA Y HORA</th>
+                      <th className="py-3 px-3">ESTADO</th>
+                      <th className="py-3 px-3">ASISTENCIA / CAPACIDAD</th>
+                      <th className="py-3 px-3 text-right">ACCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
+                    {filteredEvents.map(evt => {
+                      const capacity = evt.capacity || 50;
+                      const count = evt.attendeesCount || 0;
+                      const percent = Math.min(100, Math.round((count / capacity) * 100));
 
-                    const getStatusBadge = (st) => {
-                      switch (st) {
-                        case 'publicado':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">Publicado</span>;
-                        case 'en_curso':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">En Curso</span>;
-                        case 'finalizado':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Finalizado</span>;
-                        default:
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200">Borrador</span>;
-                      }
-                    };
+                      const getStatusBadge = (st) => {
+                        switch (st) {
+                          case 'publicado':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">Publicado</span>;
+                          case 'en_curso':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">En Curso</span>;
+                          case 'pendiente_aprobacion':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300">En Revisión</span>;
+                          case 'cancelada':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">Cancelada</span>;
+                          case 'finalizado':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Finalizado</span>;
+                          default:
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200">Borrador</span>;
+                        }
+                      };
 
-                    return (
-                      <tr key={evt.id} className="hover:bg-[#f8fafc] transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[9px] bg-slate-100 text-[#475569] px-1.5 py-0.5 rounded border border-[#cbd5e1] font-bold">
-                              {evt.area}
-                            </span>
-                            <span className="font-heading font-bold text-[#1e293b]">{evt.title}</span>
-                          </div>
-                          <div className="text-[11px] text-[#64748b] mt-0.5">{evt.location}</div>
-                        </td>
-                        <td className="py-3 px-3 font-mono text-[11px] text-[#475569]">
-                          {evt.date} • {evt.schedule?.split(' - ')[0] || '14:00'}
-                        </td>
-                        <td className="py-3 px-3">
-                          {getStatusBadge(evt.status)}
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="w-36 space-y-1">
-                            <div className="flex justify-between text-[11px]">
-                              <strong className="text-[#1e293b]">{count}</strong>
-                              <span className="text-[#64748b]">/ {capacity} meta</span>
+                      return (
+                        <tr key={evt.id} className="hover:bg-[#f8fafc] transition-colors">
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[9px] bg-slate-100 text-[#475569] px-1.5 py-0.5 rounded border border-[#cbd5e1] font-bold">
+                                {evt.area}
+                              </span>
+                              <span className="font-heading font-bold text-[#1e293b]">{evt.title}</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
-                              <div 
-                                style={{ width: `${percent}%` }} 
-                                className="h-full bg-[#15803d] rounded-full"
-                              />
+                            <div className="text-[11px] text-[#64748b] mt-0.5">{evt.location}</div>
+                          </td>
+                          <td className="py-3 px-3 font-mono text-[11px] text-[#475569]">
+                            {evt.date} • {evt.schedule?.split(' - ')[0] || '14:00'}
+                          </td>
+                          <td className="py-3 px-3">
+                            {getStatusBadge(evt.status)}
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="w-36 space-y-1">
+                              <div className="flex justify-between text-[11px]">
+                                <strong className="text-[#1e293b]">{count}</strong>
+                                <span className="text-[#64748b]">/ {capacity} meta</span>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
+                                <div 
+                                  style={{ width: `${percent}%` }} 
+                                  className="h-full bg-[#15803d] rounded-full"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
-                            className="p-1 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] cursor-pointer"
-                            title="Ver detalle del evento"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
+                              className="p-1 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] cursor-pointer"
+                              title="Ver detalle del evento"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
         </div>
@@ -689,7 +716,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                  <div className="flex items-center gap-1.5 font-mono text-[10px] flex-wrap">
                     <span className="bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.5 rounded font-bold">
                       {enc.published} Publicados
                     </span>
@@ -699,6 +726,16 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                     <span className="bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold">
                       {enc.finished} Fin
                     </span>
+                    {enc.pending > 0 && (
+                      <span className="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded font-bold">
+                        {enc.pending} En Revisión
+                      </span>
+                    )}
+                    {enc.cancelled > 0 && (
+                      <span className="bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded font-bold">
+                        {enc.cancelled} Canceladas
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -746,6 +783,16 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                           <span className="bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold" title="Finalizados">
                             {enc.finished} F
                           </span>
+                          {enc.pending > 0 && (
+                            <span className="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded font-bold" title="En Revisión">
+                              {enc.pending} R
+                            </span>
+                          )}
+                          {enc.cancelled > 0 && (
+                            <span className="bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded font-bold" title="Canceladas">
+                              {enc.cancelled} X
+                            </span>
+                          )}
                           {enc.draft > 0 && (
                             <span className="bg-slate-50 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded" title="Borradores">
                               {enc.draft} B

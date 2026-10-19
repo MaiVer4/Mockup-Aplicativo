@@ -36,12 +36,12 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
   const getRoleBadge = () => {
     if (currentUser.role === 'admin_general') {
       return {
-        label: 'Administración General',
+        label: 'COORDINACIÓN GENERAL · 6 ÁREAS',
         color: 'bg-[#0e2738] text-[#c4f246] border-[#1a3a4e]'
       };
     }
     return {
-      label: `Área de ${currentUser.area || 'Cultura'}`,
+      label: `ENCARGADO OPERATIVO · ${currentUser.area?.toUpperCase() || 'CULTURA'}`,
       color: 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]'
     };
   };
