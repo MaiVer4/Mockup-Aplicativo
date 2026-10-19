@@ -22,6 +22,15 @@ import {
   LockKeyhole
 } from 'lucide-react';
 import EventDetailModal from '../components/EventDetailModal';
+import {
+  TIPOS_DOCUMENTO,
+  GENEROS,
+  MODALIDADES,
+  JORNADAS,
+  NIVELES_FORMACION,
+  PROGRAMAS_FORMACION,
+  CENTROS_FORMACION
+} from '../data/mockData';
 
 export default function ApprenticePortal() {
   const { 
@@ -38,7 +47,18 @@ export default function ApprenticePortal() {
 
   const [currentSection, setCurrentSection] = useState('billboard'); // 'billboard' | 'profile' | 'history'
   const [profileDraft, setProfileDraft] = useState({
+    name: currentUser.name || '',
+    personalEmail: currentUser.personalEmail || currentUser.email || '',
+    email: currentUser.email || '',
+    documentType: currentUser.documentType || TIPOS_DOCUMENTO[0],
+    documentNumber: currentUser.documentNumber || currentUser.username || '',
+    gender: currentUser.gender || GENEROS[0],
     ficha: currentUser.ficha || '',
+    modality: currentUser.modality || MODALIDADES[0],
+    program: currentUser.program || PROGRAMAS_FORMACION[0],
+    jornada: currentUser.jornada || JORNADAS[0],
+    level: currentUser.level || NIVELES_FORMACION[0],
+    trainingCenter: currentUser.trainingCenter || CENTROS_FORMACION[0],
     phone: currentUser.phone || ''
   });
 
@@ -46,6 +66,10 @@ export default function ApprenticePortal() {
     participant.documentNumber === currentUser.documentNumber ||
     participant.name === currentUser.name
   );
+
+  const handleProfileChange = (field, value) => {
+    setProfileDraft(prev => ({ ...prev, [field]: value }));
+  };
   const [filterArea, setFilterArea] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
@@ -416,35 +440,93 @@ export default function ApprenticePortal() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div>
-              <label className="block text-[11px] font-bold text-[#334155] mb-1">Nombre Completo</label>
-              <input type="text" readOnly value={currentUser.name} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f1f5f9] text-[#64748b] cursor-not-allowed" />
-              <span className="text-[10px] text-[#94a3b8] mt-0.5 block">Vinculado a documento de identidad oficial.</span>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Nombres y Apellidos *</label>
+              <input type="text" required value={profileDraft.name} onChange={(e) => handleProfileChange('name', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[#1e293b]" />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#334155] mb-1">Cédula / Documento</label>
-              <input type="text" readOnly value={`${currentUser.documentType || 'CC'} ${currentUser.documentNumber || currentUser.username}`} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f1f5f9] text-[#64748b] font-mono cursor-not-allowed" />
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo electrónico *</label>
+              <input type="email" required value={profileDraft.personalEmail} onChange={(e) => handleProfileChange('personalEmail', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[#1e293b]" />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#334155] mb-1">Ficha de Formación</label>
-              <input type="text" value={profileDraft.ficha} onChange={(e) => setProfileDraft(prev => ({ ...prev, ficha: e.target.value }))} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] font-mono text-[#1e293b]" />
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo SENA (opcional)</label>
+              <input type="email" value={profileDraft.email} onChange={(e) => handleProfileChange('email', e.target.value)} placeholder="usuario@misena.edu.co" className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[#1e293b]" />
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#334155] mb-1">Teléfono de Contacto</label>
-              <input type="tel" value={profileDraft.phone} onChange={(e) => setProfileDraft(prev => ({ ...prev, phone: e.target.value }))} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[#1e293b]" />
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Teléfono *</label>
+              <input type="tel" required value={profileDraft.phone} onChange={(e) => handleProfileChange('phone', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-[#1e293b]" />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Tipo de Documento *</label>
+              <select value={profileDraft.documentType} onChange={(e) => handleProfileChange('documentType', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+                {TIPOS_DOCUMENTO.map(type => <option key={type} value={type}>{type}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Número de Documento *</label>
+              <input type="text" required value={profileDraft.documentNumber} onChange={(e) => handleProfileChange('documentNumber', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] font-mono text-[#1e293b]" />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Género *</label>
+              <select value={profileDraft.gender} onChange={(e) => handleProfileChange('gender', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+                {GENEROS.map(gender => <option key={gender} value={gender}>{gender}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Ficha *</label>
+              <input type="text" required value={profileDraft.ficha} onChange={(e) => handleProfileChange('ficha', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] font-mono text-[#1e293b]" />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Modalidad *</label>
+              <select value={profileDraft.modality} onChange={(e) => handleProfileChange('modality', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+                {MODALIDADES.map(modality => <option key={modality} value={modality}>{modality}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Jornada *</label>
+              <select value={profileDraft.jornada} onChange={(e) => handleProfileChange('jornada', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+                {JORNADAS.map(jornada => <option key={jornada} value={jornada}>{jornada}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Nivel de Formación *</label>
+              <select value={profileDraft.level} onChange={(e) => handleProfileChange('level', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+                {NIVELES_FORMACION.map(level => <option key={level} value={level}>{level}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Programa de Formación *</label>
+              <select value={profileDraft.program} onChange={(e) => handleProfileChange('program', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+                {PROGRAMAS_FORMACION.map(program => <option key={program} value={program}>{program}</option>)}
+              </select>
+            </div>
+
+            <div className="sm:col-span-2">
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Centro de Formación / Sede *</label>
+              <select value={profileDraft.trainingCenter} onChange={(e) => handleProfileChange('trainingCenter', e.target.value)} className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b]">
+                {CENTROS_FORMACION.map(center => <option key={center} value={center}>{center}</option>)}
+              </select>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-[#e2e8f0] flex items-center justify-between text-xs">
+          <div className="pt-3 border-t border-[#e2e8f0] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
             <span className="text-[11px] text-[#64748b]">
               Los cambios se reflejarán en próximas actividades
             </span>
             <button
               type="button"
               onClick={() => updateApprenticeProfile(profileDraft)}
-              className="btn btn-primary text-xs font-bold"
+              className="btn btn-primary text-xs font-bold w-full sm:w-auto"
             >
               Guardar Modificaciones
             </button>

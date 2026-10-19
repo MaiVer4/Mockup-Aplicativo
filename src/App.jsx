@@ -18,6 +18,7 @@ import EncargadosView from './views/EncargadosView';
 import CreateApprenticeModal from './components/CreateApprenticeModal';
 import ApprenticePortal from './views/ApprenticePortal';
 import LoginView from './views/LoginView';
+import ChangePasswordModal from './components/ChangePasswordModal';
 
 function AdminShell() {
   const { 
@@ -202,6 +203,7 @@ function LearnerShell() {
     setIsEmailDrawerOpen, 
     sentEmails 
   } = useApp();
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f1f4f8] text-[#1e293b] font-sans antialiased">
@@ -252,6 +254,14 @@ function LearnerShell() {
             
             <button
               type="button"
+              onClick={() => setIsChangePasswordOpen(true)}
+              className="px-2 py-1.5 rounded-xl text-[10px] font-bold text-[#15803d] hover:bg-[#eafaf1] transition-colors ml-0.5"
+              title="Cambiar contraseña"
+            >
+              Clave
+            </button>
+            <button
+              type="button"
               onClick={logout}
               className="p-1.5 sm:p-2 rounded-xl text-[#64748b] hover:text-rose-600 hover:bg-rose-50 transition-colors ml-0.5"
               title="Cerrar sesión"
@@ -288,6 +298,12 @@ function LearnerShell() {
       <EmailNotificationDrawer
         isOpen={isEmailDrawerOpen}
         onClose={() => setIsEmailDrawerOpen(false)}
+      />
+
+      {/* Cambio de contraseña accesible desde el perfil del aprendiz */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
       />
 
     </div>

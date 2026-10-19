@@ -154,8 +154,8 @@ export default function LoginView() {
       return;
     }
 
-    if (!registerData.documentNumber || !registerData.ficha || !registerData.email) {
-      addToast('Campos Incompletos', 'Por favor diligencia todos los campos obligatorios (*).', 'warning');
+    if (!registerData.documentNumber || !registerData.ficha || !(registerData.email || registerData.personalEmail)) {
+      addToast('Campos Incompletos', 'Por favor diligencia un correo electrónico y todos los campos obligatorios (*).', 'warning');
       return;
     }
 
@@ -575,21 +575,22 @@ export default function LoginView() {
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo SENA *</label>
+                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo electrónico *</label>
                             <input
                               type="email"
-                              required
-                              placeholder="andres@misena.edu.co"
+                              required={!registerData.personalEmail}
+                              placeholder="andres@correo.com"
                               value={registerData.email}
                               onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                               className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none"
                             />
                           </div>
                           <div>
-                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo Personal</label>
+                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo SENA (opcional)</label>
                             <input
                               type="email"
-                              placeholder="andres@gmail.com"
+                              required={!registerData.email}
+                              placeholder="andres@misena.edu.co"
                               value={registerData.personalEmail}
                               onChange={(e) => setRegisterData({ ...registerData, personalEmail: e.target.value })}
                               className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none"
