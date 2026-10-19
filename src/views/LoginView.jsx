@@ -252,8 +252,8 @@ export default function LoginView() {
               </h2>
               <p className="text-xs text-[#64748b] mt-1">
                 {activeTab === 'register_aprendiz'
-                  ? 'Crea tu cuenta institucional mediante Google o completando el formulario normativo.'
-                  : 'Ingresa con tu cuenta de Google institucional o con tu número de documento.'}
+                  ? 'Crea tu cuenta con Google o un correo electrónico.'
+                  : 'Accede con Google o documento y contraseña.'}
               </p>
             </div>
 
@@ -281,7 +281,7 @@ export default function LoginView() {
                       <strong className="block text-xs text-[#1e293b] font-heading font-bold">
                         Admin General (Coordinación)
                       </strong>
-                      <small className="text-[#64748b] text-[11px]">
+                      <small className="hidden sm:block text-[#64748b] text-[11px]">
                         Supervisión integral de las 6 áreas y reporte consolidado
                       </small>
                     </div>
@@ -306,7 +306,7 @@ export default function LoginView() {
                       <strong className="block text-xs text-[#1e293b] font-heading font-bold">
                         Admin de Área (Cultura)
                       </strong>
-                      <small className="text-[#64748b] text-[11px]">
+                      <small className="hidden sm:block text-[#64748b] text-[11px]">
                         Carga Excel IA, ciclo de 4 estados y formato GOR-F-013
                       </small>
                     </div>
@@ -331,7 +331,7 @@ export default function LoginView() {
                       <strong className="block text-xs text-[#1e293b] font-heading font-bold">
                         Aprendiz SENA (Sofia Arango)
                       </strong>
-                      <small className="text-[#64748b] text-[11px]">
+                      <small className="hidden sm:block text-[#64748b] text-[11px]">
                         Cartelera de actividades y acreditación presencial en 1 clic
                       </small>
                     </div>
@@ -356,7 +356,7 @@ export default function LoginView() {
                       <strong className="block text-xs text-[#1e293b] font-heading font-bold">
                         Aprendiz Nuevo (Sin Onboarding)
                       </strong>
-                      <small className="text-[#64748b] text-[11px]">
+                      <small className="hidden sm:block text-[#64748b] text-[11px]">
                         Prueba el bloqueo de registro inicial de 12 campos
                       </small>
                     </div>

@@ -196,7 +196,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              Visión Global y Actividades
+              <span className="sm:hidden">Global</span>
+              <span className="hidden sm:inline">Visión Global y Actividades</span>
             </button>
             <button
               type="button"
@@ -210,7 +211,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              Métricas por Encargado
+              <span className="sm:hidden">Encargados</span>
+              <span className="hidden sm:inline">Métricas por Encargado</span>
             </button>
             <button
               type="button"
@@ -223,7 +225,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              Censo Demográfico
+              <span className="sm:hidden">Usuarios</span>
+              <span className="hidden sm:inline">Censo Demográfico</span>
             </button>
           </div>
 

@@ -243,16 +243,16 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           {/* Flujo RF-08: estados controlados y límites del rol operativo */}
           <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <h4 className="text-[11px] font-bold text-[#1e293b]">Ciclo de publicación y participación</h4>
-              <span className="text-[10px] text-[#64748b] font-medium">Solo publicada + ventana activa acepta asistencia</span>
+              <h4 className="text-[11px] font-bold text-[#1e293b]">Ciclo de actividad</h4>
+              <span className="hidden sm:inline text-[10px] text-[#64748b] font-medium">Asistencia: publicada + abierta</span>
             </div>
             <div className="grid grid-cols-4 gap-1.5 text-center text-[9px] font-bold uppercase tracking-wide">
               <span className={`rounded-lg px-1.5 py-1.5 border ${isDraft ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Revisión</span>
-              <span className={`rounded-lg px-1.5 py-1.5 border ${isPublicado || isEnCurso || isFinalizado ? 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Aprobada / publicada</span>
-              <span className={`rounded-lg px-1.5 py-1.5 border ${isEnCurso ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Apertura activa</span>
-              <span className={`rounded-lg px-1.5 py-1.5 border ${isFinalizado ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Cierre / cancelación</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isPublicado || isEnCurso || isFinalizado ? 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Publicada</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isEnCurso ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Ventana</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isFinalizado ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Cierre</span>
             </div>
-            <p className="text-[10px] text-[#64748b]">El Encargado de Área opera publicación, apertura y cierre. El Administrador observa el ciclo y sus métricas sin ejecutar estas acciones.</p>
+            <p className="text-[10px] text-[#64748b]">El encargado opera el ciclo; el administrador lo supervisa.</p>
           </div>
 
           {/* Información y Parámetros con Iconos */}
@@ -314,12 +314,12 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                 </button>
               ) : isFinalizado ? (
                 <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] text-center text-xs font-semibold">
-                  Evento finalizado · Acreditación presencial cerrada · Estado terminal; una cancelación se comunica como novedad separada
+                  Evento finalizado · Acreditación cerrada
                 </div>
               ) : (
                 <div className="p-3.5 rounded-xl bg-[#f0f9ff] border border-[#bae6fd] text-[#0369a1] text-xs font-medium flex items-center justify-center gap-2">
                   <Clock className="w-4 h-4 text-[#0284c7] shrink-0" />
-                  <span>Programado · La acreditación presencial se habilitará al iniciar la actividad</span>
+                  <span>Programado · Se habilita al iniciar la actividad</span>
                 </div>
               )}
             </div>
@@ -360,8 +360,8 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                     <span className="font-bold text-xs block text-[#1e293b]">
                       {event.image ? 'Portada de la Actividad Asignada' : 'Portada de la Actividad'}
                     </span>
-                    <span className="text-[10px] text-[#64748b] block">
-                      Edita el prompt para generar con IA o sube una imagen externa desde tu equipo o URL.
+                    <span className="hidden sm:block text-[10px] text-[#64748b]">
+                      Edita el prompt o sube una imagen externa.
                     </span>
                   </div>
                 </div>
