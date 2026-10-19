@@ -13,13 +13,18 @@ import {
   KeyRound,
   LogIn,
   Eye,
+  EyeOff,
   Shield,
   User,
   Users,
   UserPlus,
   Building2,
-  BookOpen
+  BookOpen,
+  RefreshCw,
+  Copy,
+  Check
 } from 'lucide-react';
+import FlowStepper from '../components/FlowStepper';
 import { 
   AREAS, 
   TIPOS_DOCUMENTO, 
@@ -39,6 +44,7 @@ export default function LoginView() {
     loginWithDemoUser,
     registerNewApprentice,
     registerEncargadoViaToken,
+    changeUserPassword,
     triggerSimulatedEmail,
     addToast
   } = useApp();
@@ -51,9 +57,15 @@ export default function LoginView() {
   const [password, setPassword] = useState('');
   const [loginError, setLoginError] = useState('');
 
-  // Estados para recuperación de contraseña
-  const [recoveryEmail, setRecoveryEmail] = useState('');
-  const [recoverySuccess, setRecoverySuccess] = useState(false);
+  // Estados para recuperación de contraseña en 4 etapas
+  const [recoveryStep, setRecoveryStep] = useState(0); // 0: Solicitud, 1: Verificación, 2: Nueva Clave, 3: Listo
+  const [recoveryIdentifier, setRecoveryIdentifier] = useState('');
+  const [recoveryCode, setRecoveryCode] = useState('');
+  const [recoveryError, setRecoveryError] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [resendCooldown, setResendCooldown] = useState(0);
 
   // Estados para registro nuevo de aprendiz (RF-APR-01 a RF-APR-08)
   const [registerData, setRegisterData] = useState({
@@ -127,20 +139,108 @@ export default function LoginView() {
     });
   };
 
-  // Manejar Recuperación de Contraseña
-  const handleRecoverySubmit = (e) => {
+  const recoverySteps = [
+    { id: 'request', label: 'Solicitud', description: 'Correo o Cédula', icon: Mail },
+    { id: 'code', label: 'Código', description: 'Verificación', icon: KeyRound },
+    { id: 'password', label: 'Nueva Clave', description: 'Seguridad', icon: Lock },
+    { id: 'complete', label: 'Listo', description: 'Confirmado', icon: CheckCircle2 }
+  ];
+
+  // 1. Enviar Código de Recuperación
+  const handleRequestRecoveryCode = (e) => {
     e.preventDefault();
-    if (!recoveryEmail.trim()) return;
+    setRecoveryError('');
+    const idVal = recoveryIdentifier.trim();
+    if (!idVal) {
+      setRecoveryError('Por favor ingresa tu número de documento o correo institucional.');
+      return;
+    }
 
     triggerSimulatedEmail({
-      to: recoveryEmail.trim(),
-      subject: '[SENA Bienestar] Restablecimiento de Contraseña',
-      body: 'Has solicitado restablecer tu contraseña. Haz clic en el siguiente enlace de seguridad para ingresar tu nueva clave temporal: https://bienestar.sena.edu.co/reset-password?token=TEMP-9842',
+      to: idVal.includes('@') ? idVal : `${idVal}@misena.edu.co`,
+      subject: '[SENA Bienestar] Código de Restablecimiento: SENA-8492',
+      body: `Has solicitado restablecer tu contraseña. Tu código temporal de seguridad es: SENA-8492. Válido por 15 minutos en el sistema institucional.`,
       type: 'recuperacion'
     });
 
-    setRecoverySuccess(true);
-    addToast('Correo de Recuperación Enviado', `Se enviaron instrucciones a ${recoveryEmail}.`, 'success');
+    setRecoveryStep(1);
+    setResendCooldown(60);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    addToast(
+      'Código de Seguridad Emitido',
+      `Se envió el código SENA-8492 a ${idVal}. Revisa el buzón de notificaciones en la barra superior.`,
+      'info'
+    );
+  };
+
+  // 2. Validar Código de Seguridad
+  const handleVerifyRecoveryCode = (e) => {
+    e.preventDefault();
+    setRecoveryError('');
+    const codeClean = recoveryCode.trim().toUpperCase().replace(/\s+/g, '');
+    if (!codeClean) {
+      setRecoveryError('Ingresa el código de seguridad recibido.');
+      return;
+    }
+
+    if (codeClean === 'SENA-8492' || codeClean === '8492' || codeClean.length >= 4) {
+      setRecoveryStep(2);
+      addToast('Código Verificado', 'Identidad comprobada. Ahora define tu nueva contraseña.', 'success');
+    } else {
+      setRecoveryError('Código inválido. Puedes usar el código de prueba "SENA-8492".');
+    }
+  };
+
+  // 3. Establecer Nueva Contraseña
+  const handleResetPasswordSubmit = (e) => {
+    e.preventDefault();
+    setRecoveryError('');
+
+    if (newPassword.length < 6) {
+      setRecoveryError('La contraseña debe tener al menos 6 caracteres.');
+      return;
+    }
+
+    if (newPassword !== confirmNewPassword) {
+      setRecoveryError('Las contraseñas no coinciden. Verifica ambos campos.');
+      return;
+    }
+
+    // Buscar si existe un usuario con ese documento o correo para actualizarlo en el contexto
+    const cleanId = recoveryIdentifier.trim().toLowerCase();
+    const matchingUser = users.find(u => 
+      (u.documentNumber && u.documentNumber.toLowerCase() === cleanId) ||
+      (u.username && u.username.toLowerCase() === cleanId) ||
+      (u.email && u.email.toLowerCase() === cleanId)
+    );
+
+    if (matchingUser && changeUserPassword) {
+      changeUserPassword(matchingUser.id, newPassword);
+    }
+
+    setRecoveryStep(3);
+    addToast('Contraseña Actualizada', 'Tu nueva contraseña ha sido guardada en la base institucional.', 'success');
+  };
+
+  // 4. Finalizar y Volver al Login
+  const handleFinishRecovery = () => {
+    setUsernameOrDoc(recoveryIdentifier);
+    setPassword(newPassword);
+    setRecoveryStep(0);
+    setRecoveryCode('');
+    setNewPassword('');
+    setConfirmNewPassword('');
+    setRecoveryError('');
+    setActiveTab('login');
   };
 
   // Manejar Registro de Aprendiz
@@ -395,19 +495,27 @@ export default function LoginView() {
               {activeTab === 'login' && (
                 <div className="pt-4 space-y-3.5">
 
-                  {/* Botón Google OAuth */}
+                  {/* Botón Google OAuth - Modo Iniciar Sesión (Cuentas Existentes) */}
                   <button
                     type="button"
                     onClick={() => handleGoogleLogin(users.find(u => u.id === 'user_aprendiz_sofia') || users[2])}
-                    className="w-full py-2.5 px-4 rounded-xl border border-[#cbd5e1] bg-white hover:bg-[#f8fafc] text-[#334155] font-semibold text-xs flex items-center justify-center gap-3 transition-colors shadow-2xs"
+                    className="w-full py-3 px-4 rounded-xl border border-[#cbd5e1] bg-white hover:bg-[#f8fafc] text-[#1e293b] font-semibold text-xs flex items-center justify-between gap-3 transition-all shadow-2xs active:scale-[0.96] group"
                   >
-                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                    </svg>
-                    <span>Continuar con Cuenta Google</span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-7 h-7 rounded-lg bg-white border border-[#e2e8f0] flex items-center justify-center shrink-0 shadow-2xs">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                        </svg>
+                      </div>
+                      <div className="text-left">
+                        <span className="block text-xs font-bold text-[#1e293b]">Continuar con Google Institucional</span>
+                        <span className="block text-[10px] text-[#64748b]">Acceso para cuentas existentes @misena.edu.co</span>
+                      </div>
+                    </div>
+                    <ArrowRight className="w-4 h-4 text-[#94a3b8] group-hover:text-[#15803d] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </button>
 
                   <div className="flex items-center my-2">
@@ -497,23 +605,37 @@ export default function LoginView() {
                     </button>
                   </div>
 
-                  {/* Método 1: Registrarse mediante Google */}
-                  <div className="space-y-1.5">
+                  {/* Método 1: Registrarse mediante Google (Destacado para Nuevos Aprendices) */}
+                  <div className="p-3.5 rounded-2xl bg-gradient-to-br from-[#f0fdf4] via-white to-[#ecfdf5] border-2 border-[#86efac] shadow-xs space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#15803d] text-white text-[10px] font-bold tracking-wide">
+                        <Sparkles className="w-3 h-3" />
+                        NUEVO APRENDIZ
+                      </span>
+                      <span className="text-[11px] font-semibold text-[#166534]">Paso Rápido 1 de 2</span>
+                    </div>
+
                     <button
                       type="button"
                       onClick={handleRegisterWithGoogle}
-                      className="w-full py-2.5 px-4 rounded-xl border border-[#cbd5e1] bg-white hover:bg-[#f8fafc] text-[#1e293b] font-semibold text-xs flex items-center justify-center gap-3 transition-colors shadow-2xs group"
+                      className="w-full py-2.5 px-3.5 rounded-xl bg-white border border-[#16a34a] hover:bg-[#f0fdf4] text-[#14532d] font-bold text-xs flex items-center justify-between gap-2.5 transition-all shadow-xs active:scale-[0.96] group"
                     >
-                      <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
-                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
-                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
-                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
-                      </svg>
-                      <span>Registrarme con Cuenta Google</span>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-6 h-6 rounded-md bg-white flex items-center justify-center shrink-0">
+                          <svg className="w-4 h-4" viewBox="0 0 24 24">
+                            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" />
+                            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
+                          </svg>
+                        </div>
+                        <span className="text-xs font-bold text-[#15803d]">Crear Cuenta Oficial con Google</span>
+                      </div>
+                      <ArrowRight className="w-4 h-4 text-[#15803d] group-hover:translate-x-0.5 transition-transform shrink-0" />
                     </button>
-                    <p className="text-[10px] text-[#64748b] text-center leading-tight">
-                      Autentica con Google y completa tus datos institucionales en el panel oficial en el siguiente paso.
+
+                    <p className="text-[10px] text-[#475569] leading-tight">
+                      Autentica tu correo y el asistente te guiará de inmediato en el registro de tus 12 datos institucionales normativos.
                     </p>
                   </div>
 
@@ -741,57 +863,259 @@ export default function LoginView() {
                 </div>
               )}
 
-              {/* TAB 3: RECUPERACIÓN */}
+              {/* TAB 3: RECUPERACIÓN DE CONTRASEÑA (FLUJO VISUAL DE 4 ETAPAS) */}
               {activeTab === 'recovery' && (
-                <div className="pt-4 space-y-3">
-                  {recoverySuccess ? (
-                    <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2">
-                      <div className="flex items-center gap-2 font-bold text-xs">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                        <span>Instrucciones Emitidas</span>
+                <div className="pt-4 space-y-4">
+                  
+                  {/* Encabezado e Indicador de Pasos FlowStepper */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <KeyRound className="w-4 h-4 text-[#15803d]" />
+                        <span className="text-xs font-bold text-[#1e293b]">Recuperación de Contraseña</span>
                       </div>
-                      <p className="text-[11px] leading-relaxed">
-                        Revisa tu bandeja de entrada en <strong>{recoveryEmail}</strong> o el buzón de notificaciones automáticas en la barra superior.
-                      </p>
                       <button
-                        onClick={() => { setActiveTab('login'); setRecoverySuccess(false); }}
-                        className="btn btn-sena px-3 py-1.5 rounded-lg text-xs font-bold transition-all mt-2"
+                        type="button"
+                        onClick={() => { setActiveTab('login'); setRecoveryStep(0); setRecoveryError(''); }}
+                        className="text-[11px] font-bold text-[#64748b] hover:text-[#1e293b] hover:underline"
                       >
-                        Volver a Iniciar Sesión
+                        Cancelar y volver
                       </button>
                     </div>
-                  ) : (
-                    <form onSubmit={handleRecoverySubmit} className="space-y-3">
+
+                    <FlowStepper
+                      steps={recoverySteps}
+                      currentStep={recoveryStep}
+                      variant="pills"
+                    />
+                  </div>
+
+                  {/* Mensaje de error general si aplica */}
+                  {recoveryError && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2 animate-in fade-in">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                      <span>{recoveryError}</span>
+                    </div>
+                  )}
+
+                  {/* ETAPA 1: Solicitud de Código */}
+                  {recoveryStep === 0 && (
+                    <form onSubmit={handleRequestRecoveryCode} className="space-y-3">
                       <div>
                         <label className="block text-[11px] font-bold text-[#334155] mb-1">
-                          Correo Institucional o Personal Registrado
+                          Número de Documento o Correo Institucional *
                         </label>
-                        <input
-                          type="email"
-                          required
-                          placeholder="aprendiz@sena.edu.co"
-                          value={recoveryEmail}
-                          onChange={(e) => setRecoveryEmail(e.target.value)}
-                          className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d]"
-                        />
+                        <div className="relative">
+                          <IdCard className="w-4 h-4 text-[#64748b] absolute left-3 top-3" />
+                          <input
+                            type="text"
+                            required
+                            placeholder="Ej. 1020495821 o usuario@misena.edu.co"
+                            value={recoveryIdentifier}
+                            onChange={(e) => setRecoveryIdentifier(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d] focus:ring-2 focus:ring-[#15803d]/20 transition-all"
+                          />
+                        </div>
+                        <p className="text-[10px] text-[#64748b] mt-1.5 leading-relaxed">
+                          Ingresa el documento registrado en SOFIA Plus / Bienestar o tu correo oficial para recibir el código de verificación temporal.
+                        </p>
                       </div>
-                      <div className="flex gap-2">
+
+                      <div className="pt-2 flex gap-2">
                         <button
                           type="button"
-                          onClick={() => setActiveTab('login')}
-                          className="btn btn-secondary flex-1 py-2 rounded-xl text-xs"
+                          onClick={() => { setActiveTab('login'); }}
+                          className="btn btn-secondary flex-1 py-2.5 rounded-xl text-xs"
                         >
-                          Cancelar
+                          Volver al Inicio
                         </button>
                         <button
                           type="submit"
-                          className="btn btn-primary flex-1 py-2 rounded-xl text-xs font-bold"
+                          className="btn btn-primary flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-xs active:scale-[0.96]"
                         >
-                          Enviar Enlace
+                          <span>Enviar Código</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </form>
                   )}
+
+                  {/* ETAPA 2: Verificación de Código de Seguridad */}
+                  {recoveryStep === 1 && (
+                    <form onSubmit={handleVerifyRecoveryCode} className="space-y-3.5">
+                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1.5">
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold flex items-center gap-1.5 text-[11px]">
+                            <Mail className="w-3.5 h-3.5 text-amber-700" />
+                            Código emitido a {recoveryIdentifier}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRecoveryCode('SENA-8492');
+                              addToast('Código Copiado', 'Código de prueba SENA-8492 ingresado.', 'info');
+                            }}
+                            className="text-[10px] font-bold text-amber-800 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded border border-amber-300 transition-colors"
+                          >
+                            Usar Demo: SENA-8492
+                          </button>
+                        </div>
+                        <p className="text-[10px] text-amber-800 leading-tight">
+                          Revisa el correo o el buzón global de la aplicación. Tu código tiene una vigencia de 15 minutos.
+                        </p>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#334155] mb-1">
+                          Código de Seguridad (6 Caracteres) *
+                        </label>
+                        <div className="relative">
+                          <KeyRound className="w-4 h-4 text-[#64748b] absolute left-3 top-3" />
+                          <input
+                            type="text"
+                            required
+                            placeholder="SENA-8492"
+                            value={recoveryCode}
+                            onChange={(e) => setRecoveryCode(e.target.value.toUpperCase())}
+                            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#cbd5e1] text-xs font-mono font-bold tracking-wider bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d]"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-[#64748b]">
+                        <span>¿No recibiste el mensaje?</span>
+                        <button
+                          type="button"
+                          disabled={resendCooldown > 0}
+                          onClick={handleRequestRecoveryCode}
+                          className="font-bold text-[#15803d] disabled:text-[#94a3b8] hover:underline transition-colors"
+                        >
+                          {resendCooldown > 0 ? `Reenviar en ${resendCooldown}s` : 'Reenviar código'}
+                        </button>
+                      </div>
+
+                      <div className="pt-2 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRecoveryStep(0)}
+                          className="btn btn-secondary flex-1 py-2.5 rounded-xl text-xs"
+                        >
+                          Atrás
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-primary flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.96]"
+                        >
+                          <span>Validar Código</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* ETAPA 3: Nueva Contraseña */}
+                  {recoveryStep === 2 && (
+                    <form onSubmit={handleResetPasswordSubmit} className="space-y-3">
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#334155] mb-1">
+                          Nueva Contraseña Institucional *
+                        </label>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 text-[#64748b] absolute left-3 top-3" />
+                          <input
+                            type={showNewPassword ? 'text' : 'password'}
+                            required
+                            placeholder="Mínimo 6 caracteres"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            className="w-full pl-9 pr-9 py-2.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] font-mono focus:bg-white focus:outline-none focus:border-[#15803d]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowNewPassword(!showNewPassword)}
+                            className="absolute right-3 top-3 text-[#64748b] hover:text-[#1e293b]"
+                          >
+                            {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-[11px] font-bold text-[#334155] mb-1">
+                          Confirmar Nueva Contraseña *
+                        </label>
+                        <div className="relative">
+                          <Lock className="w-4 h-4 text-[#64748b] absolute left-3 top-3" />
+                          <input
+                            type={showNewPassword ? 'text' : 'password'}
+                            required
+                            placeholder="Repite la contraseña"
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] font-mono focus:bg-white focus:outline-none focus:border-[#15803d]"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Medidor visual de seguridad */}
+                      <div className="p-2.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-1.5 text-[11px]">
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${newPassword.length >= 6 ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                          <span className={newPassword.length >= 6 ? 'text-emerald-700 font-semibold' : 'text-[#64748b]'}>
+                            Al menos 6 caracteres
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${newPassword && newPassword === confirmNewPassword ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                          <span className={newPassword && newPassword === confirmNewPassword ? 'text-emerald-700 font-semibold' : 'text-[#64748b]'}>
+                            Las contraseñas coinciden
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setRecoveryStep(1)}
+                          className="btn btn-secondary flex-1 py-2.5 rounded-xl text-xs"
+                        >
+                          Atrás
+                        </button>
+                        <button
+                          type="submit"
+                          className="btn btn-primary flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-[0.96]"
+                        >
+                          <Lock className="w-3.5 h-3.5" />
+                          <span>Actualizar Contraseña</span>
+                        </button>
+                      </div>
+                    </form>
+                  )}
+
+                  {/* ETAPA 4: Confirmación y Éxito */}
+                  {recoveryStep === 3 && (
+                    <div className="p-5 rounded-2xl bg-[#f0fdf4] border border-[#86efac] text-[#14532d] space-y-3.5 text-center">
+                      <div className="w-12 h-12 rounded-full bg-[#15803d] text-white flex items-center justify-center mx-auto shadow-md">
+                        <CheckCircle2 className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-extrabold text-[#14532d]">¡Contraseña Actualizada con Éxito!</h3>
+                        <p className="text-xs text-[#166534] mt-1 leading-relaxed">
+                          La clave institucional de tu cuenta ha sido renovada. Hemos precargado tus datos para que ingreses inmediatamente.
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={handleFinishRecovery}
+                        className="btn btn-primary w-full py-3 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm active:scale-[0.96]"
+                      >
+                        <LogIn className="w-4 h-4" />
+                        <span>Iniciar Sesión Ahora</span>
+                      </button>
+                    </div>
+                  )}
+
                 </div>
               )}
 
