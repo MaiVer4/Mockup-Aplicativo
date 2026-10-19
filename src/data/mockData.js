@@ -339,6 +339,11 @@ export const INITIAL_EVENTS = [
     sourceText: 'Hoja Cultura Fila 14: Danza y Folclor Regional. Cupo estimado 120.',
     isAmbiguous: false,
     ambiguityReason: null,
+    humanApproved: true,
+    publishedBy: 'Elena Ríos',
+    publishedAt: `${todayStr}T08:30:00`,
+    attendanceOpenedAt: `${todayStr}T14:02:15`,
+    attendanceOpenedBy: 'Elena Ríos',
     createdAt: '2026-10-01'
   },
   {
@@ -364,6 +369,9 @@ export const INITIAL_EVENTS = [
     sourceText: 'Hoja Actividad F Fila 08: Voleibol Interfichas. Cupo 90.',
     isAmbiguous: false,
     ambiguityReason: null,
+    humanApproved: true,
+    publishedBy: 'Lic. Mateo Silva',
+    publishedAt: `${todayStr}T09:10:00`,
     createdAt: '2026-10-02'
   },
   {
@@ -389,6 +397,9 @@ export const INITIAL_EVENTS = [
     sourceText: 'Hoja Prevención Fila 19: Salud Mental Integral. Cupo 75.',
     isAmbiguous: false,
     ambiguityReason: null,
+    humanApproved: true,
+    publishedBy: 'Dra. Patricia Gómez',
+    publishedAt: `${todayStr}T11:00:00`,
     createdAt: '2026-10-04'
   },
   {
@@ -439,6 +450,13 @@ export const INITIAL_EVENTS = [
     sourceText: 'Hoja Arte Fila 12: Muestra colectiva de fin de ciclo.',
     isAmbiguous: false,
     ambiguityReason: null,
+    humanApproved: true,
+    publishedBy: 'Elena Ríos',
+    publishedAt: `${yesterdayStr}T07:45:00`,
+    attendanceOpenedAt: `${yesterdayStr}T08:05:00`,
+    attendanceOpenedBy: 'Elena Ríos',
+    attendanceClosedAt: `${yesterdayStr}T14:15:30`,
+    attendanceClosedBy: 'Elena Ríos',
     createdAt: '2026-09-28'
   },
   {
@@ -459,12 +477,67 @@ export const INITIAL_EVENTS = [
     capacity: 100,
     attendeesCount: 0,
     attendedByUserIds: [],
-    responsibleId: 'user_enc_cultura',
-    responsibleName: 'Elena Ríos',
-    sourceText: 'Hoja Liderazgo Fila 02: Encuentro General de Voceros.',
+    responsibleId: 'user_enc_deportes',
+    responsibleName: 'Lic. Mateo Silva',
+    sourceText: 'Hoja Liderazgo Fila 04: Cumbre de Voceros Anual.',
     isAmbiguous: false,
     ambiguityReason: null,
+    humanApproved: true,
+    publishedBy: 'Lic. Mateo Silva',
+    publishedAt: `${todayStr}T10:00:00`,
     createdAt: '2026-10-06'
+  },
+  {
+    id: 'evt-sena-207',
+    code: 'ACT-CUL-07',
+    title: 'Taller Magistral de Narrativa Creativa y Cómic Regional',
+    purpose: 'Fomentar la escritura creativa y el diseño gráfico de viñetas en aprendices de programas de comunicación y afines.',
+    objective: 'Publicar una antología gráfica digital elaborada en conjunto por los aprendices participantes.',
+    extendedDescription: 'Taller práctico de tres jornadas con ilustradores invitados. Los participantes elaborarán una historieta corta basada en mitos y leyendas locales.',
+    image: 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&auto=format&fit=crop&q=80',
+    area: 'Cultura',
+    quarter: 'Trimestre 4',
+    date: tomorrowStr,
+    time: '15:00 - 18:00',
+    duration: '3 horas',
+    location: 'Laboratorio de Creatividad Bloque B',
+    status: 'pendiente_aprobacion', // Estado Pendiente de Aprobación
+    capacity: 45,
+    attendeesCount: 0,
+    attendedByUserIds: [],
+    responsibleId: 'user_enc_cultura',
+    responsibleName: 'Elena Ríos',
+    sourceText: 'Hoja Cultura Fila 22: Taller de Cómic Regional.',
+    isAmbiguous: false,
+    ambiguityReason: null,
+    submittedForApprovalAt: `${todayStr}T11:20:00`,
+    submittedBy: 'Elena Ríos',
+    createdAt: '2026-10-07'
+  },
+  {
+    id: 'evt-sena-208',
+    code: 'ACT-DEP-08',
+    title: 'Carrera Atlética 5K por la Salud y la Juventud SENA',
+    purpose: 'Promover hábitos de vida saludable y actividad cardiovascular en aprendices de todas las sedes.',
+    objective: 'Integración comunitaria mediante circuito deportivo al aire libre.',
+    extendedDescription: 'Circuito perimetral de 5 kilómetros debidamente señalizado con puntos de hidratación y paramédicos.',
+    image: 'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=800&auto=format&fit=crop&q=80',
+    area: 'Actividad Física',
+    quarter: 'Trimestre 4',
+    date: yesterdayStr,
+    time: '07:00 - 11:00',
+    duration: '4 horas',
+    location: 'Circuito Perimetral Campus Paloquemao',
+    status: 'cancelada', // Estado Cancelada
+    capacity: 200,
+    attendeesCount: 0,
+    attendedByUserIds: [],
+    responsibleId: 'user_enc_deportes',
+    responsibleName: 'Lic. Mateo Silva',
+    cancellationReason: 'Alerta climática por fuertes lluvias y mantenimiento preventivo en la pista perimetral (Decreto Distrital).',
+    cancelledAt: `${todayStr}T09:15:00`,
+    cancelledBy: 'Lic. Mateo Silva',
+    createdAt: '2026-10-03'
   }
 ];
 
