@@ -35,7 +35,6 @@ export default function ParticipantsView({ onOpenExportModal }) {
   const [filterModality, setFilterModality] = useState('ALL');
   const [filterStatus, setFilterStatus] = useState('ALL');
   const [searchTerm, setSearchTerm] = useState('');
-  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
 
   // Eventos disponibles para filtrar según permisos del rol
   const availableEvents = visibleEvents.filter(e => e.status !== 'borrador');
@@ -210,17 +209,6 @@ export default function ParticipantsView({ onOpenExportModal }) {
           </span>
         </div>
 
-        <div className="flex items-center justify-between gap-2 rounded-xl bg-[#f8fafc] border border-[#f1f5f9] px-3 py-2">
-          <span className="text-[11px] text-[#64748b]">Usa los filtros básicos o despliega los criterios avanzados.</span>
-          <button
-            type="button"
-            onClick={() => setShowAdvancedFilters(prev => !prev)}
-            className="text-[11px] font-bold text-[#15803d] hover:underline shrink-0"
-          >
-            {showAdvancedFilters ? 'Ocultar avanzados' : 'Mostrar avanzados (3)'}
-          </button>
-        </div>
-
         {/* Grid de 6 Controles de Filtro */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
           
@@ -273,7 +261,6 @@ export default function ParticipantsView({ onOpenExportModal }) {
             </select>
           </div>
 
-          {showAdvancedFilters && <>
           {/* 4. Ficha */}
           <div>
             <label className="block text-[10px] font-extrabold text-[#64748b] uppercase tracking-wider mb-1">
@@ -323,11 +310,10 @@ export default function ParticipantsView({ onOpenExportModal }) {
               <option value="pendiente">Pendiente</option>
             </select>
           </div>
-          </>}
 
         </div>
 
-        {/* Buscador de Texto Rápido y Limpiar */
+        {/* Buscador de Texto Rápido y Limpiar */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-2 pt-2 border-t border-[#f1f5f9]">
           <div className="relative w-full sm:w-80">
             <Search className="w-3.5 h-3.5 text-[#94a3b8] absolute left-3 top-2.5" />

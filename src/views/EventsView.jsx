@@ -19,7 +19,6 @@ import {
   ArrowRight,
   Sparkles,
   Users,
-  ShieldCheck,
   Ban,
   Send,
   Lock
