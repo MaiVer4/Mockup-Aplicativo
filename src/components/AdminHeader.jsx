@@ -7,7 +7,6 @@ import {
   ChevronDown, 
   LogOut, 
   RotateCcw, 
-  Shield, 
   Sparkles,
   Mail,
   KeyRound
@@ -35,13 +34,10 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
 
   const getRoleBadge = () => {
     if (currentUser.role === 'admin_general') {
-      return {
-        label: 'Administración General',
-        color: 'bg-[#0e2738] text-[#c4f246] border-[#1a3a4e]'
-      };
+      return null;
     }
     return {
-      label: `Área de ${currentUser.area || 'Cultura'}`,
+      label: `ENCARGADO OPERATIVO · ${currentUser.area?.toUpperCase() || 'CULTURA'}`,
       color: 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]'
     };
   };
@@ -82,14 +78,12 @@ export default function AdminHeader({ onOpenMenu, searchQuery, setSearchQuery })
       <div className="flex items-center gap-2 sm:gap-4 shrink-0">
         
         {/* Badge del Área o Rol */}
-        <span className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${roleBadge.color}`}>
-          {currentUser.role === 'admin_general' ? (
-            <Shield className="w-3.5 h-3.5" />
-          ) : (
+        {roleBadge && (
+          <span className={`hidden md:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold border ${roleBadge.color}`}>
             <Sparkles className="w-3.5 h-3.5" />
-          )}
-          <span>{roleBadge.label}</span>
-        </span>
+            <span>{roleBadge.label}</span>
+          </span>
+        )}
 
         {/* Campana de Notificaciones de correo automático */}
         <button

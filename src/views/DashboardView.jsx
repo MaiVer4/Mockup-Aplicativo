@@ -1,41 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  UserCheck, 
-  TrendingUp, 
-  ChevronRight, 
-  CheckCircle2, 
-  Sparkles, 
-  FileSpreadsheet, 
-  ExternalLink, 
-  Plus, 
-  Link as LinkIcon, 
-  Shield, 
-  ArrowRight, 
-  MoreHorizontal, 
-  MapPin, 
-  Search, 
-  Filter, 
-  Layers, 
-  BarChart3, 
-  Award, 
-  ShieldCheck, 
+import {
+  Calendar,
+  Clock,
+  Users,
+  UserCheck,
+  TrendingUp,
+  ChevronRight,
+  CheckCircle2,
+  Sparkles,
+  FileSpreadsheet,
+  ExternalLink,
+  Plus,
+  Link as LinkIcon,
+  Shield,
+  ArrowRight,
+  MoreHorizontal,
+  MapPin,
+  Search,
+  Filter,
+  Layers,
+  BarChart3,
+  Award,
+  ShieldCheck,
   AlertCircle,
   UserPlus
 } from 'lucide-react';
 import { AREAS } from '../data/mockData';
+import EmptyState from '../components/EmptyState';
 
 export default function DashboardView({ onOpenRegisterModal, onNavigateView, onOpenEventDetail }) {
-  const { 
-    currentUser, 
-    events, 
-    visibleEvents, 
-    users, 
-    activeTab, 
-    setActiveTab, 
+  const {
+    currentUser,
+    events,
+    visibleEvents,
+    users,
+    activeTab,
+    setActiveTab,
     getApprenticeAuditData,
     toggleUserStatus
   } = useApp();
@@ -43,11 +44,11 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
   const [selectedWeekFilter, setSelectedWeekFilter] = useState('Últimas 5 semanas');
   const [apprenticeSearchDoc, setApprenticeSearchDoc] = useState('');
   const [searchedAuditResult, setSearchedAuditResult] = useState(null);
-  
+
   // Filtros para Gestión de Usuarios (RF-16)
   const [userRoleFilter, setUserRoleFilter] = useState('ALL');
   const [userSearchTerm, setUserSearchTerm] = useState('');
-  
+
   // Pestañas de supervisión RF-15 para Admin General
   const [adminMetricTab, setAdminMetricTab] = useState(activeTab === 'users' ? 'usuarios' : 'global');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState('Todas');
@@ -73,15 +74,17 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
   // Métricas Consolidadas Globales (RF-15)
   const totalEvents = relevantEvents.length;
   const draftEvents = relevantEvents.filter(e => e.status === 'borrador').length;
+  const pendingEvents = relevantEvents.filter(e => e.status === 'pendiente_aprobacion').length;
   const publishedEvents = relevantEvents.filter(e => e.status === 'publicado').length;
   const inProgressEvents = relevantEvents.filter(e => e.status === 'en_curso').length;
   const finishedEvents = relevantEvents.filter(e => e.status === 'finalizado').length;
+  const cancelledEvents = relevantEvents.filter(e => e.status === 'cancelada').length;
 
   const totalAttendees = relevantEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
   const totalCapacity = relevantEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
   const totalRegisteredLearners = 1248; // Base activa de aprendices con perfil oficial completo
-  const attendanceRate = totalCapacity > 0 
-    ? Math.min(100, Math.round((totalAttendees / totalCapacity) * 100)) 
+  const attendanceRate = totalCapacity > 0
+    ? Math.min(100, Math.round((totalAttendees / totalCapacity) * 100))
     : 84.5;
 
   const encargadosList = users.filter(u => u.role === 'admin_area');
@@ -97,6 +100,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
     const inProgress = encEvents.filter(e => e.status === 'en_curso').length;
     const finished = encEvents.filter(e => e.status === 'finalizado').length;
     const draft = encEvents.filter(e => e.status === 'borrador').length;
+    const pending = encEvents.filter(e => e.status === 'pendiente_aprobacion').length;
+    const cancelled = encEvents.filter(e => e.status === 'cancelada').length;
 
     return {
       ...enc,
@@ -105,6 +110,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       inProgress,
       finished,
       draft,
+      pending,
+      cancelled,
       totalCapacity: encCapacity,
       totalAttendees: encAttendees,
       avgAttendees,
@@ -141,7 +148,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
   return (
     <div className="space-y-6">
-      
+
       {/* Encabezado Principal Ergonómico */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
@@ -242,10 +249,10 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       {/* ========================================================= */}
       {(currentUser.role !== 'admin_general' || adminMetricTab === 'global') && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          
+
           {/* Grid de 4 StatCards Ergonómicas Anti-Fatiga */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+
             {/* StatCard 1: Eventos Activos */}
             <div className="card-ergonomic p-5 relative">
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center absolute right-4 top-4 border border-blue-100">
@@ -310,7 +317,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
           {/* Grid de 2 Columnas: Gráfico Comparativo + Agenda de Hoy */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4">
-            
+
             {/* Panel de Gráfico: Asistencias vs Cupo Planificado */}
             <div className="card-ergonomic p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between pb-3">
@@ -322,7 +329,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                     Comparativo de asistencias efectivas en sala vs. cupo proyectado
                   </p>
                 </div>
-                <select 
+                <select
                   value={selectedWeekFilter}
                   onChange={(e) => setSelectedWeekFilter(e.target.value)}
                   className="text-xs text-[#475569] border border-[#cbd5e1] rounded-lg px-2.5 py-1 bg-[#f8fafc] focus:outline-none focus:border-[#15803d]"
@@ -356,14 +363,14 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col items-center gap-1.5 h-full justify-end flex-1">
                     <div className="flex items-end gap-1.5 h-[80%]">
-                      <div 
-                        style={{ height: `${item.cap}%` }} 
-                        className="w-3.5 bg-[#cbd5e1] rounded-t-md transition-all duration-300 shadow-2xs" 
+                      <div
+                        style={{ height: `${item.cap}%` }}
+                        className="w-3.5 bg-[#cbd5e1] rounded-t-md transition-all duration-300 shadow-2xs"
                         title={`Cupo Planificado (Excel): ${item.cap}`}
                       />
-                      <div 
-                        style={{ height: `${item.att}%` }} 
-                        className="w-3.5 bg-[#15803d] rounded-t-md transition-all duration-300 shadow-2xs" 
+                      <div
+                        style={{ height: `${item.att}%` }}
+                        className="w-3.5 bg-[#15803d] rounded-t-md transition-all duration-300 shadow-2xs"
                         title={`Asistencias Confirmadas: ${item.att}`}
                       />
                     </div>
@@ -413,9 +420,9 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
                     {/* Portada o Indicador de Borrador */}
                     {evt.image ? (
-                      <img 
-                        src={evt.image} 
-                        alt={evt.title} 
+                      <img
+                        src={evt.image}
+                        alt={evt.title}
                         className="w-[52px] h-11 object-cover rounded-lg border border-[#e2e8f0]"
                       />
                     ) : (
@@ -454,7 +461,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   Supervisión de Actividades Institucionales ({filteredEvents.length})
                 </strong>
                 <p className="text-[11px] text-[#64748b]">
-                  Control de ciclo de vida de 4 estados, asistencia acumulada y cupo planificado en Excel.
+                  Control normativo de ciclo de vida (Borrador, En Revisión, Publicado, En Curso, Finalizado, Cancelada).
                 </p>
               </div>
 
@@ -477,8 +484,10 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   <option value="Todos">Todos los Estados</option>
                   <option value="publicado">Publicado</option>
                   <option value="en_curso">En Curso</option>
-                  <option value="finalizado">Finalizado</option>
+                  <option value="pendiente_aprobacion">En Revisión (Pendiente)</option>
                   <option value="borrador">Borrador</option>
+                  <option value="finalizado">Finalizado</option>
+                  <option value="cancelada">Cancelada</option>
                 </select>
 
                 <button
@@ -492,83 +501,101 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
               </div>
             </div>
 
-            <div className="overflow-x-auto mt-2">
-              <table className="w-full text-left text-xs border-collapse">
-                <thead>
-                  <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
-                    <th className="py-3 px-3">ACTIVIDAD / ÁREA</th>
-                    <th className="py-3 px-3">FECHA Y HORA</th>
-                    <th className="py-3 px-3">ESTADO</th>
-                    <th className="py-3 px-3">ASISTENCIA / CAPACIDAD</th>
-                    <th className="py-3 px-3 text-right">ACCIÓN</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
-                  {filteredEvents.map(evt => {
-                    const capacity = evt.capacity || 50;
-                    const count = evt.attendeesCount || 0;
-                    const percent = Math.min(100, Math.round((count / capacity) * 100));
+            {filteredEvents.length === 0 ? (
+              <div className="py-8">
+                <EmptyState
+                  title="Sin actividades con los filtros seleccionados"
+                  description="No se encontraron registros que coincidan con el área o estado institucional seleccionado."
+                  actionLabel="Restablecer Filtros"
+                  onAction={() => {
+                    setSelectedAreaFilter('Todas');
+                    setSelectedStatusFilter('Todos');
+                  }}
+                />
+              </div>
+            ) : (
+              <div className="overflow-x-auto mt-2">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="text-[10px] text-[#475569] bg-[#f8fafc] font-bold uppercase tracking-wider border-b border-[#e2e8f0]">
+                      <th className="py-3 px-3">ACTIVIDAD / ÁREA</th>
+                      <th className="py-3 px-3">FECHA Y HORA</th>
+                      <th className="py-3 px-3">ESTADO</th>
+                      <th className="py-3 px-3">ASISTENCIA / CAPACIDAD</th>
+                      <th className="py-3 px-3 text-right">ACCIÓN</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#e2e8f0] text-[#334155]">
+                    {filteredEvents.map(evt => {
+                      const capacity = evt.capacity || 50;
+                      const count = evt.attendeesCount || 0;
+                      const percent = Math.min(100, Math.round((count / capacity) * 100));
 
-                    const getStatusBadge = (st) => {
-                      switch (st) {
-                        case 'publicado':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">Publicado</span>;
-                        case 'en_curso':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">En Curso</span>;
-                        case 'finalizado':
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Finalizado</span>;
-                        default:
-                          return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200">Borrador</span>;
-                      }
-                    };
+                      const getStatusBadge = (st) => {
+                        switch (st) {
+                          case 'publicado':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0]">Publicado</span>;
+                          case 'en_curso':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200 animate-pulse">En Curso</span>;
+                          case 'pendiente_aprobacion':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-300">En Revisión</span>;
+                          case 'cancelada':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700 border border-red-200">Cancelada</span>;
+                          case 'finalizado':
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Finalizado</span>;
+                          default:
+                            return <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-50 text-slate-600 border border-slate-200">Borrador</span>;
+                        }
+                      };
 
-                    return (
-                      <tr key={evt.id} className="hover:bg-[#f8fafc] transition-colors">
-                        <td className="py-3 px-3">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono text-[9px] bg-slate-100 text-[#475569] px-1.5 py-0.5 rounded border border-[#cbd5e1] font-bold">
-                              {evt.area}
-                            </span>
-                            <span className="font-heading font-bold text-[#1e293b]">{evt.title}</span>
-                          </div>
-                          <div className="text-[11px] text-[#64748b] mt-0.5">{evt.location}</div>
-                        </td>
-                        <td className="py-3 px-3 font-mono text-[11px] text-[#475569]">
-                          {evt.date} • {evt.schedule?.split(' - ')[0] || '14:00'}
-                        </td>
-                        <td className="py-3 px-3">
-                          {getStatusBadge(evt.status)}
-                        </td>
-                        <td className="py-3 px-3">
-                          <div className="w-36 space-y-1">
-                            <div className="flex justify-between text-[11px]">
-                              <strong className="text-[#1e293b]">{count}</strong>
-                              <span className="text-[#64748b]">/ {capacity} meta</span>
+                      return (
+                        <tr key={evt.id} className="hover:bg-[#f8fafc] transition-colors">
+                          <td className="py-3 px-3">
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono text-[9px] bg-slate-100 text-[#475569] px-1.5 py-0.5 rounded border border-[#cbd5e1] font-bold">
+                                {evt.area}
+                              </span>
+                              <span className="font-heading font-bold text-[#1e293b]">{evt.title}</span>
                             </div>
-                            <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
-                              <div 
-                                style={{ width: `${percent}%` }} 
-                                className="h-full bg-[#15803d] rounded-full"
-                              />
+                            <div className="text-[11px] text-[#64748b] mt-0.5">{evt.location}</div>
+                          </td>
+                          <td className="py-3 px-3 font-mono text-[11px] text-[#475569]">
+                            {evt.date} • {evt.schedule?.split(' - ')[0] || '14:00'}
+                          </td>
+                          <td className="py-3 px-3">
+                            {getStatusBadge(evt.status)}
+                          </td>
+                          <td className="py-3 px-3">
+                            <div className="w-36 space-y-1">
+                              <div className="flex justify-between text-[11px]">
+                                <strong className="text-[#1e293b]">{count}</strong>
+                                <span className="text-[#64748b]">/ {capacity} meta</span>
+                              </div>
+                              <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
+                                <div
+                                  style={{ width: `${percent}%` }}
+                                  className="h-full bg-[#15803d] rounded-full"
+                                />
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="py-3 px-3 text-right">
-                          <button
-                            type="button"
-                            onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
-                            className="p-1 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] cursor-pointer"
-                            title="Ver detalle del evento"
-                          >
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+                          </td>
+                          <td className="py-3 px-3 text-right">
+                            <button
+                              type="button"
+                              onClick={() => onOpenEventDetail && onOpenEventDetail(evt)}
+                              className="p-1 rounded-lg text-[#64748b] hover:text-[#0f172a] hover:bg-[#e2e8f0] cursor-pointer"
+                              title="Ver detalle del evento"
+                            >
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
 
         </div>
@@ -579,7 +606,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       {/* ========================================================= */}
       {currentUser.role === 'admin_general' && adminMetricTab === 'encargados' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          
+
           {/* Cabecera de la Sección de Encargados */}
           <div className="p-5 card-ergonomic flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -598,7 +625,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
             <button
               type="button"
-              onClick={onOpenInviteModal}
+              onClick={onOpenRegisterModal}
               className="btn btn-primary text-xs shrink-0"
             >
               <Plus className="w-4 h-4 text-white" />
@@ -692,7 +719,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                  <div className="flex items-center gap-1.5 font-mono text-[10px] flex-wrap">
                     <span className="bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.5 rounded font-bold">
                       {enc.published} Publicados
                     </span>
@@ -702,6 +729,16 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                     <span className="bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold">
                       {enc.finished} Fin
                     </span>
+                    {enc.pending > 0 && (
+                      <span className="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded font-bold">
+                        {enc.pending} En Revisión
+                      </span>
+                    )}
+                    {enc.cancelled > 0 && (
+                      <span className="bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded font-bold">
+                        {enc.cancelled} Canceladas
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -749,6 +786,16 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                           <span className="bg-slate-100 text-slate-700 border border-slate-200 px-1.5 py-0.5 rounded font-bold" title="Finalizados">
                             {enc.finished} F
                           </span>
+                          {enc.pending > 0 && (
+                            <span className="bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded font-bold" title="En Revisión">
+                              {enc.pending} R
+                            </span>
+                          )}
+                          {enc.cancelled > 0 && (
+                            <span className="bg-red-50 text-red-700 border border-red-200 px-1.5 py-0.5 rounded font-bold" title="Canceladas">
+                              {enc.cancelled} X
+                            </span>
+                          )}
                           {enc.draft > 0 && (
                             <span className="bg-slate-50 text-slate-500 border border-slate-200 px-1.5 py-0.5 rounded" title="Borradores">
                               {enc.draft} B
@@ -775,8 +822,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                             <span className="text-[#64748b]">efectividad</span>
                           </div>
                           <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
-                            <div 
-                              style={{ width: `${enc.complianceRate}%` }} 
+                            <div
+                              style={{ width: `${enc.complianceRate}%` }}
                               className="h-full bg-[#15803d] rounded-full"
                             />
                           </div>
@@ -841,7 +888,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       {/* ========================================================= */}
       {currentUser.role === 'admin_general' && adminMetricTab === 'usuarios' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          
+
           {/* Cabecera de la Sección de Usuarios */}
           <div className="p-5 card-ergonomic flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -866,7 +913,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
           {/* Grid de 4 StatCards de Censo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+
             <div className="card-ergonomic p-4 relative">
               <div className="w-9 h-9 rounded-xl bg-slate-100 text-[#1e293b] flex items-center justify-center absolute right-4 top-4 border border-slate-200">
                 <Users className="w-4 h-4" />
@@ -921,7 +968,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
           {/* Grid de 2 Paneles: Distribución por Programa y Modalidad */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
+
             {/* Panel 1: Distribución por Programa de Formación */}
             <div className="card-ergonomic p-5 space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
@@ -947,8 +994,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                       </div>
                     </div>
                     <div className="w-full h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
-                      <div 
-                        style={{ width: `${prog.pct}%` }} 
+                      <div
+                        style={{ width: `${prog.pct}%` }}
                         className={`h-full rounded-full ${
                           idx === 0 ? 'bg-[#15803d]' : idx === 1 ? 'bg-blue-600' : idx === 2 ? 'bg-purple-600' : 'bg-slate-500'
                         }`}
@@ -984,8 +1031,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                       </div>
                     </div>
                     <div className="w-full h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
-                      <div 
-                        style={{ width: `${mod.pct}%` }} 
+                      <div
+                        style={{ width: `${mod.pct}%` }}
                         className="h-full bg-[#15803d] rounded-full"
                       />
                     </div>

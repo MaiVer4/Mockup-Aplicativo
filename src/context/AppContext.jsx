@@ -69,20 +69,95 @@ export function AppProvider({ children }) {
     return MOCK_PARTICIPANTS_DATABASE;
   });
 
-  // Registro de correos electrónicos simulados
+  // Registro de correos electrónicos simulados con los 10 tipos institucionales (RF-NOT-01 a RF-NOT-04)
   const [sentEmails, setSentEmails] = useState(() => {
     try {
       const saved = localStorage.getItem(EMAILS_STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length >= 6) return parsed;
+      }
     } catch {}
     return [
       {
         id: 'mail-01',
+        to: 'carlos.mendoza@sena.edu.co',
+        subject: '[SENA Bienestar] Actividad Radicada para Aprobación: ACT-CUL-07',
+        body: 'La encargada Elena Ríos ha radicado la actividad "Taller Magistral de Narrativa Creativa y Cómic Regional" para validación de la Coordinación General previa a su publicación.',
+        timestamp: '2026-10-18 11:20:12',
+        type: 'aprobacion_solicitada'
+      },
+      {
+        id: 'mail-02',
         to: 'elena.rios@sena.edu.co',
-        subject: 'Planificación 2026: Asignación de Área Cultura',
-        body: 'Has sido asignada como encargada oficial de los eventos de bienestar cultural para el trimestre en curso.',
-        timestamp: '2026-10-12 09:15:00',
-        type: 'sistema'
+        subject: '[SENA Bienestar] Actividad Aprobada para Publicación: ACT-CUL-01',
+        body: 'La Coordinación General ha verificado y aprobado humanamente la publicación de "Festival Institucional de Danza y Tradición Folclórica" en la cartelera del aprendiz.',
+        timestamp: '2026-10-18 08:30:00',
+        type: 'aprobacion_resuelta'
+      },
+      {
+        id: 'mail-03',
+        to: 'elena.rios@sena.edu.co',
+        subject: '[SENA Bienestar] Evento Publicado en Cartelera: Festival de Danza',
+        body: 'Se ha publicado formalmente la actividad "Festival Institucional de Danza y Tradición Folclórica". El evento ya es visible para toda la comunidad de aprendices.',
+        timestamp: '2026-10-18 08:30:15',
+        type: 'publicacion'
+      },
+      {
+        id: 'mail-04',
+        to: 'comunidad.aprendices@misena.edu.co',
+        subject: '[SENA Bienestar] Asistencia Habilitada en Vivo: Festival de Danza',
+        body: 'Se ha iniciado la toma de asistencia presencial en el Auditorio Central. Los aprendices en sala pueden confirmar su asistencia en 1 clic.',
+        timestamp: '2026-10-18 14:02:15',
+        type: 'asistencia_apertura'
+      },
+      {
+        id: 'mail-05',
+        to: 'sofia.castillo@misena.edu.co',
+        subject: '[SENA Bienestar] Constancia Digital de Asistencia Registrada: ACT-CUL-01',
+        body: 'Hola Sofia, tu asistencia a "Festival Institucional de Danza y Tradición Folclórica" ha sido acreditada oficialmente en el acta digital GOR-F-013 con firma digital del servidor.',
+        timestamp: '2026-10-18 14:18:40',
+        type: 'asistencia'
+      },
+      {
+        id: 'mail-06',
+        to: 'elena.rios@sena.edu.co',
+        subject: '[SENA Bienestar] Asistencia Finalizada y Acta Consolidada: ACT-ART-05',
+        body: 'Se cerró oficialmente la asistencia para "Muestra Colectiva de Pintura al Óleo". Total de 58 aprendices certificados. Formato GOR-F-013 listo para exportación.',
+        timestamp: '2026-10-17 14:15:30',
+        type: 'asistencia_cierre'
+      },
+      {
+        id: 'mail-07',
+        to: 'comunidad.aprendices@misena.edu.co',
+        subject: '[SENA Bienestar] Aviso de Cancelación: Carrera Atlética 5K',
+        body: 'Informamos que la actividad "Carrera Atlética 5K por la Salud y la Juventud SENA" ha sido cancelada por: Alerta climática y mantenimiento en pista. Se reprogramará oportunamente.',
+        timestamp: '2026-10-18 09:15:00',
+        type: 'cancelacion'
+      },
+      {
+        id: 'mail-08',
+        to: 'aprendiz.nuevo@misena.edu.co',
+        subject: '[SENA Bienestar] Código de Restablecimiento de Contraseña',
+        body: 'Has solicitado restablecer tu contraseña. Tu código de seguridad temporal es: SENA-8492. Ingresa este código en la pantalla de recuperación.',
+        timestamp: '2026-10-18 10:05:00',
+        type: 'recuperacion'
+      },
+      {
+        id: 'mail-09',
+        to: 'nuevo.encargado@sena.edu.co',
+        subject: '[SENA Bienestar] Invitación Oficial como Encargado de Área',
+        body: 'Has sido designado por la Coordinación General como Encargado del Área de Liderazgo. Accede con tu enlace único: https://bienestar.sena.edu.co/registro-encargado?token=SENA-ENC-2026',
+        timestamp: '2026-10-15 16:30:00',
+        type: 'invitacion'
+      },
+      {
+        id: 'mail-10',
+        to: 'sofia.castillo@misena.edu.co',
+        subject: '[SENA Bienestar] ¡Bienvenida al Portal Institucional! Ficha 2670192',
+        body: 'Tu perfil institucional de 12 campos normativos ha sido vinculado con éxito a Sofia Plus. Ya puedes explorar la cartelera y acreditar asistencias.',
+        timestamp: '2026-10-01 08:00:00',
+        type: 'onboarding_bienvenida'
       }
     ];
   });
@@ -515,7 +590,7 @@ export function AppProvider({ children }) {
     return { success: true };
   };
 
-  // 8. Generar Portada de Evento con IA usando Prompt Editable (RF-07)
+  // 8. Generar Portada de Evento con IA usando Prompt Editable
   const generateAIEventCover = (eventId, customPrompt = null) => {
     const target = events.find(e => e.id === eventId);
     if (!target) return null;
@@ -606,9 +681,158 @@ export function AppProvider({ children }) {
     });
   };
 
-  // CICLO DE VIDA DE 4 ESTADOS
+  // CICLO DE VIDA INSTITUCIONAL (Borrador -> Pendiente -> Publicado -> En Curso -> Finalizado / Cancelada)
 
-  // 1. Pasar de Borrador a Publicado (Publicar)
+  // 1. Radicar / Enviar a Aprobación (Encargado -> Coordinación General)
+  const submitForApproval = (eventId) => {
+    const targetEvent = events.find(evt => evt.id === eventId);
+    if (!targetEvent) return false;
+
+    setEvents(prev => prev.map(evt => {
+      if (evt.id === eventId) {
+        return {
+          ...evt,
+          status: 'pendiente_aprobacion',
+          submittedForApprovalAt: new Date().toISOString(),
+          submittedBy: currentUser?.name || 'Encargado de Área'
+        };
+      }
+      return evt;
+    }));
+
+    addToast(
+      'Actividad Radicada para Aprobación',
+      `"${targetEvent.title}" fue enviada a la Coordinación General para revisión y validación previa a su publicación.`,
+      'info'
+    );
+
+    triggerSimulatedEmail({
+      to: 'carlos.mendoza@sena.edu.co',
+      subject: `[SENA Bienestar] Solicitud de Aprobación: ${targetEvent.title}`,
+      body: `El encargado ${currentUser?.name || 'de área'} ha radicado la actividad "${targetEvent.title}" (${targetEvent.area}) para revisión previa a su publicación en la cartelera.`,
+      type: 'aprobacion_solicitada'
+    });
+    return true;
+  };
+
+  // 2. Aprobar Actividad (Coordinación General con Validación Humana)
+  const approveEvent = (eventId, approvalData = {}) => {
+    const targetEvent = events.find(evt => evt.id === eventId);
+    if (!targetEvent) return false;
+
+    const now = new Date().toISOString();
+    setEvents(prev => prev.map(evt => {
+      if (evt.id === eventId) {
+        return {
+          ...evt,
+          status: 'publicado',
+          humanApproved: true,
+          approvedBy: currentUser?.name || 'Coordinador General',
+          approvedAt: now,
+          publishedBy: currentUser?.name || 'Coordinador General',
+          publishedAt: now,
+          approvalNotes: approvalData.notes || null,
+          isAmbiguous: false,
+          ambiguityReason: null
+        };
+      }
+      return evt;
+    }));
+
+    addToast(
+      'Actividad Aprobada y Publicada',
+      `"${targetEvent.title}" cuenta con aprobación humana oficial y ya es visible en la cartelera.`,
+      'success'
+    );
+
+    const encargado = usersList.find(u => u.id === targetEvent.responsibleId);
+    if (encargado) {
+      triggerSimulatedEmail({
+        to: encargado.email,
+        subject: `[SENA Bienestar] Actividad Aprobada: ${targetEvent.title}`,
+        body: `La Coordinación General ha verificado y aprobado la actividad "${targetEvent.title}". Ya se encuentra publicada en la cartelera digital.`,
+        type: 'aprobacion_resuelta'
+      });
+    }
+
+    triggerSimulatedEmail({
+      to: 'comunidad.aprendices@misena.edu.co',
+      subject: `[SENA Bienestar] Nueva Actividad Publicada: ${targetEvent.title}`,
+      body: `Se ha publicado en la cartelera oficial la actividad "${targetEvent.title}" programada para el ${targetEvent.date}.`,
+      type: 'publicacion'
+    });
+    return true;
+  };
+
+  // 3. Devolver Actividad a Borrador con Observaciones
+  const rejectEvent = (eventId, reason = 'Ajustes solicitados') => {
+    const targetEvent = events.find(evt => evt.id === eventId);
+    if (!targetEvent) return false;
+
+    setEvents(prev => prev.map(evt => {
+      if (evt.id === eventId) {
+        return {
+          ...evt,
+          status: 'borrador',
+          rejectionReason: reason
+        };
+      }
+      return evt;
+    }));
+
+    addToast(
+      'Actividad Devuelta a Borrador',
+      `Se notificó al encargado para aplicar las observaciones: "${reason}".`,
+      'warning'
+    );
+
+    const encargado = usersList.find(u => u.id === targetEvent.responsibleId);
+    if (encargado) {
+      triggerSimulatedEmail({
+        to: encargado.email,
+        subject: `[SENA Bienestar] Observaciones de Aprobación: ${targetEvent.title}`,
+        body: `La actividad "${targetEvent.title}" fue devuelta a estado borrador con las siguientes observaciones: "${reason}".`,
+        type: 'aprobacion_resuelta'
+      });
+    }
+    return true;
+  };
+
+  // 4. Cancelar Actividad Oficialmente
+  const cancelEvent = (eventId, reason = 'Causa de fuerza mayor') => {
+    const targetEvent = events.find(evt => evt.id === eventId);
+    if (!targetEvent) return false;
+
+    const now = new Date().toISOString();
+    setEvents(prev => prev.map(evt => {
+      if (evt.id === eventId) {
+        return {
+          ...evt,
+          status: 'cancelada',
+          cancellationReason: reason,
+          cancelledAt: now,
+          cancelledBy: currentUser?.name || 'Funcionario Responsable'
+        };
+      }
+      return evt;
+    }));
+
+    addToast(
+      'Actividad Cancelada',
+      `"${targetEvent.title}" ha sido cancelada. Motivo: ${reason}.`,
+      'info'
+    );
+
+    triggerSimulatedEmail({
+      to: 'comunidad.aprendices@misena.edu.co',
+      subject: `[SENA Bienestar] Aviso de Cancelación: ${targetEvent.title}`,
+      body: `Informamos que la actividad "${targetEvent.title}" programada para el ${targetEvent.date} ha sido cancelada por: ${reason}.`,
+      type: 'cancelacion'
+    });
+    return true;
+  };
+
+  // 5. Pasar de Borrador a Publicado Directamente (con Aprobación Humana)
   const publishEvent = (eventId, options = {}) => {
     const targetEvent = events.find(evt => evt.id === eventId);
     if (!targetEvent) {
@@ -616,7 +840,6 @@ export function AppProvider({ children }) {
       return false;
     }
 
-    // Bloqueo por ambigüedad si no se ha confirmado expresamente
     if (targetEvent.isAmbiguous && !options.confirmAmbiguity) {
       addToast(
         'Publicación en Pausa: Fecha por Confirmar',
@@ -626,11 +849,16 @@ export function AppProvider({ children }) {
       return false;
     }
 
+    const now = new Date().toISOString();
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
         return {
           ...evt,
           status: 'publicado',
+          humanApproved: true,
+          publishedBy: currentUser?.name || 'Funcionario Responsable',
+          publishedAt: now,
+          approvalNotes: options.notes || null,
           isAmbiguous: false,
           ambiguityReason: null
         };
@@ -639,14 +867,11 @@ export function AppProvider({ children }) {
     }));
 
     addToast(
-      'Evento Publicado',
-      targetEvent.image
-        ? `"${targetEvent.title}" ya es visible con su portada en la cartelera de Bienestar al Aprendiz.`
-        : `"${targetEvent.title}" fue publicado sin portada. Puedes añadir o actualizar su portada en cualquier momento desde "Ver detalle".`,
+      'Actividad Publicada con Aprobación Humana',
+      `"${targetEvent.title}" ha sido verificada y publicada oficialmente en la cartelera del aprendiz.`,
       'success'
     );
 
-    // Notificar por correo únicamente al encargado del área
     const encargadoUser = usersList.find(u => u.id === targetEvent.responsibleId) || currentUser;
     triggerSimulatedEmail({
       to: encargadoUser.email,
@@ -657,7 +882,7 @@ export function AppProvider({ children }) {
     return true;
   };
 
-  // 2. Despublicar (volver a Borrador)
+  // 6. Despublicar (volver a Borrador)
   const unpublishEvent = (eventId) => {
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
@@ -675,44 +900,72 @@ export function AppProvider({ children }) {
     }));
   };
 
-  // 3. Habilitar Asistencia (Pasa a 'en_curso')
+  // 7. Habilitar Asistencia con Fecha y Hora Exacta (Pasa a 'en_curso')
   const startEventAttendance = (eventId) => {
+    const now = new Date().toISOString();
+    let eventTitle = '';
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
+        eventTitle = evt.title;
         if (evt.status !== 'publicado') {
           addToast('Acción no permitida', 'El evento debe estar publicado para habilitar la toma de asistencia.', 'warning');
           return evt;
         }
-        addToast(
-          'Asistencia Habilitada · Evento En Curso',
-          `Los aprendices ya pueden confirmar su asistencia en 1 clic para "${evt.title}".`,
-          'success'
-        );
         return {
           ...evt,
-          status: 'en_curso'
+          status: 'en_curso',
+          attendanceOpenedAt: now,
+          attendanceOpenedBy: currentUser?.name || 'Funcionario Responsable'
         };
       }
       return evt;
     }));
+
+    addToast(
+      'Asistencia Habilitada · Evento En Curso',
+      `Los aprendices ya pueden confirmar su asistencia en 1 clic para "${eventTitle}".`,
+      'success'
+    );
+
+    triggerSimulatedEmail({
+      to: 'comunidad.aprendices@misena.edu.co',
+      subject: `[SENA Bienestar] Asistencia en Vivo Habilitada: ${eventTitle}`,
+      body: `Se ha iniciado formalmente la toma de asistencia para "${eventTitle}". Puedes registrar tu asistencia en 1 clic en la cartelera digital.`,
+      type: 'asistencia_apertura'
+    });
   };
 
-  // 4. Finalizar Evento / Deshabilitar Asistencia (Pasa a 'finalizado')
+  // 8. Finalizar Evento / Deshabilitar Asistencia con Fecha y Hora Exacta (Pasa a 'finalizado')
   const closeEventAttendance = (eventId) => {
+    const now = new Date().toISOString();
+    let eventTitle = '';
+    let attendeesCount = 0;
     setEvents(prev => prev.map(evt => {
       if (evt.id === eventId) {
-        addToast(
-          'Evento Finalizado',
-          `Se ha cerrado la toma de asistencia en "${evt.title}". Métricas consolidadas y listo para la exportación de asistencia.`,
-          'info'
-        );
+        eventTitle = evt.title;
+        attendeesCount = evt.attendeesCount || 0;
         return {
           ...evt,
-          status: 'finalizado'
+          status: 'finalizado',
+          attendanceClosedAt: now,
+          attendanceClosedBy: currentUser?.name || 'Funcionario Responsable'
         };
       }
       return evt;
     }));
+
+    addToast(
+      'Evento Finalizado',
+      `Se ha cerrado la toma de asistencia en "${eventTitle}". Total de ${attendeesCount} aprendices registrados. Formato GOR-F-013 listo para exportar.`,
+      'info'
+    );
+
+    triggerSimulatedEmail({
+      to: currentUser?.email || 'coordinacion@sena.edu.co',
+      subject: `[SENA Bienestar] Asistencia Cerrada y Consolidada: ${eventTitle}`,
+      body: `La toma de asistencia para "${eventTitle}" ha concluido con ${attendeesCount} aprendices certificados. El acta digital GOR-F-013 ha quedado archivada.`,
+      type: 'asistencia_cierre'
+    });
   };
 
   // Editar evento (Encargado)
@@ -974,8 +1227,8 @@ export function AppProvider({ children }) {
       return evt.area === currentUser.area;
     }
     if (currentUser.role === 'aprendiz') {
-      // Aprendiz ve todos los eventos en publicado, en curso o finalizado (RF-APR-12)
-      return evt.status === 'publicado' || evt.status === 'en_curso' || evt.status === 'finalizado';
+      // Aprendiz ve todos los eventos en publicado, en curso, finalizado o cancelada (RF-APR-12)
+      return evt.status === 'publicado' || evt.status === 'en_curso' || evt.status === 'finalizado' || evt.status === 'cancelada';
     }
     return true;
   });
@@ -1007,6 +1260,10 @@ export function AppProvider({ children }) {
         setActiveTab,
         publishEvent,
         unpublishEvent,
+        submitForApproval,
+        approveEvent,
+        rejectEvent,
+        cancelEvent,
         startEventAttendance,
         closeEventAttendance,
         updateEvent,

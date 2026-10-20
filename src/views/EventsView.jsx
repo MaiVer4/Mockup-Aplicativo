@@ -18,8 +18,13 @@ import {
   Filter,
   ArrowRight,
   Sparkles,
-  Users
+  Users,
+  ShieldCheck,
+  Ban,
+  Send,
+  Lock
 } from 'lucide-react';
+import EmptyState from '../components/EmptyState';
 import { AREAS } from '../data/mockData';
 
 export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetailModal }) {
@@ -46,7 +51,9 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
   const publishedCount = visibleEvents.filter(e => e.status === 'publicado').length;
   const inProgressCount = visibleEvents.filter(e => e.status === 'en_curso').length;
   const draftCount = visibleEvents.filter(e => e.status === 'borrador').length;
+  const pendingCount = visibleEvents.filter(e => e.status === 'pendiente_aprobacion').length;
   const finishedCount = visibleEvents.filter(e => e.status === 'finalizado').length;
+  const cancelledCount = visibleEvents.filter(e => e.status === 'cancelada').length;
 
   const filtered = visibleEvents.filter(evt => {
     const matchesSearch = 
@@ -69,16 +76,30 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
   return (
     <div className="space-y-6">
       
-      {/* Encabezado Ergonómico */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
-        <div>
+      {/* Encabezado Ergonómico Unificado (Item 8 y 12) */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-[#e2e8f0]">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            {isAdminGeneral ? (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#0c2f3a] text-[#c4f246] text-[11px] font-bold border border-white/10 shadow-2xs">
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>SUPERVISIÓN GENERAL · 6 ÁREAS INSTITUCIONALES</span>
+              </div>
+            ) : (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#f0fdf4] text-[#15803d] text-[11px] font-bold border border-[#bbf7d0] shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>ENCARGADO OPERATIVO · ÁREA: {currentUser.area?.toUpperCase()}</span>
+              </div>
+            )}
+          </div>
+
           <h1 className="text-2xl md:text-3xl font-extrabold text-[#1e293b] font-heading tracking-tight">
-            Eventos
+            Actividades de Bienestar al Aprendiz
           </h1>
-          <p className="text-xs md:text-sm text-[#64748b] mt-1">
+          <p className="text-xs md:text-sm text-[#64748b]">
             {isEncargado 
-              ? `Administra y supervisa las actividades del Área de ${currentUser.area}.`
-              : 'Supervisa todos los eventos generados en las 6 áreas de bienestar institucional.'}
+              ? `Programación, fijación de fechas, control de asistencia presencial y actas de ${currentUser.area}.`
+              : 'Supervisión integral de actividades, validación normativa institucional y consolidado de acreditación.'}
           </p>
         </div>
 
@@ -93,10 +114,10 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
           <button
             type="button"
             onClick={() => onOpenModal(null)}
-            className="btn btn-primary"
+            className="btn btn-primary self-start sm:self-auto py-2.5 px-4 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs active:scale-[0.96]"
           >
             <Plus className="w-4 h-4 text-white" />
-            <span>Nuevo evento</span>
+            <span>Nueva Actividad</span>
           </button>
         )}
       </div>
@@ -106,18 +127,18 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
         
         {/* FILA 1: Estados del Evento y Búsqueda */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-          {/* Pestañas de Estados */}
-          <div className="flex items-center gap-1 bg-[#e2e8f0]/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto border border-[#cbd5e1]/50">
+          {/* Pestañas de Estados con soporte para Pendientes y Canceladas */}
+          <div className="flex items-center gap-1 bg-[#e2e8f0]/80 p-1 rounded-xl text-xs font-semibold overflow-x-auto border border-[#cbd5e1]/50 custom-scrollbar">
             <button
               type="button"
               onClick={() => setFilterStatus('ALL')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-[0.96] ${
                 filterStatus === 'ALL'
                   ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              <span>Todos</span>
+              <span>Todas</span>
               <span className="text-[10px] font-mono font-bold bg-[#f1f5f9] text-[#475569] px-1.5 py-0.2 rounded">
                 {totalCount}
               </span>
@@ -126,13 +147,13 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
             <button
               type="button"
               onClick={() => setFilterStatus('publicado')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-[0.96] ${
                 filterStatus === 'publicado'
                   ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              <span>Publicados</span>
+              <span>Publicadas</span>
               <span className="text-[10px] font-mono font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-1.5 py-0.2 rounded">
                 {publishedCount}
               </span>
@@ -141,7 +162,7 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
             <button
               type="button"
               onClick={() => setFilterStatus('en_curso')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-[0.96] ${
                 filterStatus === 'en_curso'
                   ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
                   : 'text-[#64748b] hover:text-[#1e293b]'
@@ -155,8 +176,23 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
 
             <button
               type="button"
+              onClick={() => setFilterStatus('pendiente_aprobacion')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-[0.96] ${
+                filterStatus === 'pendiente_aprobacion'
+                  ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              <span>En Revisión</span>
+              <span className="text-[10px] font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.2 rounded">
+                {pendingCount}
+              </span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setFilterStatus('borrador')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-[0.96] ${
                 filterStatus === 'borrador'
                   ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
                   : 'text-[#64748b] hover:text-[#1e293b]'
@@ -171,15 +207,30 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
             <button
               type="button"
               onClick={() => setFilterStatus('finalizado')}
-              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap ${
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-[0.96] ${
                 filterStatus === 'finalizado'
                   ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              <span>Finalizados</span>
+              <span>Finalizadas</span>
               <span className="text-[10px] font-mono font-bold bg-slate-100 text-slate-700 px-1.5 py-0.2 rounded">
                 {finishedCount}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setFilterStatus('cancelada')}
+              className={`px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 whitespace-nowrap active:scale-[0.96] ${
+                filterStatus === 'cancelada'
+                  ? 'bg-white text-[#1e293b] font-bold shadow-xs border border-[#cbd5e1]'
+                  : 'text-[#64748b] hover:text-[#1e293b]'
+              }`}
+            >
+              <span>Canceladas</span>
+              <span className="text-[10px] font-mono font-bold bg-rose-50 text-rose-800 border border-rose-200 px-1.5 py-0.2 rounded">
+                {cancelledCount}
               </span>
             </button>
           </div>
@@ -242,15 +293,18 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
 
       {/* Grid de Tarjetas de Eventos */}
       {filtered.length === 0 ? (
-        <div className="p-14 text-center bg-white rounded-2xl border border-[#e2e8f0] space-y-2">
-          <Calendar className="w-10 h-10 text-[#94a3b8] mx-auto stroke-1" />
-          <p className="text-[#1e293b] text-sm font-bold font-heading">
-            No se encontraron eventos con estos filtros
-          </p>
-          <p className="text-[#64748b] text-xs">
-            Prueba cambiando el estado o el término de búsqueda.
-          </p>
-        </div>
+        <EmptyState
+          title="Sin actividades para este criterio"
+          description="No se encontraron actividades con los filtros actuales. Prueba ajustando el estado, trimestre, área o término de búsqueda."
+          icon={Calendar}
+          actionLabel="Restablecer Filtros"
+          onAction={() => {
+            setFilterStatus('ALL');
+            setFilterQuarter('ALL');
+            setFilterArea('ALL');
+            setSearchTerm('');
+          }}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
           {filtered.map(evt => {
@@ -258,18 +312,24 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
             const isPublished = evt.status === 'publicado';
             const isInProgress = evt.status === 'en_curso';
             const isFinished = evt.status === 'finalizado';
+            const isPending = evt.status === 'pendiente_aprobacion';
+            const isCancelled = evt.status === 'cancelada';
 
             const getStatusBadge = () => {
-              if (isPublished) return <span className="bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2.5 py-1 rounded-xl text-[10px] font-bold">Publicado</span>;
+              if (isPublished) return <span className="bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2.5 py-1 rounded-xl text-[10px] font-bold">Publicada</span>;
               if (isInProgress) return <span className="bg-amber-50 text-amber-800 border border-amber-200 px-2.5 py-1 rounded-xl text-[10px] font-bold animate-pulse">En Curso</span>;
-              if (isFinished) return <span className="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-xl text-[10px] font-bold">Finalizado</span>;
+              if (isPending) return <span className="bg-amber-100 text-amber-900 border border-amber-300 px-2.5 py-1 rounded-xl text-[10px] font-bold">En Revisión</span>;
+              if (isFinished) return <span className="bg-slate-100 text-slate-700 border border-slate-200 px-2.5 py-1 rounded-xl text-[10px] font-bold">Finalizada</span>;
+              if (isCancelled) return <span className="bg-rose-50 text-rose-800 border border-rose-300 px-2.5 py-1 rounded-xl text-[10px] font-bold">Cancelada</span>;
               return <span className="bg-slate-50 text-slate-600 border border-slate-200 px-2.5 py-1 rounded-xl text-[10px] font-bold">Borrador</span>;
             };
 
             return (
               <article 
                 key={evt.id} 
-                className="card-ergonomic overflow-hidden flex flex-col justify-between group"
+                className={`card-ergonomic overflow-hidden flex flex-col justify-between group transition-all ${
+                  isCancelled ? 'border-rose-200 bg-rose-50/15 opacity-90' : ''
+                }`}
               >
                 {/* Imagen de Portada o Bloque de Borrador sin Portada */}
                 <button
@@ -344,16 +404,37 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                     </p>
                   </div>
 
-                  {/* Metadatos: Horario y Lugar */}
-                  <div className="pt-2 border-t border-[#e2e8f0] space-y-1 text-[11px] text-[#475569]">
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
-                      <span className="font-mono">{evt.date} • {evt.schedule || '14:00'}</span>
+                  {/* Metadatos: Horario, Apertura y Lugar */}
+                  <div className="pt-2 border-t border-[#e2e8f0] space-y-1.5 text-[11px] text-[#475569]">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 text-[#94a3b8]" />
+                        <span className="font-mono">{evt.date} • {evt.schedule || '14:00'}</span>
+                      </div>
+                      {evt.attendanceOpenedAt && isInProgress && (
+                        <span className="text-[10px] font-mono font-bold text-[#15803d] bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#15803d] animate-pulse" />
+                          Abierta {new Date(evt.attendanceOpenedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
+                      {evt.attendanceClosedAt && isFinished && (
+                        <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200">
+                          Cerrada {new Date(evt.attendanceClosedAt).toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      )}
                     </div>
+
                     <div className="flex items-center gap-2">
                       <MapPin className="w-3.5 h-3.5 text-[#94a3b8]" />
                       <span className="truncate">{evt.location}</span>
                     </div>
+
+                    {isCancelled && (
+                      <div className="p-2 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-[10px] flex items-center gap-1.5">
+                        <Ban className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                        <span className="truncate">Cancelada: {evt.cancellationReason || 'Fuerza mayor'}</span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Contador de Aforo y Avatares */}

@@ -192,7 +192,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
     ));
   };
 
-  // Resolver ambigüedad en línea (RF-06)
+  // Resolver ambigüedad en línea
   const handleResolveAmbiguity = (tempId, newDate) => {
     setExtractedItems(prev => prev.map(item => {
       if (item.tempId === tempId) {

@@ -282,13 +282,13 @@ export function matchColumnField(headerName = '') {
   return null;
 }
 
-// Analizador y limpiador de fechas reales de Excel con evaluación RF-06
+// Analizador y limpiador de fechas reales de Excel con evaluación de ambigüedad
 export function parseSmartDate(cellValue) {
   if (cellValue === null || cellValue === undefined || cellValue === '') {
     return {
       dateStr: '2026-10-25',
       isAmbiguous: true,
-      ambiguityReason: 'Fecha no especificada en el archivo fuente (RF-06).'
+      ambiguityReason: 'Fecha no especificada en el archivo fuente.'
     };
   }
 
@@ -320,7 +320,7 @@ export function parseSmartDate(cellValue) {
   const str = String(cellValue).trim();
   const norm = normalizeSearchText(str);
 
-  // 3. Expresiones ambiguas institucionales (RF-06)
+  // 3. Expresiones ambiguas institucionales
   const ambiguousKeywords = [
     'por solicitud', 'todo el mes', 'segun programacion', 'por definir', 
     'pendiente', 'a convenir', 'permanente', 'durante el trimestre', 
@@ -333,7 +333,7 @@ export function parseSmartDate(cellValue) {
       return {
         dateStr: '2026-10-25',
         isAmbiguous: true,
-        ambiguityReason: `Expresión ambigua detectada ("${str}"). Bloqueada para publicación hasta decisión humana (RF-06).`
+        ambiguityReason: `Expresión ambigua detectada ("${str}"). Bloqueada para publicación hasta decisión humana.`
       };
     }
   }
@@ -525,7 +525,7 @@ export function detectHeaderAndRows(matrix = []) {
   };
 }
 
-// Detección de expresiones ambiguas según RF-06 (compatibilidad)
+// Detección de expresiones ambiguas (compatibilidad)
 export function checkIsAmbiguousDate(dateString = '') {
   const result = parseSmartDate(dateString);
   return { isAmbiguous: result.isAmbiguous, reason: result.ambiguityReason };
@@ -705,7 +705,7 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
     const rawCapacity = columnMap.capacity ? row[columnMap.capacity] : (row['Aprendices Estimados'] || row['Capacidad'] || row['Cupo'] || row.aprendicesEstimados);
     const estimatedCapacity = parseSmartCapacity(rawCapacity);
 
-    // 6. Fecha y evaluación de ambigüedad (RF-06)
+    // 6. Fecha y evaluación de ambigüedad
     const rawDateValue = columnMap.date ? row[columnMap.date] : (row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || row.mesFecha);
     const dateParsed = parseSmartDate(rawDateValue);
 
