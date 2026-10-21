@@ -34,6 +34,20 @@ import {
 } from '../utils/excelHelper';
 import { DEMO_ANNUAL_PLAN_SHEETS, AREAS, TRIMESTRES } from '../data/mockData';
 
+const normalizeSheetLabel = (value = '') => String(value)
+  .toLowerCase()
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .replace(/[^a-z0-9]/g, '');
+
+const sheetBelongsToArea = (sheetName = '', area = '') => {
+  const sheet = normalizeSheetLabel(sheetName);
+  const normalizedArea = normalizeSheetLabel(area);
+  return sheet === normalizedArea
+    || sheet.includes(normalizedArea)
+    || (normalizedArea === 'actividadfisica' && sheet.includes('actividadf'));
+};
+
 export default function ExcelUploadView({ onSuccessNavigate }) {
   const { currentUser, importEventsFromAI, addToast } = useApp();
 
@@ -83,7 +97,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
       const parsed = await parseMultiSheetExcelFile(file);
       setParsedWorkbook(parsed);
 
-      let targetSheet = parsed.sheetNames.find(s => s.toLowerCase().includes(selectedSheet.toLowerCase())) ||
+      let targetSheet = parsed.sheetNames.find(s => sheetBelongsToArea(s, selectedSheet)) ||
                         parsed.sheetNames.find(s => parsed.sheetsData[s]?.activitiesCount > 0) ||
                         parsed.sheetNames[0];
 
@@ -815,11 +829,28 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                               {item.code}
                             </span>
                           )}
+                          {item.groupTotal !== '' && item.groupTotal !== undefined && (
+                            <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.2 rounded border border-emerald-200">
+                              Total: {item.groupTotal}
+                            </span>
+                          )}
                         </div>
 
-                        <p className="text-[11px] text-[#475569] line-clamp-2 leading-snug">
-                          {item.purpose}
-                        </p>
+                        <div className="text-[11px] text-[#475569] leading-snug whitespace-pre-line">
+                          {item.subactivities?.length > 0 && (
+                            <div className="mt-1.5 rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
+                              <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">Subactividad</p>
+                              <ul className="space-y-0.5 text-[11px] text-[#475569]">
+                                {item.subactivities.map((subactivity, subIndex) => (
+                                  <li key={`${item.tempId}-sub-${subIndex}`} className="flex gap-1.5">
+                                    <span className="text-blue-500">•</span>
+                                    <span>{subactivity}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </div>
 
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-[#64748b] font-mono pt-0.5">
                           <span className="bg-white px-1.5 py-0.5 rounded border border-[#e2e8f0] shrink-0 flex items-center gap-1">
@@ -914,7 +945,14 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                         </td>
                         <td className="py-2.5 px-3">
                           <strong className="block text-[#1e293b] font-heading">{item.title}</strong>
-                          <span className="text-[10px] text-[#64748b] line-clamp-1">{item.purpose}</span>
+                          {item.groupTotal !== '' && item.groupTotal !== undefined && (
+                            <span className="text-[10px] text-emerald-700">Total: {item.groupTotal}</span>
+                          )}
+                          {item.subactivities?.length > 0 && (
+                            <span className="block text-[10px] text-blue-700 line-clamp-1">
+                              Subactividad: {item.subactivity || item.subactivities.join(' · ')}
+                            </span>
+                          )}
                         </td>
                         <td className="py-2.5 px-3">
                           <span className="text-[10px] font-mono bg-slate-100 text-[#0e2738] border border-slate-200 px-1.5 py-0.2 rounded font-bold whitespace-nowrap">

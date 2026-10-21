@@ -398,7 +398,7 @@ export default function EventsView({ onOpenModal, onOpenExportModal, onOpenDetai
                     <h3 className="font-heading font-extrabold text-[#1e293b] text-base group-hover:text-[#15803d] transition-colors line-clamp-1">
                       {evt.title}
                     </h3>
-                    <p className="text-[#475569] text-xs line-clamp-2 mt-1 leading-relaxed">
+                    <p className="text-[#475569] text-xs line-clamp-4 mt-1 leading-relaxed whitespace-pre-line">
                       {evt.purpose}
                     </p>
                   </div>

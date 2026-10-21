@@ -533,6 +533,48 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
             </div>
           </div>
 
+          {(event.instructions || event.links?.length > 0) && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-[#1e293b] font-heading">Información para el aprendiz</h4>
+              <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 text-[#334155] text-xs space-y-3">
+                {event.instructions && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-blue-700 mb-1">Instrucciones</p>
+                    <p className="whitespace-pre-line leading-relaxed">{event.instructions}</p>
+                  </div>
+                )}
+                {event.links?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-blue-700 mb-1">Enlaces de apoyo</p>
+                    <ul className="space-y-1">
+                      {event.links.map((link, index) => (
+                        <li key={`${event.id}-link-${index}`}>
+                          <a href={link} target="_blank" rel="noreferrer" className="text-blue-700 underline break-all hover:text-blue-900">{link}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {event.subactivities?.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-[#1e293b] font-heading">Subactividades</h4>
+              <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 text-[#334155] text-xs">
+                <ul className="space-y-1.5">
+                  {event.subactivities.map((subactivity, index) => (
+                    <li key={`${event.id}-subactivity-${index}`} className="flex gap-2">
+                      <span className="text-blue-600 font-bold">{index + 1}.</span>
+                      <span>{subactivity}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* Acciones para el Aprendiz */}
           {isLearner && (
             <div className="pt-2 border-t border-[#e2e8f0]">
