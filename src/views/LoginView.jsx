@@ -25,15 +25,15 @@ import {
   Check
 } from 'lucide-react';
 import FlowStepper from '../components/FlowStepper';
-import { 
-  AREAS, 
-  TIPOS_DOCUMENTO, 
-  GENEROS, 
-  MODALIDADES, 
-  JORNADAS, 
-  NIVELES_FORMACION, 
-  PROGRAMAS_FORMACION, 
-  CENTROS_FORMACION 
+import {
+  AREAS,
+  TIPOS_DOCUMENTO,
+  GENEROS,
+  MODALIDADES,
+  JORNADAS,
+  NIVELES_FORMACION,
+  PROGRAMAS_FORMACION,
+  CENTROS_FORMACION
 } from '../data/mockData';
 
 export default function LoginView() {
@@ -217,7 +217,7 @@ export default function LoginView() {
 
     // Buscar si existe un usuario con ese documento o correo para actualizarlo en el contexto
     const cleanId = recoveryIdentifier.trim().toLowerCase();
-    const matchingUser = users.find(u => 
+    const matchingUser = users.find(u =>
       (u.documentNumber && u.documentNumber.toLowerCase() === cleanId) ||
       (u.username && u.username.toLowerCase() === cleanId) ||
       (u.email && u.email.toLowerCase() === cleanId)
@@ -251,8 +251,8 @@ export default function LoginView() {
       return;
     }
 
-    if (!registerData.documentNumber || !registerData.ficha || !registerData.email) {
-      addToast('Campos Incompletos', 'Por favor diligencia todos los campos obligatorios (*).', 'warning');
+    if (!registerData.documentNumber || !registerData.ficha || !(registerData.email || registerData.personalEmail)) {
+      addToast('Campos Incompletos', 'Por favor diligencia un correo electrónico y todos los campos obligatorios (*).', 'warning');
       return;
     }
 
@@ -694,21 +694,22 @@ export default function LoginView() {
 
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo SENA *</label>
+                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo electrónico *</label>
                             <input
                               type="email"
-                              required
-                              placeholder="andres@misena.edu.co"
+                              required={!registerData.personalEmail}
+                              placeholder="andres@correo.com"
                               value={registerData.email}
                               onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                               className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none"
                             />
                           </div>
                           <div>
-                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo Personal</label>
+                            <label className="block text-[11px] font-bold text-[#334155] mb-1">Correo SENA (opcional)</label>
                             <input
                               type="email"
-                              placeholder="andres@gmail.com"
+                              required={!registerData.email}
+                              placeholder="andres@misena.edu.co"
                               value={registerData.personalEmail}
                               onChange={(e) => setRegisterData({ ...registerData, personalEmail: e.target.value })}
                               className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-xs text-[#1e293b] focus:bg-white focus:outline-none"
@@ -866,7 +867,7 @@ export default function LoginView() {
               {/* TAB 3: RECUPERACIÓN DE CONTRASEÑA (FLUJO VISUAL DE 4 ETAPAS) */}
               {activeTab === 'recovery' && (
                 <div className="pt-4 space-y-4">
-                  
+
                   {/* Encabezado e Indicador de Pasos FlowStepper */}
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">

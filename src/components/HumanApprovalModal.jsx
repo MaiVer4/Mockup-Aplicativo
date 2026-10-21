@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { 
-  ShieldCheck, 
-  X, 
-  CheckCircle2, 
-  AlertTriangle, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
+import {
+  ShieldCheck,
+  X,
+  CheckCircle2,
+  AlertTriangle,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
   Sparkles,
   FileText
 } from 'lucide-react';
@@ -34,7 +34,7 @@ export default function HumanApprovalModal({ isOpen, onClose, event, onConfirmAp
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="bg-white rounded-2xl shadow-2xl border border-[#e2e8f0] w-full max-w-lg overflow-hidden flex flex-col max-h-[92vh] overscroll-contain animate-in zoom-in-95 duration-150">
-        
+
         {/* Cabecera Institucional */}
         <div className="px-5 py-4 border-b border-[#e2e8f0] bg-gradient-to-r from-[#0c2f3a] to-[#103a46] text-white flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -61,7 +61,7 @@ export default function HumanApprovalModal({ isOpen, onClose, event, onConfirmAp
 
         {/* Contenido con Scroll */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto space-y-4 text-xs flex-1">
-          
+
           {/* Ficha Resumen del Evento */}
           <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
             <div className="flex items-center gap-2">

@@ -11,12 +11,19 @@ import confetti from 'canvas-confetti';
 
 const AppContext = createContext();
 
-const STORAGE_KEY = 'sena_bienestar_events_v2';
+// v4 conserva los títulos numéricos válidos del total del grupo (por ejemplo, 3100).
+// Cambiar la clave evita recuperar tarjetas antiguas creadas por el importador defectuoso.
+const STORAGE_KEY = 'sena_bienestar_events_v4';
 const USER_STORAGE_KEY = 'sena_bienestar_user_v2';
 const USERS_LIST_STORAGE_KEY = 'sena_bienestar_users_list_v2';
 const PARTICIPANTS_STORAGE_KEY = 'sena_bienestar_participants_v2';
 const INVITES_STORAGE_KEY = 'sena_bienestar_invites_v2';
 const EMAILS_STORAGE_KEY = 'sena_bienestar_emails_v2';
+
+// Los títulos numéricos son válidos en el formato institucional: representan
+// el total de la actividad agrupada (por ejemplo, 3100). La migración v4 ya
+// evita recuperar las tarjetas antiguas que se generaron con el mapeo erróneo.
+const isMalformedImportedEvent = () => false;
 
 export function AppProvider({ children }) {
   // Lista de usuarios registrados (con persistencia de perfiles actualizados)
@@ -55,7 +62,10 @@ export function AppProvider({ children }) {
   const [events, setEvents] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed.filter(event => !isMalformedImportedEvent(event));
+      }
     } catch {}
     return INITIAL_EVENTS;
   });
@@ -177,6 +187,15 @@ export function AppProvider({ children }) {
   const [isEmailDrawerOpen, setIsEmailDrawerOpen] = useState(false);
 
   // Sincronizaciones con localStorage
+  useEffect(() => {
+    // También se ejecuta sobre una sesión ya abierta (por ejemplo, después
+    // de HMR), no solo durante el primer montaje del proveedor.
+    setEvents(prev => {
+      const cleaned = prev.filter(event => !isMalformedImportedEvent(event));
+      return cleaned.length === prev.length ? prev : cleaned;
+    });
+  }, []);
+
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(events));
@@ -994,6 +1013,8 @@ export function AppProvider({ children }) {
       purpose: newEventData.purpose || 'Propósito formativo integral',
       objective: newEventData.objective || 'Fortalecer competencias socioemocionales',
       extendedDescription: newEventData.extendedDescription || 'Descripción detallada de la actividad de bienestar.',
+      instructions: newEventData.instructions || '',
+      links: Array.isArray(newEventData.links) ? newEventData.links : [],
       image: newEventData.image || null,
       imagePrompt: newEventData.imagePrompt || buildDefaultImagePrompt(newEventData),
       imageSource: newEventData.imageSource || (newEventData.image ? 'ai' : null),
@@ -1034,13 +1055,26 @@ export function AppProvider({ children }) {
 
   // Importar propuestas de IA al catálogo (conservando imagen o prompt si fue personalizado)
   const importEventsFromAI = (extractedItems) => {
-    const formatted = extractedItems.map((item, index) => ({
+    const formatted = extractedItems.map((item, index) => {
+      const sourceRow = item.originalRow || {};
+      const sourceLine = sourceRow['Actividad a realizar'] || item.line || '';
+      const sourceCode = sourceRow['Numeral Acción'] || item.code;
+      const title = item.title || sourceLine || item.purpose || 'Actividad de Bienestar';
+      const subactivities = Array.isArray(item.subactivities) ? item.subactivities : [];
+
+      return {
       id: `evt-ai-${Date.now()}-${index}`,
-      code: item.code,
-      title: item.title,
+      code: /^ACT-[A-Z]{3}-\d+$/.test(String(item.code || '').trim()) && sourceRow['Numeral Acción']
+        ? sourceCode
+        : item.code,
+      title,
       purpose: item.purpose,
       objective: item.objective,
-      extendedDescription: item.extendedDescription || (item.purpose ? `${item.purpose} Actividad abierta a aprendices en etapa lectiva y productiva.` : `Actividad programada en el marco del Plan Anual de Bienestar 2026 para la línea de ${item.line}. Actividad abierta a aprendices en etapa lectiva y productiva.`),
+      instructions: item.instructions || '',
+      links: Array.isArray(item.links) ? item.links : [],
+      subactivities,
+      groupTotal: item.groupTotal ?? '',
+      extendedDescription: item.extendedDescription || (item.purpose ? `${item.purpose}\n\nActividad abierta a aprendices en etapa lectiva y productiva.` : `Actividad programada en el marco del Plan Anual de Bienestar 2026 para la línea de ${item.line}. Actividad abierta a aprendices en etapa lectiva y productiva.`),
       image: item.image || null,
       imagePrompt: item.imagePrompt || buildDefaultImagePrompt(item),
       imageSource: item.imageSource || (item.image ? 'ai' : null),
@@ -1063,12 +1097,25 @@ export function AppProvider({ children }) {
       isAmbiguous: item.isAmbiguous,
       ambiguityReason: item.ambiguityReason,
       createdAt: new Date().toISOString().split('T')[0]
-    }));
+      };
+    });
 
-    setEvents(prev => [...formatted, ...prev]);
+    // Una nueva carga del mismo plan debe actualizar sus códigos, no duplicar
+    // registros antiguos que pudieron haber sido importados con otro mapeo.
+    // Los eventos manuales o iniciales se conservan intactos.
+    const importedCodes = new Set(formatted.map(event => event.code).filter(Boolean));
+    const importedAreas = new Set(formatted.map(event => event.area).filter(Boolean));
+    setEvents(prev => [
+      ...formatted,
+      ...prev.filter(event => {
+        const isPreviousImport = String(event.sourceText || '').startsWith('Línea:');
+        const belongsToReloadedPlan = importedAreas.has(event.area);
+        return !(isPreviousImport && (importedCodes.has(event.code) || belongsToReloadedPlan));
+      })
+    ]);
     addToast(
       'Eventos Incorporados al Catálogo',
-      `Se crearon ${formatted.length} actividades en modo Borrador listas para revisión y publicación.`,
+      `Se crearon o actualizaron ${formatted.length} actividades en modo Borrador listas para revisión y publicación.`,
       'success'
     );
   };

@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  X, 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  Users, 
-  CheckCircle2, 
-  Sparkles, 
+import {
+  X,
+  Calendar,
+  Clock,
+  MapPin,
+  Users,
+  CheckCircle2,
+  Sparkles,
   Check,
   Play,
   Pause,
@@ -32,8 +32,8 @@ import HumanApprovalModal from './HumanApprovalModal';
 import { buildDefaultImagePrompt, getSemanticImage } from '../utils/excelHelper';
 
 export default function EventDetailModal({ isOpen, onClose, event: propEvent, onOpenEditModal }) {
-  const { 
-    currentUser, 
+  const {
+    currentUser,
     events,
     registerAttendance,
     publishEvent,
@@ -250,7 +250,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
     <>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
       <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[94vh] sm:max-h-[92vh] relative">
-        
+
         {/* Botón Cerrar flotante con blur */}
         <button
           onClick={onClose}
@@ -280,7 +280,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
               </span>
             </div>
           )}
-          
+
           <div className="absolute bottom-3 left-4 right-4 sm:bottom-5 sm:left-6 sm:right-6 text-white space-y-1 sm:space-y-2">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <span className="bg-[#c4f246] text-[#0e2738] text-[9px] sm:text-[10px] font-extrabold px-2 py-0.5 rounded-lg font-mono">
@@ -481,6 +481,21 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
             </div>
           </div>
 
+          {/* Flujo RF-08: estados controlados y límites del rol operativo */}
+          <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <h4 className="text-[11px] font-bold text-[#1e293b]">Ciclo de actividad</h4>
+              <span className="hidden sm:inline text-[10px] text-[#64748b] font-medium">Asistencia: publicada + abierta</span>
+            </div>
+            <div className="grid grid-cols-4 gap-1.5 text-center text-[9px] font-bold uppercase tracking-wide">
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isDraft ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Revisión</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isPublicado || isEnCurso || isFinalizado ? 'bg-[#eafaf1] text-[#15803d] border-[#bbf7d0]' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Publicada</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isEnCurso ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Ventana</span>
+              <span className={`rounded-lg px-1.5 py-1.5 border ${isFinalizado ? 'bg-slate-100 text-slate-700 border-slate-200' : 'bg-white text-[#64748b] border-[#e2e8f0]'}`}>Cierre</span>
+            </div>
+            <p className="text-[10px] text-[#64748b]">El encargado opera el ciclo; el administrador lo supervisa.</p>
+          </div>
+
           {/* Información y Parámetros con Iconos */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
             <div className="flex items-center gap-2.5">
@@ -518,6 +533,48 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
             </div>
           </div>
 
+          {(event.instructions || event.links?.length > 0) && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-[#1e293b] font-heading">Información para el aprendiz</h4>
+              <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 text-[#334155] text-xs space-y-3">
+                {event.instructions && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-blue-700 mb-1">Instrucciones</p>
+                    <p className="whitespace-pre-line leading-relaxed">{event.instructions}</p>
+                  </div>
+                )}
+                {event.links?.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-blue-700 mb-1">Enlaces de apoyo</p>
+                    <ul className="space-y-1">
+                      {event.links.map((link, index) => (
+                        <li key={`${event.id}-link-${index}`}>
+                          <a href={link} target="_blank" rel="noreferrer" className="text-blue-700 underline break-all hover:text-blue-900">{link}</a>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {event.subactivities?.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-[#1e293b] font-heading">Subactividades</h4>
+              <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 text-[#334155] text-xs">
+                <ul className="space-y-1.5">
+                  {event.subactivities.map((subactivity, index) => (
+                    <li key={`${event.id}-subactivity-${index}`} className="flex gap-2">
+                      <span className="text-blue-600 font-bold">{index + 1}.</span>
+                      <span>{subactivity}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
           {/* Acciones para el Aprendiz */}
           {isLearner && (
             <div className="pt-2 border-t border-[#e2e8f0]">
@@ -540,12 +597,12 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                 </button>
               ) : isFinalizado ? (
                 <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#64748b] text-center text-xs font-semibold">
-                  Evento finalizado · Acreditación presencial cerrada
+                  Evento finalizado · Acreditación cerrada
                 </div>
               ) : (
                 <div className="p-3.5 rounded-xl bg-[#f0f9ff] border border-[#bae6fd] text-[#0369a1] text-xs font-medium flex items-center justify-center gap-2">
                   <Clock className="w-4 h-4 text-[#0284c7] shrink-0" />
-                  <span>Programado · La acreditación presencial se habilitará al iniciar la actividad</span>
+                  <span>Programado · Se habilita al iniciar la actividad</span>
                 </div>
               )}
             </div>
@@ -586,8 +643,8 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
                     <span className="font-bold text-xs block text-[#1e293b]">
                       {event.image ? 'Portada de la Actividad Asignada' : 'Portada de la Actividad'}
                     </span>
-                    <span className="text-[10px] text-[#64748b] block">
-                      Edita el prompt para generar con IA o sube una imagen externa desde tu equipo o URL.
+                    <span className="hidden sm:block text-[10px] text-[#64748b]">
+                      Edita el prompt o sube una imagen externa.
                     </span>
                   </div>
                 </div>
@@ -817,7 +874,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           )}
 
           {/* ACCIONES INSTITUCIONALES POR ROL (Item 4, 5, 8, 10) */}
-          
+
           {/* Si está cancelada: Estado informativo inmutable */}
           {isCancelada && (
             <div className="pt-3 border-t border-[#edf0f3] flex items-center justify-between text-xs text-rose-800 bg-rose-50/50 p-3 rounded-xl border border-rose-200">

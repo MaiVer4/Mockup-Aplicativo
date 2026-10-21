@@ -39,8 +39,10 @@ export default function EmailNotificationDrawer({ isOpen, onClose }) {
         return { label: 'DICTAMEN COORDINACIÓN', color: 'bg-purple-50 text-purple-900 border-purple-300' };
       case 'publicacion':
         return { label: 'ACTIVIDAD PUBLICADA', color: 'bg-violet-50 text-violet-900 border-violet-300' };
+      case 'apertura':
       case 'asistencia_apertura':
         return { label: 'APERTURA DE ASISTENCIA', color: 'bg-teal-50 text-teal-900 border-teal-300' };
+      case 'cierre':
       case 'asistencia_cierre':
         return { label: 'CIERRE ACTA GOR-F-013', color: 'bg-slate-100 text-slate-800 border-slate-300' };
       case 'cancelacion':
@@ -97,7 +99,7 @@ export default function EmailNotificationDrawer({ isOpen, onClose }) {
           </button>
         </div>
 
-        {/* Barra de Filtros por Categoría */}
+        {/* Barra de Filtros por Categoría · RF-11 */}
         <div className="px-4 py-2 border-b border-[#e2e8f0] bg-white flex items-center gap-1.5 overflow-x-auto no-scrollbar text-xs font-semibold">
           {[
             { id: 'ALL', label: 'Todas' },

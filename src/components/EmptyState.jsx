@@ -15,17 +15,17 @@ export default function EmptyState({
   className = ''
 }) {
   return (
-    <div 
+    <div
       className={`p-8 sm:p-12 text-center rounded-2xl border transition-all flex flex-col items-center justify-center space-y-3 ${
         isError
           ? 'bg-rose-50/70 border-rose-200 text-rose-900'
           : 'bg-white border-[#e2e8f0] text-[#1e293b]'
       } ${className}`}
     >
-      <div 
+      <div
         className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-transform ${
-          isError 
-            ? 'bg-rose-100 text-rose-600' 
+          isError
+            ? 'bg-rose-100 text-rose-600'
             : 'bg-[#f1f5f9] text-[#64748b]'
         }`}
       >

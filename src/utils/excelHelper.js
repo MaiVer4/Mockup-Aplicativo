@@ -261,6 +261,13 @@ export function matchColumnField(headerName = '') {
   const norm = normalizeSearchText(headerName);
   if (!norm) return null;
 
+  // Formato del plan anual entregado: la columna "Actividad" es el
+  // nombre/título de la actividad y "Actividad a realizar" es su línea.
+  // Debe resolverse antes de los sinónimos genéricos ("actividad").
+  if (norm === 'actividad') return 'title';
+  if (norm === 'actividad a realizar') return 'line';
+  if (norm === 'numeral accion') return 'code';
+
   // 1. Coincidencia exacta prioritaria
   for (const [field, synonyms] of Object.entries(COLUMN_SYNONYMS)) {
     if (synonyms.some(syn => norm === syn)) {
@@ -330,8 +337,13 @@ export function parseSmartDate(cellValue) {
 
   for (const kw of ambiguousKeywords) {
     if (norm.includes(kw)) {
+      // Si la celda proviene de una columna mensual (por ejemplo,
+      // "febrero todo el mes"), conservar el mes real en vez de enviar
+      // siempre la actividad a la fecha genérica de octubre.
+      const monthMatch = norm.match(/\b(enero|febrero|marzo|abril|mayo|junio|julio|agosto|septiembre|octubre|noviembre|diciembre)\b/);
+      const monthNumbers = { enero: '01', febrero: '02', marzo: '03', abril: '04', mayo: '05', junio: '06', julio: '07', agosto: '08', septiembre: '09', octubre: '10', noviembre: '11', diciembre: '12' };
       return {
-        dateStr: '2026-10-25',
+        dateStr: monthMatch ? `2026-${monthNumbers[monthMatch[1]]}-15` : '2026-10-25',
         isAmbiguous: true,
         ambiguityReason: `Expresión ambigua detectada ("${str}"). Bloqueada para publicación hasta decisión humana.`
       };
@@ -438,6 +450,15 @@ export function detectHeaderAndRows(matrix = []) {
     }
   }
 
+  // Los libros institucionales pueden tener una fila de trimestre combinada
+  // que, al expandir celdas fusionadas, repite el mismo texto en todas las
+  // columnas. Si existe la cabecera oficial, tiene prioridad absoluta sobre
+  // esa fila decorativa.
+  const officialHeaderIndex = matrix.findIndex(row =>
+    (row || []).some(cell => normalizeSearchText(cell) === 'numeral accion')
+  );
+  if (officialHeaderIndex >= 0) bestRowIndex = officialHeaderIndex;
+
   // 2. Extraer nombres de cabecera
   const headerCells = matrix[bestRowIndex] || [];
   const headers = headerCells.map((c, idx) => {
@@ -459,16 +480,41 @@ export function detectHeaderAndRows(matrix = []) {
     columnMap.title = headers[0];
   }
 
-  // 4. Filtrar filas de datos omitiendo totales, subtotales, notas y firmas
+  // 4. Filtrar filas de datos omitiendo totales, subtotales, notas y firmas.
+  // El libro de actividades repite la cabecera en cada trimestre y no tiene
+  // una columna de fecha: convertimos los meses en una fecha programada
+  // auxiliar, conservando además la programación completa de la fila.
   const validRows = [];
+  const monthHeaders = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+  const monthColumns = headers
+    .map((header, index) => ({ header, index, month: monthHeaders.find(m => normalizeSearchText(header) === m) }))
+    .filter(column => column.month);
+  let activeMonthColumns = monthColumns;
   const invalidStarters = [
     'total', 'subtotal', 'suma', 'observaci', 'firma', 'elaboro', 
     'reviso', 'aprobo', 'coordinador', 'convenciones', 'nota:', 
     'responsable:', 'meta total', 'presupuesto total'
   ];
 
+  let detectedQuarter = '';
   for (let r = bestRowIndex + 1; r < matrix.length; r++) {
     const rowCells = matrix[r] || [];
+    const firstCell = normalizeSearchText(rowCells[0]);
+    if (/^(i|ii|iii|iv) trimestre$/.test(firstCell)) {
+      detectedQuarter = {
+        'i trimestre': 'Trimestre 1',
+        'ii trimestre': 'Trimestre 2',
+        'iii trimestre': 'Trimestre 3',
+        'iv trimestre': 'Trimestre 4'
+      }[firstCell] || normalizeQuarter(firstCell);
+      continue;
+    }
+    if (firstCell === 'numeral accion') {
+      activeMonthColumns = rowCells
+        .map((header, index) => ({ header: String(header).trim(), index, month: monthHeaders.find(m => normalizeSearchText(header) === m) }))
+        .filter(column => column.month);
+      continue;
+    }
     // Verificar si la fila está completamente vacía
     const hasAnyContent = rowCells.some(c => c !== null && c !== undefined && String(c).trim() !== '');
     if (!hasAnyContent) continue;
@@ -479,14 +525,30 @@ export function detectHeaderAndRows(matrix = []) {
       rowObj[h] = rowCells[idx] !== undefined ? rowCells[idx] : '';
     });
 
-    // Validar celda de título
+    // Validar el nombre real de la actividad. En este formato las filas
+    // "Otro" sin actividad son separadores y no deben convertirse en eventos.
     const titleVal = columnMap.title ? rowObj[columnMap.title] : rowCells[0];
     const normTitle = normalizeSearchText(titleVal);
+    if (!normTitle) continue;
 
-    if (!normTitle) continue; // Fila sin nombre de actividad
-
+    const isRepeatedHeader = normalizeSearchText(rowObj[columnMap.code]) === 'numeral accion';
     const isGarbage = invalidStarters.some(prefix => normTitle.startsWith(prefix) || normTitle === prefix);
-    if (isGarbage) continue;
+    if (isRepeatedHeader || isGarbage) continue;
+
+    if (detectedQuarter) rowObj.__trimestre = detectedQuarter;
+
+    if (activeMonthColumns.length > 0) {
+      const schedule = activeMonthColumns
+        .map(({ header, index, month }) => {
+          const value = rowCells[index];
+          return value !== undefined && value !== null && String(value).trim() !== ''
+            ? { month, header, value: String(value).trim() }
+            : null;
+        })
+        .filter(Boolean);
+      rowObj.__programacion = schedule;
+      rowObj.__fecha_programada = schedule[0]?.value || '';
+    }
 
     validRows.push(rowObj);
   }
@@ -497,6 +559,17 @@ export function detectHeaderAndRows(matrix = []) {
   let currentQuarter = '';
 
   validRows.forEach(row => {
+    const schedule = row.__programacion || [];
+    const firstMonth = schedule[0]?.month;
+    if (!columnMap.date && firstMonth) row.__fecha_programada = `${firstMonth} ${schedule[0].value}`;
+
+    // El libro separa los trimestres mediante una nueva cabecera. El
+    // trimestre se deduce del primer mes programado cuando no existe una
+    // columna explícita.
+    if (!row.__trimestre && !columnMap.quarter && firstMonth) {
+      const quarterByMonth = { enero: 'Trimestre 1', febrero: 'Trimestre 1', marzo: 'Trimestre 1', abril: 'Trimestre 2', mayo: 'Trimestre 2', junio: 'Trimestre 2', julio: 'Trimestre 3', agosto: 'Trimestre 3', septiembre: 'Trimestre 3', octubre: 'Trimestre 4', noviembre: 'Trimestre 4', diciembre: 'Trimestre 4' };
+      row.__trimestre = quarterByMonth[firstMonth];
+    }
     if (columnMap.area && row[columnMap.area] && String(row[columnMap.area]).trim() !== '') {
       currentArea = String(row[columnMap.area]).trim();
     } else if (columnMap.area && currentArea && (!row[columnMap.area] || String(row[columnMap.area]).trim() === '')) {
@@ -519,7 +592,10 @@ export function detectHeaderAndRows(matrix = []) {
   return {
     headerRowIndex: bestRowIndex,
     headers,
-    columnMap,
+    columnMap: {
+      ...columnMap,
+      ...(monthColumns.length > 0 && !columnMap.date ? { date: '__fecha_programada' } : {})
+    },
     validRows,
     rawRows: validRows
   };
@@ -671,7 +747,65 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
   
   const columnMap = customColumnMap || rawRowsOrSheetData?.columnMap || {};
 
-  const mapped = rows.map((row, index) => {
+  // El formato institucional entregado representa una actividad principal
+  // con varias subactividades: el código identifica el bloque y las filas
+  // siguientes quedan asociadas a él. Cada fila de "Actividad" se convierte
+  // en una tarjeta propia, conservando el título de "Actividad a realizar".
+  const isInstitutionalWorkbook = columnMap.code === 'Numeral Acción'
+    && columnMap.line === 'Actividad a realizar'
+    && columnMap.title === 'Actividad';
+  const rowsToMap = isInstitutionalWorkbook
+    ? (() => {
+        const totalKey = Object.keys(rows[0] || {}).find(key => normalizeSearchText(key) === 'total');
+        const sumKey = Object.keys(rows[0] || {}).find(key => normalizeSearchText(key) === 'sumatoria');
+        const groups = [];
+        let current = null;
+
+        rows.forEach(row => {
+          const codeValue = String(row[columnMap.code] || '').trim();
+          // La propagación de celdas combinadas puede repetir el código en
+          // todas las filas del bloque. Solo un código nuevo inicia un grupo.
+          if (codeValue && (!current || codeValue !== String(current[columnMap.code] || '').trim())) {
+            current = { ...row, __subactivityRows: [], __programacion: [] };
+            groups.push(current);
+          }
+          if (!current) return;
+
+          const activity = String(row[columnMap.title] || '').trim();
+          if (activity) current.__subactivityRows.push(row);
+          if (Array.isArray(row.__programacion)) current.__programacion.push(...row.__programacion);
+          if (!current.__total && totalKey && row[totalKey] !== undefined && row[totalKey] !== '') current.__total = row[totalKey];
+          if (!current.__sumatoria && sumKey && row[sumKey] !== undefined && row[sumKey] !== '') current.__sumatoria = row[sumKey];
+          if (!current.__trimestre && row.__trimestre) current.__trimestre = row.__trimestre;
+        });
+
+        return groups.flatMap(group => {
+          const groupTotal = group.__total ?? group.__sumatoria ?? '';
+          const mainActivity = String(group[columnMap.line] || '').trim();
+          const subactivityRows = group.__subactivityRows.length > 0 ? group.__subactivityRows : [group];
+
+          return subactivityRows.map(subactivityRow => {
+            const subactivity = String(subactivityRow[columnMap.title] || '').trim();
+            return {
+              ...group,
+              ...subactivityRow,
+              // "Actividad a realizar" es el título visible de cada tarjeta.
+              // Cada actividad del bloque queda en su propia tarjeta.
+              [columnMap.title]: String(mainActivity || groupTotal || group[columnMap.code] || '').trim(),
+              __mainActivity: mainActivity,
+              __subactivity: subactivity,
+              __subactivities: subactivity ? [subactivity] : [],
+              __subactivitiesDescription: subactivity ? `• ${subactivity}` : '',
+              __groupTotal: groupTotal,
+              __programacion: subactivityRow.__programacion || [],
+              __fecha_programada: subactivityRow.__fecha_programada || ''
+            };
+          });
+        });
+      })()
+    : rows;
+
+  const mapped = rowsToMap.map((row, index) => {
     // 1. Título real de la actividad
     const title = (
       (columnMap.title && row[columnMap.title]) ||
@@ -681,12 +815,22 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
 
     // 2. Línea de acción formativa
     const line = (
+      row.__mainActivity ||
       (columnMap.line && row[columnMap.line]) ||
       row['Línea de Acción'] || row['Linea'] || row.linea || 'Formación y Bienestar Integral'
     ).toString().trim();
 
     // 3. Área institucional (detección en cascada)
     let assignedArea = area;
+    const normalizedInputArea = normalizeSearchText(area);
+    const matchedInputArea = AREAS.find(a => {
+      const normalizedArea = normalizeSearchText(a);
+      return normalizedArea === normalizedInputArea
+        || normalizedInputArea.includes(normalizedArea)
+        || (normalizedArea === 'actividad fisica' && normalizedInputArea.includes('actividad f'));
+    });
+    if (matchedInputArea) assignedArea = matchedInputArea;
+
     const rowArea = columnMap.area ? row[columnMap.area] : (row['Área'] || row['Area'] || row.area);
     if (rowArea) {
       const normArea = normalizeSearchText(rowArea);
@@ -706,11 +850,11 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
     const estimatedCapacity = parseSmartCapacity(rawCapacity);
 
     // 6. Fecha y evaluación de ambigüedad
-    const rawDateValue = columnMap.date ? row[columnMap.date] : (row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || row.mesFecha);
+    const rawDateValue = columnMap.date ? row[columnMap.date] : (row['Mes / Fecha Programada'] || row['Fecha'] || row['Mes'] || row.mesFecha || row.__fecha_programada);
     const dateParsed = parseSmartDate(rawDateValue);
 
     // 7. Trimestre explícito extraído de la fila
-    const rawQuarterValue = (columnMap.quarter && row[columnMap.quarter]) || row['Trimestre'] || row['Periodo'] || row.trimestre;
+    const rawQuarterValue = (columnMap.quarter && row[columnMap.quarter]) || row['Trimestre'] || row['Periodo'] || row.trimestre || row.__trimestre;
     const explicitQuarter = normalizeQuarter(rawQuarterValue, dateParsed.dateStr);
 
     // 8. Responsable
@@ -727,6 +871,9 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
 
     // 10. Propósito y Objetivo (Prioridad al texto real del Excel)
     const rawPurpose = (
+      (row.__subactivitiesDescription
+        ? `Actividad a realizar: ${line}\nSubactividades:\n${row.__subactivitiesDescription}`
+        : '') ||
       (columnMap.description && row[columnMap.description]) ||
       row['Descripción'] || row['Descripcion'] || row['Detalle'] || row['Metodología'] || row['Metodologia'] || row['Justificación'] || ''
     ).toString().trim();
@@ -736,7 +883,7 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       row['Objetivo'] || row['Objetivo General'] || row['Propósito'] || row['Proposito'] || ''
     ).toString().trim();
 
-    const purpose = rawPurpose || `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación activa y convivencia comunitaria.`;
+    const purpose = rawPurpose || line || `Fomentar el desarrollo integral y el bienestar de los aprendices en la línea de ${line}, facilitando espacios de participación activa y convivencia comunitaria.`;
     const objective = rawObjective || `Desarrollar competencias socioemocionales e incentivar la integración y permanencia de las fichas de formación en el centro.`;
 
     // 11. Población objetivo / Fichas convocadas
@@ -768,6 +915,9 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       area: assignedArea,
       quarter: explicitQuarter,
       line,
+      subactivity: row.__subactivity || '',
+      subactivities: row.__subactivities || [],
+      groupTotal: row.__groupTotal ?? '',
       purpose,
       objective,
       targetAudience,
@@ -786,6 +936,7 @@ export function processPlanRowsWithAI(rawRowsOrSheetData, area = 'Cultura', quar
       status: 'borrador', // Nace siempre en borrador para revisión humana
       selected: true,
       confidenceScore: dateParsed.isAmbiguous ? 82 : 99,
+      schedule: row.__programacion || [],
       originalRow: row // Preservar fila completa para auditoría celda a celda
     };
   });

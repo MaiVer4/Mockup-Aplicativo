@@ -14,9 +14,9 @@ export default function FlowStepper({ steps = [], currentStep = 0, onStepClick =
       <ol className="flex items-center justify-between w-full relative">
         {/* Barra de progreso de fondo */}
         <div className="absolute top-4 left-6 right-6 h-0.5 bg-[#e2e8f0] -z-0 pointer-events-none" />
-        
+
         {/* Barra de progreso activa */}
-        <div 
+        <div
           className="absolute top-4 left-6 h-0.5 bg-[#15803d] -z-0 transition-all duration-300 ease-out pointer-events-none"
           style={{
             width: `${(Math.min(currentStep, steps.length - 1) / (steps.length - 1)) * 100}%`
@@ -32,8 +32,8 @@ export default function FlowStepper({ steps = [], currentStep = 0, onStepClick =
           const StepIcon = step.icon;
 
           return (
-            <li 
-              key={step.id || idx} 
+            <li
+              key={step.id || idx}
               className="flex-1 flex flex-col items-center relative z-10 group"
             >
               <button
@@ -59,7 +59,7 @@ export default function FlowStepper({ steps = [], currentStep = 0, onStepClick =
               </button>
 
               <div className="mt-1.5 text-center px-1">
-                <span 
+                <span
                   className={`block text-[11px] leading-tight transition-colors ${
                     isCurrent
                       ? 'font-bold text-[#0e2738]'

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { X, Check, Calendar, Clock, MapPin, Users, Sparkles, Building2, AlertTriangle, Upload, Link2, RotateCcw, Image as ImageIcon } from 'lucide-react';
+import { X, Check, Calendar, Clock, MapPin, Users, Sparkles, Building2, AlertTriangle, Upload, Link2, RotateCcw, Image as ImageIcon, Plus, Trash2 } from 'lucide-react';
 import { AREAS, TRIMESTRES } from '../data/mockData';
 import { getSemanticImage, buildDefaultImagePrompt } from '../utils/excelHelper';
 
@@ -19,6 +19,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
   const [externalUrl, setExternalUrl] = useState('');
   const [previewCandidate, setPreviewCandidate] = useState(null); // { url, source, prompt, optionNumber }
   const [seenPreviewUrls, setSeenPreviewUrls] = useState([]);
+  const [linkInput, setLinkInput] = useState('');
 
   const [formData, setFormData] = useState({
     title: '',
@@ -26,6 +27,8 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
     purpose: '',
     objective: '',
     extendedDescription: '',
+    instructions: '',
+    links: [],
     area: currentUser.area || 'Cultura',
     quarter: 'Trimestre 4',
     image: '',
@@ -49,6 +52,8 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
         purpose: eventToEdit.purpose,
         objective: eventToEdit.objective || '',
         extendedDescription: eventToEdit.extendedDescription || '',
+        instructions: eventToEdit.instructions || '',
+        links: Array.isArray(eventToEdit.links) ? eventToEdit.links : [],
         area: eventToEdit.area,
         quarter: eventToEdit.quarter || 'Trimestre 4',
         image: eventToEdit.image,
@@ -67,6 +72,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           : ''
       );
       setSeenPreviewUrls(eventToEdit.image ? [eventToEdit.image] : []);
+      setLinkInput('');
     } else {
       const defaultArea = currentUser.area || 'Cultura';
       setFormData({
@@ -75,6 +81,8 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
         purpose: '',
         objective: '',
         extendedDescription: '',
+        instructions: '',
+        links: [],
         area: defaultArea,
         quarter: 'Trimestre 4',
         image: null,
@@ -89,6 +97,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
       setCoverMode('ai');
       setExternalUrl('');
       setSeenPreviewUrls([]);
+      setLinkInput('');
     }
   }, [eventToEdit, isOpen, currentUser]);
 
@@ -120,6 +129,30 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
   if (!isOpen) return null;
 
   const hasAssignedDate = Boolean(formData.date && /^\d{4}-\d{2}-\d{2}$/.test(formData.date.trim()));
+
+  const addLink = (rawLink) => {
+    const link = String(rawLink || '').trim();
+    if (!link) return;
+    setFormData(prev => ({
+      ...prev,
+      links: [...new Set([...(Array.isArray(prev.links) ? prev.links : []), link])]
+    }));
+    setLinkInput('');
+  };
+
+  const handleLinkPaste = (e) => {
+    const pastedLink = e.clipboardData?.getData('text')?.trim();
+    if (!pastedLink) return;
+    e.preventDefault();
+    addLink(pastedLink);
+  };
+
+  const removeLink = (linkToRemove) => {
+    setFormData(prev => ({
+      ...prev,
+      links: (prev.links || []).filter(link => link !== linkToRemove)
+    }));
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -233,9 +266,68 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </button>
         </div>
 
+        {/* Flujo RF-08: una actividad se revisa y aprueba antes de publicarse */}
+        <div className="px-5 py-2.5 border-b border-[#e2e8f0] bg-white">
+          <div className="flex items-center justify-between gap-2 text-[9px] font-bold uppercase tracking-wide">
+            <span className="text-amber-700">1. Borrador / revisión</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-slate-500">2. Aprobada</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-slate-500">3. Publicada</span>
+            <span className="text-slate-400">→</span>
+            <span className="text-slate-500">4. Ventana activa / cierre</span>
+          </div>
+          <p className="text-[10px] text-[#64748b] mt-1">
+            Guardar conserva la actividad en borrador; la publicación y la apertura de asistencia son pasos separados del Encargado de Área.
+          </p>
+        </div>
+
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="p-5 overflow-y-auto overscroll-contain space-y-3.5 flex-1 text-xs">
           
+          {/* Instrucciones y enlaces para el aprendiz */}
+          <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 space-y-3">
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">Instrucciones (opcional)</label>
+              <textarea
+                rows={2}
+                placeholder="Indica al aprendiz qué debe preparar o realizar..."
+                value={formData.instructions}
+                onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl border border-blue-200 bg-white text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d] resize-none"
+              />
+            </div>
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1 flex items-center gap-1">
+                <Link2 className="w-3.5 h-3.5 text-blue-600" /> Enlaces de apoyo (opcional)
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="url"
+                  value={linkInput}
+                  onChange={(e) => setLinkInput(e.target.value)}
+                  onPaste={handleLinkPaste}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addLink(linkInput); } }}
+                  placeholder="Pega un enlace y se agregará automáticamente"
+                  className="flex-1 px-3 py-2 rounded-xl border border-blue-200 bg-white text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d] font-mono"
+                />
+                <button type="button" onClick={() => addLink(linkInput)} className="px-3 py-2 rounded-xl bg-[#15803d] text-white text-[11px] font-bold flex items-center gap-1">
+                  <Plus className="w-3.5 h-3.5" /> Agregar
+                </button>
+              </div>
+              {formData.links?.length > 0 && (
+                <div className="mt-2 space-y-1.5">
+                  {formData.links.map((link) => (
+                    <div key={link} className="flex items-center gap-2 rounded-lg bg-white border border-blue-100 px-2.5 py-1.5">
+                      <a href={link} target="_blank" rel="noreferrer" className="text-[10px] text-blue-700 underline truncate flex-1">{link}</a>
+                      <button type="button" onClick={() => removeLink(link)} aria-label={`Quitar enlace ${link}`} className="text-slate-400 hover:text-red-600"><Trash2 className="w-3.5 h-3.5" /></button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Título y Código */}
           <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
             <div className="sm:col-span-3">
@@ -356,7 +448,12 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           )}
 
           {/* Parámetros Operativos (Fecha, Horario, Duración, Capacidad) */}
-          <div ref={dateSectionRef} className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <div ref={dateSectionRef} className="space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-bold text-[#334155]">Ventana de apertura y cierre</span>
+              <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-0.5 font-semibold">Participación solo durante la ventana activa</span>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             <div>
               <label className={`block text-[11px] font-bold mb-1 ${shouldHighlightDate ? 'text-amber-800' : 'text-[#334155]'}`}>
                 Fecha Exacta *
@@ -415,6 +512,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
                 onChange={(e) => setFormData({ ...formData, capacity: e.target.value })}
                 className="w-full px-2.5 py-2 rounded-xl border border-[#cbd5e1] text-xs font-mono text-[#1e293b] focus:outline-none focus:border-[#15803d]"
               />
+            </div>
             </div>
           </div>
 

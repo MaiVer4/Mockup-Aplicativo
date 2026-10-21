@@ -1,28 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  Calendar, 
-  Clock, 
-  Users, 
-  UserCheck, 
-  TrendingUp, 
-  ChevronRight, 
-  CheckCircle2, 
-  Sparkles, 
-  FileSpreadsheet, 
-  ExternalLink, 
-  Plus, 
-  Link as LinkIcon, 
-  Shield, 
-  ArrowRight, 
-  MoreHorizontal, 
-  MapPin, 
-  Search, 
-  Filter, 
-  Layers, 
-  BarChart3, 
-  Award, 
-  ShieldCheck, 
+import {
+  Calendar,
+  Clock,
+  Users,
+  UserCheck,
+  TrendingUp,
+  ChevronRight,
+  CheckCircle2,
+  Sparkles,
+  FileSpreadsheet,
+  ExternalLink,
+  Plus,
+  Link as LinkIcon,
+  Shield,
+  ArrowRight,
+  MoreHorizontal,
+  MapPin,
+  Search,
+  Filter,
+  Layers,
+  BarChart3,
+  Award,
+  ShieldCheck,
   AlertCircle,
   UserPlus
 } from 'lucide-react';
@@ -30,13 +30,13 @@ import { AREAS } from '../data/mockData';
 import EmptyState from '../components/EmptyState';
 
 export default function DashboardView({ onOpenRegisterModal, onNavigateView, onOpenEventDetail }) {
-  const { 
-    currentUser, 
-    events, 
-    visibleEvents, 
-    users, 
-    activeTab, 
-    setActiveTab, 
+  const {
+    currentUser,
+    events,
+    visibleEvents,
+    users,
+    activeTab,
+    setActiveTab,
     getApprenticeAuditData,
     toggleUserStatus
   } = useApp();
@@ -44,11 +44,11 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
   const [selectedWeekFilter, setSelectedWeekFilter] = useState('Últimas 5 semanas');
   const [apprenticeSearchDoc, setApprenticeSearchDoc] = useState('');
   const [searchedAuditResult, setSearchedAuditResult] = useState(null);
-  
+
   // Filtros para Gestión de Usuarios (RF-16)
   const [userRoleFilter, setUserRoleFilter] = useState('ALL');
   const [userSearchTerm, setUserSearchTerm] = useState('');
-  
+
   // Pestañas de supervisión RF-15 para Admin General
   const [adminMetricTab, setAdminMetricTab] = useState(activeTab === 'users' ? 'usuarios' : 'global');
   const [selectedAreaFilter, setSelectedAreaFilter] = useState('Todas');
@@ -83,8 +83,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
   const totalAttendees = relevantEvents.reduce((acc, curr) => acc + (curr.attendeesCount || 0), 0);
   const totalCapacity = relevantEvents.reduce((acc, curr) => acc + (curr.capacity || 50), 0);
   const totalRegisteredLearners = 1248; // Base activa de aprendices con perfil oficial completo
-  const attendanceRate = totalCapacity > 0 
-    ? Math.min(100, Math.round((totalAttendees / totalCapacity) * 100)) 
+  const attendanceRate = totalCapacity > 0
+    ? Math.min(100, Math.round((totalAttendees / totalCapacity) * 100))
     : 84.5;
 
   const encargadosList = users.filter(u => u.role === 'admin_area');
@@ -148,7 +148,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
   return (
     <div className="space-y-6">
-      
+
       {/* Encabezado Principal Ergonómico */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2">
         <div>
@@ -203,7 +203,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              Visión Global y Actividades
+              <span className="sm:hidden">Global</span>
+              <span className="hidden sm:inline">Visión Global y Actividades</span>
             </button>
             <button
               type="button"
@@ -217,7 +218,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              Métricas por Encargado
+              <span className="sm:hidden">Encargados</span>
+              <span className="hidden sm:inline">Métricas por Encargado</span>
             </button>
             <button
               type="button"
@@ -230,7 +232,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                   : 'text-[#64748b] hover:text-[#1e293b]'
               }`}
             >
-              Censo Demográfico
+              <span className="sm:hidden">Usuarios</span>
+              <span className="hidden sm:inline">Censo Demográfico</span>
             </button>
           </div>
 
@@ -246,10 +249,10 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       {/* ========================================================= */}
       {(currentUser.role !== 'admin_general' || adminMetricTab === 'global') && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          
+
           {/* Grid de 4 StatCards Ergonómicas Anti-Fatiga */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+
             {/* StatCard 1: Eventos Activos */}
             <div className="card-ergonomic p-5 relative">
               <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 flex items-center justify-center absolute right-4 top-4 border border-blue-100">
@@ -314,7 +317,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
           {/* Grid de 2 Columnas: Gráfico Comparativo + Agenda de Hoy */}
           <div className="grid grid-cols-1 lg:grid-cols-[1.35fr_1fr] gap-4">
-            
+
             {/* Panel de Gráfico: Asistencias vs Cupo Planificado */}
             <div className="card-ergonomic p-5 flex flex-col justify-between">
               <div className="flex items-center justify-between pb-3">
@@ -326,7 +329,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                     Comparativo de asistencias efectivas en sala vs. cupo proyectado
                   </p>
                 </div>
-                <select 
+                <select
                   value={selectedWeekFilter}
                   onChange={(e) => setSelectedWeekFilter(e.target.value)}
                   className="text-xs text-[#475569] border border-[#cbd5e1] rounded-lg px-2.5 py-1 bg-[#f8fafc] focus:outline-none focus:border-[#15803d]"
@@ -360,14 +363,14 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                 ].map((item, idx) => (
                   <div key={idx} className="flex flex-col items-center gap-1.5 h-full justify-end flex-1">
                     <div className="flex items-end gap-1.5 h-[80%]">
-                      <div 
-                        style={{ height: `${item.cap}%` }} 
-                        className="w-3.5 bg-[#cbd5e1] rounded-t-md transition-all duration-300 shadow-2xs" 
+                      <div
+                        style={{ height: `${item.cap}%` }}
+                        className="w-3.5 bg-[#cbd5e1] rounded-t-md transition-all duration-300 shadow-2xs"
                         title={`Cupo Planificado (Excel): ${item.cap}`}
                       />
-                      <div 
-                        style={{ height: `${item.att}%` }} 
-                        className="w-3.5 bg-[#15803d] rounded-t-md transition-all duration-300 shadow-2xs" 
+                      <div
+                        style={{ height: `${item.att}%` }}
+                        className="w-3.5 bg-[#15803d] rounded-t-md transition-all duration-300 shadow-2xs"
                         title={`Asistencias Confirmadas: ${item.att}`}
                       />
                     </div>
@@ -417,9 +420,9 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
                     {/* Portada o Indicador de Borrador */}
                     {evt.image ? (
-                      <img 
-                        src={evt.image} 
-                        alt={evt.title} 
+                      <img
+                        src={evt.image}
+                        alt={evt.title}
                         className="w-[52px] h-11 object-cover rounded-lg border border-[#e2e8f0]"
                       />
                     ) : (
@@ -569,8 +572,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                                 <span className="text-[#64748b]">/ {capacity} meta</span>
                               </div>
                               <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
-                                <div 
-                                  style={{ width: `${percent}%` }} 
+                                <div
+                                  style={{ width: `${percent}%` }}
                                   className="h-full bg-[#15803d] rounded-full"
                                 />
                               </div>
@@ -603,7 +606,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       {/* ========================================================= */}
       {currentUser.role === 'admin_general' && adminMetricTab === 'encargados' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          
+
           {/* Cabecera de la Sección de Encargados */}
           <div className="p-5 card-ergonomic flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -622,7 +625,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
             <button
               type="button"
-              onClick={onOpenInviteModal}
+              onClick={onOpenRegisterModal}
               className="btn btn-primary text-xs shrink-0"
             >
               <Plus className="w-4 h-4 text-white" />
@@ -819,8 +822,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                             <span className="text-[#64748b]">efectividad</span>
                           </div>
                           <div className="w-full h-1.5 rounded-full bg-[#e2e8f0] overflow-hidden">
-                            <div 
-                              style={{ width: `${enc.complianceRate}%` }} 
+                            <div
+                              style={{ width: `${enc.complianceRate}%` }}
                               className="h-full bg-[#15803d] rounded-full"
                             />
                           </div>
@@ -885,7 +888,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
       {/* ========================================================= */}
       {currentUser.role === 'admin_general' && adminMetricTab === 'usuarios' && (
         <div className="space-y-6 animate-in fade-in duration-150">
-          
+
           {/* Cabecera de la Sección de Usuarios */}
           <div className="p-5 card-ergonomic flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
@@ -910,7 +913,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
           {/* Grid de 4 StatCards de Censo */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            
+
             <div className="card-ergonomic p-4 relative">
               <div className="w-9 h-9 rounded-xl bg-slate-100 text-[#1e293b] flex items-center justify-center absolute right-4 top-4 border border-slate-200">
                 <Users className="w-4 h-4" />
@@ -965,7 +968,7 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
 
           {/* Grid de 2 Paneles: Distribución por Programa y Modalidad */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
+
             {/* Panel 1: Distribución por Programa de Formación */}
             <div className="card-ergonomic p-5 space-y-3">
               <div className="flex items-center justify-between pb-2 border-b border-[#e2e8f0]">
@@ -991,8 +994,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                       </div>
                     </div>
                     <div className="w-full h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
-                      <div 
-                        style={{ width: `${prog.pct}%` }} 
+                      <div
+                        style={{ width: `${prog.pct}%` }}
                         className={`h-full rounded-full ${
                           idx === 0 ? 'bg-[#15803d]' : idx === 1 ? 'bg-blue-600' : idx === 2 ? 'bg-purple-600' : 'bg-slate-500'
                         }`}
@@ -1028,8 +1031,8 @@ export default function DashboardView({ onOpenRegisterModal, onNavigateView, onO
                       </div>
                     </div>
                     <div className="w-full h-2 rounded-full bg-[#e2e8f0] overflow-hidden">
-                      <div 
-                        style={{ width: `${mod.pct}%` }} 
+                      <div
+                        style={{ width: `${mod.pct}%` }}
                         className="h-full bg-[#15803d] rounded-full"
                       />
                     </div>

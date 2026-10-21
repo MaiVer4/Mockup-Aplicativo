@@ -18,6 +18,7 @@ import EncargadosView from './views/EncargadosView';
 import CreateApprenticeModal from './components/CreateApprenticeModal';
 import ApprenticePortal from './views/ApprenticePortal';
 import LoginView from './views/LoginView';
+import ChangePasswordModal from './components/ChangePasswordModal';
 
 function AdminShell() {
   const { 
@@ -202,6 +203,7 @@ function LearnerShell() {
     setIsEmailDrawerOpen, 
     sentEmails 
   } = useApp();
+  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#f1f4f8] text-[#1e293b] font-sans antialiased">
@@ -266,7 +268,7 @@ function LearnerShell() {
 
       {/* Contenido Principal del Aprendiz */}
       <main className="flex-1 p-3.5 sm:p-5 md:p-8 max-w-6xl w-full mx-auto">
-        <ApprenticePortal />
+        <ApprenticePortal onOpenChangePassword={() => setIsChangePasswordOpen(true)} />
       </main>
 
       {/* Footer del Aprendiz */}
@@ -288,6 +290,12 @@ function LearnerShell() {
       <EmailNotificationDrawer
         isOpen={isEmailDrawerOpen}
         onClose={() => setIsEmailDrawerOpen(false)}
+      />
+
+      {/* Cambio de contraseña accesible desde el perfil del aprendiz */}
+      <ChangePasswordModal
+        isOpen={isChangePasswordOpen}
+        onClose={() => setIsChangePasswordOpen(false)}
       />
 
     </div>

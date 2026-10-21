@@ -1,22 +1,22 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
-import { 
-  Calendar, 
-  Clock, 
-  MapPin, 
-  CheckCircle2, 
-  Sparkles, 
-  Search, 
-  Filter, 
-  Award, 
-  Heart, 
-  Dumbbell, 
-  Palette, 
-  Brain, 
-  Wallet, 
-  ArrowRight, 
-  X, 
-  Check, 
+import {
+  Calendar,
+  Clock,
+  MapPin,
+  CheckCircle2,
+  Sparkles,
+  Search,
+  Filter,
+  Award,
+  Heart,
+  Dumbbell,
+  Palette,
+  Brain,
+  Wallet,
+  ArrowRight,
+  X,
+  Check,
   UserCheck,
   History,
   FileText,
@@ -32,27 +32,31 @@ import {
   Ban,
   BookOpen,
   Layers,
-  FileCheck2
+  FileCheck2,
+  KeyRound
 } from 'lucide-react';
 import EventDetailModal from '../components/EventDetailModal';
 import EmptyState from '../components/EmptyState';
-import { 
-  PROGRAMAS_FORMACION, 
-  CENTROS_FORMACION, 
-  NIVELES_FORMACION, 
-  MODALIDADES, 
-  JORNADAS 
+import {
+  PROGRAMAS_FORMACION,
+  CENTROS_FORMACION,
+  NIVELES_FORMACION,
+  MODALIDADES,
+  JORNADAS,
+  TIPOS_DOCUMENTO,
+  GENEROS
 } from '../data/mockData';
 
-export default function ApprenticePortal() {
-  const { 
-    currentUser, 
-    visibleEvents, 
-    events, 
-    registerAttendance, 
-    activeTab, 
+export default function ApprenticePortal({ onOpenChangePassword }) {
+  const {
+    currentUser,
+    visibleEvents,
+    events,
+    registerAttendance,
+    activeTab,
     setActiveTab,
-    addToast 
+    updateApprenticeProfile,
+    addToast
   } = useApp();
 
   const [currentSection, setCurrentSection] = useState('billboard'); // 'billboard' | 'history' | 'profile'
@@ -82,11 +86,11 @@ export default function ApprenticePortal() {
   const availableEvents = visibleEvents.filter(e => e.status !== 'borrador' && e.status !== 'pendiente_aprobacion');
 
   const filteredEvents = availableEvents.filter(evt => {
-    const matchesSearch = searchQuery === '' || 
+    const matchesSearch = searchQuery === '' ||
       evt.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       evt.purpose?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       evt.location?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesArea = filterArea === 'ALL' || evt.area === filterArea;
     return matchesSearch && matchesArea;
   });
@@ -98,9 +102,10 @@ export default function ApprenticePortal() {
 
   const handleSaveProfile = (e) => {
     e.preventDefault();
+    updateApprenticeProfile(profileData);
     addToast(
       'Perfil Institucional Actualizado',
-      'Tus modificaciones en ficha, programa y contacto se han guardado. Las actas históricas conservan su instantánea original.',
+      'Tus modificaciones se aplicarán a futuras participaciones. Las actas históricas conservan su instantánea original.',
       'success'
     );
   };
@@ -117,7 +122,7 @@ export default function ApprenticePortal() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      
+
       {/* 1. Header Secundario del Aprendiz: Navegación de Pestañas ergonómica (Item 3 y 12) */}
       <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2 overflow-x-auto no-scrollbar">
         <div className="flex items-center gap-3 sm:gap-6 shrink-0">
@@ -146,8 +151,8 @@ export default function ApprenticePortal() {
             <History className="w-4 h-4 text-[#0284c7]" />
             <span>Mi Historial de Asistencia</span>
             <span className={`text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full ${
-              attendedEvents.length > 0 
-                ? 'bg-emerald-100 text-[#15803d]' 
+              attendedEvents.length > 0
+                ? 'bg-emerald-100 text-[#15803d]'
                 : 'bg-slate-100 text-slate-600'
             }`}>
               {attendedEvents.length}
@@ -176,10 +181,10 @@ export default function ApprenticePortal() {
       {/* SECCIÓN 1: CARTELERA Y EXPERIENCIA PRINCIPAL */}
       {currentSection === 'billboard' && (
         <div className="space-y-6">
-          
+
           {/* Banner de Bienvenida Institucional Ergonómico (verde petróleo cálido) */}
           <div className="rounded-3xl bg-gradient-to-r from-[#0c2f39] via-[#103a46] to-[#08262f] text-white p-5 sm:p-7 md:p-9 relative overflow-hidden flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 shadow-lg border border-[#1a4a58]">
-            
+
             <div className="relative z-10 max-w-lg space-y-1.5 sm:space-y-2">
               <span className="text-[10px] font-extrabold tracking-[1.8px] text-[#c4f246] uppercase font-mono">
                 VIERNES, 14 DE MARZO DE 2026
@@ -232,8 +237,8 @@ export default function ApprenticePortal() {
                     type="button"
                     onClick={() => setFilterArea(isSelected ? 'ALL' : areaItem.name)}
                     className={`p-3 rounded-2xl border text-center transition-all flex flex-col items-center justify-center gap-1.5 shrink-0 sm:shrink w-[130px] sm:w-auto group ${
-                      isSelected 
-                        ? 'border-[#15803d] bg-white ring-2 ring-[#15803d]/30 shadow-xs' 
+                      isSelected
+                        ? 'border-[#15803d] bg-white ring-2 ring-[#15803d]/30 shadow-xs'
                         : 'border-[#e2e8f0] bg-white hover:border-[#cbd5e1] hover:shadow-2xs'
                     }`}
                   >
@@ -286,7 +291,7 @@ export default function ApprenticePortal() {
                   const isCancelled = evt.status === 'cancelada';
 
                   return (
-                    <article 
+                    <article
                       key={evt.id}
                       className={`grid grid-cols-1 sm:grid-cols-[43%_57%] card-ergonomic overflow-hidden min-h-[300px] transition-all ${
                         isCancelled ? 'border-rose-200 bg-rose-50/15 opacity-90' : ''
@@ -298,9 +303,9 @@ export default function ApprenticePortal() {
                         className="relative min-h-[180px] sm:min-h-full bg-[#f8fafc] cursor-pointer group overflow-hidden"
                       >
                         {evt.image ? (
-                          <img 
-                            src={evt.image} 
-                            alt={evt.title} 
+                          <img
+                            src={evt.image}
+                            alt={evt.title}
                             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
@@ -614,7 +619,7 @@ export default function ApprenticePortal() {
       {/* SECCIÓN 3: CONFIGURACIÓN Y PERFIL INSTITUCIONAL EN 3 BLOQUES (Item 7) */}
       {currentSection === 'profile' && (
         <form onSubmit={handleSaveProfile} className="space-y-5">
-          
+
           {/* Cabecera del Perfil con Trazabilidad */}
           <div className="p-5 rounded-2xl bg-white border border-[#e2e8f0] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
@@ -639,18 +644,17 @@ export default function ApprenticePortal() {
             </div>
           </div>
 
-          {/* BLOQUE 1: Identificación Oficial (Solo Lectura con Candado) */}
+          {/* BLOQUE 1: Identificación y datos personales (Editables) */}
           <div className="p-5 rounded-2xl bg-white border border-[#e2e8f0] shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-[#e2e8f0] pb-2.5">
               <div className="flex items-center gap-2">
                 <IdCard className="w-4 h-4 text-[#0e2738]" />
                 <h3 className="text-xs font-bold uppercase tracking-wider text-[#0e2738]">
-                  1. Identificación Oficial (Inmutable en Portal)
+                  1. Identificación y datos personales
                 </h3>
               </div>
-              <span className="text-[10px] font-semibold text-[#64748b] flex items-center gap-1 bg-slate-100 px-2 py-0.5 rounded">
-                <Lock className="w-3 h-3 text-slate-500" />
-                Solo Lectura
+              <span className="text-[10px] font-semibold text-[#15803d] flex items-center gap-1 bg-[#eafaf1] px-2 py-0.5 rounded">
+                Datos editables
               </span>
             </div>
 
@@ -660,43 +664,52 @@ export default function ApprenticePortal() {
                 <div className="relative">
                   <input
                     type="text"
-                    readOnly
+                    required
                     value={profileData.name}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-[#475569] font-medium cursor-not-allowed select-none"
+                    onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] text-[#1e293b] font-medium focus:border-[#15803d] focus:outline-none"
                   />
-                  <Lock className="w-3.5 h-3.5 text-[#94a3b8] absolute right-3 top-3" />
                 </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-[#334155] mb-1">Tipo y Número de Documento *</label>
                 <div className="relative">
-                  <input
-                    type="text"
-                    readOnly
-                    value={`${profileData.documentType} - ${profileData.documentNumber}`}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-[#475569] font-mono font-medium cursor-not-allowed select-none"
-                  />
-                  <Lock className="w-3.5 h-3.5 text-[#94a3b8] absolute right-3 top-3" />
+                  <div className="grid grid-cols-[1.1fr_1fr] gap-2">
+                    <select
+                      value={profileData.documentType}
+                      onChange={(e) => setProfileData({ ...profileData, documentType: e.target.value })}
+                      className="w-full px-2 py-2.5 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b] text-xs focus:border-[#15803d] focus:outline-none"
+                    >
+                      {TIPOS_DOCUMENTO.map(type => <option key={type} value={type}>{type}</option>)}
+                    </select>
+                    <input
+                      type="text"
+                      required
+                      value={profileData.documentNumber}
+                      onChange={(e) => setProfileData({ ...profileData, documentNumber: e.target.value })}
+                      className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] text-[#1e293b] font-mono focus:border-[#15803d] focus:outline-none"
+                    />
+                  </div>
                 </div>
               </div>
 
               <div>
                 <label className="block text-[11px] font-bold text-[#334155] mb-1">Género Registrado</label>
                 <div className="relative">
-                  <input
-                    type="text"
-                    readOnly
+                  <select
                     value={profileData.gender}
-                    className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-[#f8fafc] text-[#475569] cursor-not-allowed select-none"
-                  />
-                  <Lock className="w-3.5 h-3.5 text-[#94a3b8] absolute right-3 top-3" />
+                    onChange={(e) => setProfileData({ ...profileData, gender: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-white text-[#1e293b] focus:border-[#15803d] focus:outline-none"
+                  >
+                    {GENEROS.map(gender => <option key={gender} value={gender}>{gender}</option>)}
+                  </select>
                 </div>
               </div>
 
               <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-[#64748b] text-[11px] flex items-center gap-2">
-                <Lock className="w-4 h-4 text-slate-400 shrink-0" />
-                <span>Para corregir nombres o documento acércate con cédula original a Registro y Control.</span>
+                <ShieldCheck className="w-4 h-4 text-[#15803d] shrink-0" />
+                <span>Actualiza tus datos desde este perfil; el Centro de Formación permanece bajo control institucional.</span>
               </div>
             </div>
           </div>
@@ -739,13 +752,15 @@ export default function ApprenticePortal() {
                 <label className="block text-[11px] font-bold text-[#334155] mb-1">Centro de Formación *</label>
                 <select
                   value={profileData.trainingCenter}
-                  onChange={(e) => setProfileData({ ...profileData, trainingCenter: e.target.value })}
-                  className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:border-[#15803d] focus:outline-none"
+                  disabled
+                  aria-describedby="training-center-lock-note"
+                  className="w-full px-3 py-2.5 rounded-xl border border-[#cbd5e1] bg-[#f1f5f9] text-xs text-[#64748b] cursor-not-allowed"
                 >
                   {CENTROS_FORMACION.map((c) => (
                     <option key={c} value={c}>{c}</option>
                   ))}
                 </select>
+                <span id="training-center-lock-note" className="text-[10px] text-[#64748b] mt-0.5 block">Dato asignado por el centro de formación; no editable desde el perfil.</span>
               </div>
 
               <div className="grid grid-cols-3 gap-2">
@@ -828,16 +843,26 @@ export default function ApprenticePortal() {
           </div>
 
           {/* Botón de Guardar Cambios */}
-          <div className="pt-2 flex items-center justify-between">
+          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3">
             <span className="text-[11px] text-[#64748b]">
-              Asegúrate de que tu ficha y correo institucional estén correctos para recibir constancias.
+              Los cambios aplican a futuras participaciones; las actas históricas no se alteran.
             </span>
-            <button
-              type="submit"
-              className="btn btn-primary py-2.5 px-5 rounded-xl text-xs font-bold shadow-xs active:scale-[0.96]"
-            >
-              Guardar Modificaciones
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <button
+                type="button"
+                onClick={onOpenChangePassword}
+                className="btn btn-secondary py-2.5 px-4 rounded-xl text-xs font-bold inline-flex items-center justify-center gap-1.5"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-[#15803d]" />
+                Cambiar contraseña
+              </button>
+              <button
+                type="submit"
+                className="btn btn-primary py-2.5 px-5 rounded-xl text-xs font-bold shadow-xs active:scale-[0.96]"
+              >
+                Guardar Modificaciones
+              </button>
+            </div>
           </div>
 
         </form>
@@ -854,7 +879,7 @@ export default function ApprenticePortal() {
       {selectedEventForCertificate && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in">
           <div className="bg-white rounded-2xl shadow-2xl border border-[#cbd5e1] w-full max-w-xl overflow-hidden animate-in zoom-in-95 flex flex-col max-h-[90vh]">
-            
+
             {/* Header del Modal */}
             <div className="px-5 py-3.5 bg-gradient-to-r from-[#0c2f3a] to-[#103a46] text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -877,9 +902,9 @@ export default function ApprenticePortal() {
 
             {/* Cuerpo del Certificado (Estilo Oficial SENA) */}
             <div className="p-6 overflow-y-auto space-y-4 text-xs font-sans">
-              
+
               <div className="border-2 border-[#15803d] rounded-2xl p-5 space-y-4 bg-gradient-to-b from-white via-[#f0fdf4]/20 to-white relative">
-                
+
                 {/* Cabecera Institucional */}
                 <div className="text-center space-y-1 pb-3 border-b border-[#cbd5e1]">
                   <div className="w-10 h-10 rounded-full bg-[#15803d] text-white flex items-center justify-center mx-auto font-black text-sm">
