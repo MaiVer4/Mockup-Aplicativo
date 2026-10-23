@@ -283,10 +283,10 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
         </div>
 
         {/* Formulario */}
-        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto overscroll-contain space-y-3.5 flex-1 text-xs">
+        <form onSubmit={handleSubmit} className="p-5 overflow-y-auto overscroll-contain space-y-3.5 flex flex-col flex-1 text-xs">
           
           {/* Instrucciones y enlaces para el aprendiz */}
-          <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 space-y-3">
+          <div className="p-3 rounded-xl bg-blue-50/60 border border-blue-100 space-y-3 order-50">
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">Instrucciones (opcional)</label>
               <textarea
@@ -329,7 +329,19 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </div>
 
           {/* Título y Código */}
-          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 order-10">
+            <div>
+              <label className="block text-[11px] font-bold text-[#334155] mb-1">
+                Código Oficial
+              </label>
+              <input
+                type="text"
+                placeholder="ACT-CUL-01"
+                value={formData.code}
+                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d] font-mono"
+              />
+            </div>
             <div className="sm:col-span-3">
               <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Nombre de la Actividad *
@@ -343,22 +355,10 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
                 className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d] transition-colors font-medium"
               />
             </div>
-            <div>
-              <label className="block text-[11px] font-bold text-[#334155] mb-1">
-                Código Oficial
-              </label>
-              <input
-                type="text"
-                placeholder="ACT-CUL-01"
-                value={formData.code}
-                onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                className="w-full px-3 py-2 rounded-xl border border-[#cbd5e1] text-xs text-[#1e293b] focus:outline-none focus:border-[#15803d] font-mono"
-              />
-            </div>
           </div>
 
           {/* Área y Trimestre */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 order-60">
             <div>
               <label className="block text-[11px] font-bold text-[#334155] mb-1">
                 Área de Bienestar
@@ -397,7 +397,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </div>
 
           {/* Propósito Formativo */}
-          <div>
+          <div className="order-20">
             <label className="block text-[11px] font-bold text-[#334155] mb-1">
               Propósito Formativo *
             </label>
@@ -412,7 +412,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </div>
 
           {/* Objetivo Operativo */}
-          <div>
+          <div className="order-80">
             <label className="block text-[11px] font-bold text-[#334155] mb-1">
               Objetivo Operativo (GOR-F-013)
             </label>
@@ -426,7 +426,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </div>
 
           {/* Descripción Extendida */}
-          <div>
+          <div className="order-90">
             <label className="block text-[11px] font-bold text-[#334155] mb-1">
               Descripción Extendida / Metodología
             </label>
@@ -441,14 +441,14 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
 
           {/* Alerta contextual cuando se requiere fecha exacta */}
           {shouldHighlightDate && (
-            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 animate-in fade-in duration-150">
+            <div className="p-2.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 flex items-center gap-2 animate-in fade-in duration-150 order-25">
               <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
               <span className="font-bold text-xs">Define la fecha exacta de ejecución</span>
             </div>
           )}
 
           {/* Parámetros Operativos (Fecha, Horario, Duración, Capacidad) */}
-          <div ref={dateSectionRef} className="space-y-2">
+          <div ref={dateSectionRef} className="space-y-2 order-30">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[11px] font-bold text-[#334155]">Ventana de apertura y cierre</span>
               <span className="text-[10px] text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-2 py-0.5 font-semibold">Participación solo durante la ventana activa</span>
@@ -517,7 +517,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </div>
 
           {/* Ubicación */}
-          <div>
+          <div className="order-100">
             <label className="block text-[11px] font-bold text-[#334155] mb-1">
               Lugar / Instalaciones
             </label>
@@ -532,7 +532,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           {/* Portada de la Actividad (Prompt IA Editable + Imagen Externa) */}
           <div
             ref={coverSectionRef}
-            className={`p-3.5 rounded-xl border transition-all space-y-3 ${
+            className={`p-3.5 rounded-xl border transition-all space-y-3 order-110 ${
               shouldHighlightCover && !formData.image
                 ? 'bg-amber-50/70 border-amber-400 ring-2 ring-amber-400/50'
                 : formData.image
@@ -788,7 +788,7 @@ export default function EventModal({ isOpen, onClose, eventToEdit = null, focusD
           </div>
 
           {/* Botones de acción */}
-          <div className="pt-3 border-t border-[#e2e8f0] flex items-center justify-end gap-2">
+          <div className="pt-3 border-t border-[#e2e8f0] flex items-center justify-end gap-2 order-120">
             <button
               type="button"
               onClick={onClose}

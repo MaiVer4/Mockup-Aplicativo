@@ -38,6 +38,7 @@ function AdminShell() {
   const [focusDateOnModal, setFocusDateOnModal] = useState(false);
   const [focusCoverOnModal, setFocusCoverOnModal] = useState(false);
   const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
+  const [encargadoToEdit, setEncargadoToEdit] = useState(null);
   const [isCreateApprenticeModalOpen, setIsCreateApprenticeModalOpen] = useState(false);
   const [selectedEventForExport, setSelectedEventForExport] = useState(null);
   const [selectedEventForDetail, setSelectedEventForDetail] = useState(null);
@@ -123,7 +124,14 @@ function AdminShell() {
 
           {activeTab === 'encargados' && (
             <EncargadosView 
-              onOpenRegisterModal={() => setIsRegisterModalOpen(true)}
+              onOpenRegisterModal={() => {
+                setEncargadoToEdit(null);
+                setIsRegisterModalOpen(true);
+              }}
+              onOpenEditModal={(encargado) => {
+                setEncargadoToEdit(encargado);
+                setIsRegisterModalOpen(true);
+              }}
             />
           )}
         </main>
@@ -165,7 +173,11 @@ function AdminShell() {
       {/* 3. Modal para registrar encargados de área directamente (RF-14) */}
       <RegisterEncargadoModal
         isOpen={isRegisterModalOpen}
-        onClose={() => setIsRegisterModalOpen(false)}
+        encargadoToEdit={encargadoToEdit}
+        onClose={() => {
+          setIsRegisterModalOpen(false);
+          setEncargadoToEdit(null);
+        }}
       />
 
       {/* 4. Modal para registrar aprendiz directamente (RF-01) */}

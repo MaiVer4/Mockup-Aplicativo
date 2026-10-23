@@ -2,15 +2,11 @@ import React, { useState, useRef } from 'react';
 import { useApp } from '../context/AppContext';
 import { 
   Upload, 
-  FileSpreadsheet, 
-  Sparkles, 
   AlertTriangle, 
   CheckCircle2, 
   Check, 
   RotateCcw, 
-  ArrowRight, 
-  Download, 
-  Info,
+  ArrowRight,
   SlidersHorizontal,
   Layers,
   ChevronDown,
@@ -23,12 +19,9 @@ import {
   Clock,
   LayoutGrid,
   Table as TableIcon,
-  Tag,
-  DollarSign,
-  FileText
+  Tag
 } from 'lucide-react';
 import { 
-  downloadSampleAnnualPlanTemplate, 
   parseMultiSheetExcelFile, 
   processPlanRowsWithAI
 } from '../utils/excelHelper';
@@ -143,21 +136,6 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
       setExtractedItems(reprocessed);
       addToast('Mapeo actualizado', `La columna "${newColName}" ahora define ${field}.`, 'success');
     }
-  };
-
-  // Carga con 1 Clic usando datos de prueba de la plantilla oficial
-  const handleLoadDemoFile = () => {
-    const demoRows = DEMO_ANNUAL_PLAN_SHEETS[selectedSheet] || DEMO_ANNUAL_PLAN_SHEETS['Cultura'];
-    setParsedWorkbook(null);
-    setCurrentSheetData(null);
-    setActiveColumnMap({
-      title: 'Evento / Actividad',
-      line: 'Línea de Acción',
-      capacity: 'Aprendices Estimados',
-      date: 'Mes / Fecha Programada',
-      responsible: 'Responsable Sugerido'
-    });
-    runAiExtraction(demoRows, `Plan_Bienestar_2026_${selectedSheet}.xlsx`, selectedSheet);
   };
 
   // Carga Plan Anual General Multi-Área con Fichas
@@ -483,61 +461,6 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
             )}
           </div>
 
-          {/* Nota de análisis inteligente */}
-          <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] flex items-center justify-between text-xs text-[#475569]">
-            <div className="flex items-center gap-2.5">
-              <Sparkles className="w-4 h-4 text-[#15803d] shrink-0" />
-              <div>
-                <strong className="block text-[11px] text-[#1e293b]">Reconocimiento automático de actividades reales</strong>
-                <small className="text-[10px] text-[#64748b]">Extrae denominación, fechas, cupos, metas, responsables y fichas convocadas directamente de tus filas.</small>
-              </div>
-            </div>
-            <span className="font-mono text-[9px] font-bold bg-[#eafaf1] text-[#15803d] border border-[#bbf7d0] px-2 py-0.5 rounded">
-              IA SENA
-            </span>
-          </div>
-
-          {/* Botón de acción y prueba rápida */}
-          <div className="pt-2">
-            <button
-              type="button"
-              disabled={processing}
-              onClick={handleLoadDemoFile}
-              className="btn btn-secondary w-full py-3 text-xs font-bold justify-center"
-            >
-              {processing ? (
-                <>
-                  <div className="w-4 h-4 rounded-full border-2 border-[#15803d] border-t-transparent animate-spin" />
-                  <span>Analizando archivo...</span>
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 text-[#15803d]" />
-                  <span>Probar con Plan Anual Demo de {selectedSheet}</span>
-                </>
-              )}
-            </button>
-          </div>
-
-          {/* Descargar Plantilla Oficial */}
-          <div className="p-3.5 rounded-xl border border-[#e2e8f0] bg-[#f8fafc] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <FileSpreadsheet className="w-5 h-5 text-[#15803d] shrink-0" />
-              <div>
-                <strong className="block text-xs text-[#1e293b]">¿Deseas la plantilla oficial del SENA?</strong>
-                <small className="text-[10px] text-[#64748b]">Descarga el libro con pestañas para las 6 áreas institucionales y campos estándar.</small>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={downloadSampleAnnualPlanTemplate}
-              className="btn btn-secondary text-xs w-full sm:w-auto justify-center shrink-0"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span>Descargar plantilla oficial</span>
-            </button>
-          </div>
-
         </div>
       )}
 
@@ -839,7 +762,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                         <div className="text-[11px] text-[#475569] leading-snug whitespace-pre-line">
                           {item.subactivities?.length > 0 && (
                             <div className="mt-1.5 rounded-lg border border-blue-100 bg-blue-50/60 px-2.5 py-2">
-                              <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">Subactividad</p>
+                              <p className="mb-1 text-[10px] font-bold uppercase tracking-wide text-blue-700">EVENTO</p>
                               <ul className="space-y-0.5 text-[11px] text-[#475569]">
                                 {item.subactivities.map((subactivity, subIndex) => (
                                   <li key={`${item.tempId}-sub-${subIndex}`} className="flex gap-1.5">
@@ -950,7 +873,7 @@ export default function ExcelUploadView({ onSuccessNavigate }) {
                           )}
                           {item.subactivities?.length > 0 && (
                             <span className="block text-[10px] text-blue-700 line-clamp-1">
-                              Subactividad: {item.subactivity || item.subactivities.join(' · ')}
+                              EVENTO: {item.subactivity || item.subactivities.join(' · ')}
                             </span>
                           )}
                         </td>

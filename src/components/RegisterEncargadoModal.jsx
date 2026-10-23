@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { X, UserPlus, ShieldCheck, Mail, Lock, User, Layers } from 'lucide-react';
 import { AREAS } from '../data/mockData';
 
-export default function RegisterEncargadoModal({ isOpen, onClose }) {
-  const { registerEncargadoByAdmin, addToast } = useApp();
+export default function RegisterEncargadoModal({ isOpen, onClose, encargadoToEdit = null }) {
+  const { registerEncargadoByAdmin, updateEncargadoByAdmin } = useApp();
+  const isEditing = Boolean(encargadoToEdit);
 
   const [formData, setFormData] = useState({
     firstName: '',
@@ -15,14 +16,26 @@ export default function RegisterEncargadoModal({ isOpen, onClose }) {
   });
   const [error, setError] = useState('');
 
+  useEffect(() => {
+    if (!isOpen) return;
+    setError('');
+    setFormData({
+      firstName: encargadoToEdit?.name?.split(' ')[0] || '',
+      lastName: encargadoToEdit?.name?.split(' ').slice(1).join(' ') || '',
+      email: encargadoToEdit?.email || '',
+      password: '',
+      area: encargadoToEdit?.area || 'Cultura'
+    });
+  }, [isOpen, encargadoToEdit]);
+
   if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
 
-    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
-      setError('Todos los campos son obligatorios.');
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || (!isEditing && !formData.password.trim())) {
+      setError(isEditing ? 'Nombres, apellidos y correo son obligatorios.' : 'Todos los campos son obligatorios.');
       return;
     }
 
@@ -32,12 +45,19 @@ export default function RegisterEncargadoModal({ isOpen, onClose }) {
     }
 
     const fullName = `${formData.firstName.trim()} ${formData.lastName.trim()}`;
-    const result = registerEncargadoByAdmin({
-      name: fullName,
-      email: formData.email.trim(),
-      password: formData.password.trim(),
-      area: formData.area
-    });
+    const result = isEditing
+      ? updateEncargadoByAdmin(encargadoToEdit.id, {
+          name: fullName,
+          email: formData.email.trim(),
+          password: formData.password.trim(),
+          area: formData.area
+        })
+      : registerEncargadoByAdmin({
+          name: fullName,
+          email: formData.email.trim(),
+          password: formData.password.trim(),
+          area: formData.area
+        });
 
     if (result.success) {
       setFormData({
@@ -65,10 +85,10 @@ export default function RegisterEncargadoModal({ isOpen, onClose }) {
             </div>
             <div>
               <h3 className="text-sm font-bold text-[#1e293b] font-heading">
-                Registrar Encargado de Área
+                {isEditing ? 'Editar Perfil de Encargado' : 'Registrar Encargado de Área'}
               </h3>
               <p className="text-[11px] text-[#64748b]">
-                Asignación de credenciales operativas directas por el Administrador.
+                {isEditing ? 'Actualiza los datos institucionales y el área asignada.' : 'Asignación de credenciales operativas directas por el Administrador.'}
               </p>
             </div>
           </div>
@@ -140,14 +160,14 @@ export default function RegisterEncargadoModal({ isOpen, onClose }) {
 
           <div>
             <label className="block text-[11px] font-bold text-[#334155] mb-1">
-              Contraseña de Acceso
+              Contraseña de Acceso {isEditing && <span className="font-normal text-[#64748b]">(opcional)</span>}
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-[#94a3b8] absolute left-3 top-2.5" />
               <input
                 type="password"
-                required
-                placeholder="••••••••"
+                required={!isEditing}
+                placeholder={isEditing ? 'Dejar en blanco para conservarla' : '••••••••'}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#cbd5e1] text-xs bg-[#f8fafc] text-[#1e293b] focus:bg-white focus:outline-none focus:border-[#15803d]"
@@ -175,7 +195,7 @@ export default function RegisterEncargadoModal({ isOpen, onClose }) {
 
           <div className="p-3 rounded-xl bg-[#f0f9ff] border border-[#bae6fd] text-[#0369a1] text-[11px] flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-[#0284c7] shrink-0" />
-            <span>El sistema notificará automáticamente al encargado por correo con estas credenciales de acceso inicial y podrá cambiar su clave al ingresar.</span>
+            <span>{isEditing ? 'Los cambios se guardarán en el perfil institucional. La contraseña solo se actualizará si ingresas una nueva.' : 'El sistema notificará automáticamente al encargado por correo con estas credenciales de acceso inicial y podrá cambiar su clave al ingresar.'}</span>
           </div>
 
           <div className="pt-2 flex items-center justify-end gap-2">
@@ -190,7 +210,7 @@ export default function RegisterEncargadoModal({ isOpen, onClose }) {
               type="submit"
               className="btn btn-primary text-xs py-2 px-4 font-bold"
             >
-              Registrar Encargado
+              {isEditing ? 'Guardar Cambios' : 'Registrar Encargado'}
             </button>
           </div>
         </form>

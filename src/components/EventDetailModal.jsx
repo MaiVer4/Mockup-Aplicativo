@@ -249,7 +249,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-[#0e2738]/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-[#e2e8f0] w-full max-w-2xl overflow-hidden flex flex-col max-h-[94vh] sm:max-h-[92vh] relative">
+      <div className="bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl border-t sm:border border-[#e2e8f0] w-full max-w-2xl h-auto max-h-[94vh] sm:max-h-[92vh] overflow-y-auto overscroll-contain custom-scrollbar flex flex-col relative">
 
         {/* Botón Cerrar flotante con blur */}
         <button
@@ -306,7 +306,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
         </div>
 
         {/* Contenido del modal */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-4 sm:space-y-5 text-xs flex-1">
+        <div className={isLearner && !isCancelada ? 'hidden' : 'p-4 sm:p-6 overflow-y-auto overscroll-contain custom-scrollbar space-y-4 sm:space-y-5 text-xs flex-1'}>
 
           {/* ESTADO 1: BANNER DE ACTIVIDAD CANCELADA (Item 5) */}
           {isCancelada && (
@@ -332,7 +332,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           )}
 
           {/* ESTADO 2: STEPPER VISUAL DE CICLO DE VIDA (Item 13) */}
-          {!isCancelada && (
+          {!isCancelada && !isLearner && (
             <div className="space-y-2 p-3 sm:p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
               <div className="flex items-center justify-between text-[11px]">
                 <span className="font-bold text-[#475569] uppercase tracking-wider text-[10px]">
@@ -361,7 +361,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           )}
 
           {/* ESTADO 3: ALERTA DE ACTIVIDAD PENDIENTE DE APROBACIÓN (Item 10) */}
-          {isPendiente && (
+          {!isLearner && isPendiente && (
             <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-300 text-amber-950 space-y-1.5">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
@@ -374,7 +374,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           )}
 
           {/* CERTIFICACIÓN DE APROBACIÓN HUMANA (Item 4) */}
-          {event.humanApproved && (
+          {!isLearner && event.humanApproved && (
             <div className="p-3 rounded-2xl bg-[#f0fdf4] border border-[#bbf7d0] text-[#14532d] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
                 <FileCheck2 className="w-4 h-4 text-[#15803d] shrink-0" />
@@ -392,7 +392,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           )}
 
           {/* PANEL DE CONTROL DE ASISTENCIA Y AFORO CON FECHA Y HORA EXACTA (Item 2) */}
-          <div className="p-3.5 sm:p-4 rounded-2xl bg-[#f8fafc] border border-[#cbd5e1] space-y-3">
+          <div className={isLearner ? 'hidden' : 'p-3.5 sm:p-4 rounded-2xl bg-[#f8fafc] border border-[#cbd5e1] space-y-3'}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-[#15803d]" />
@@ -450,7 +450,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
               </div>
             </div>
           </div>
-            <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+            <div className={isLearner ? 'hidden' : 'p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]'}>
               <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
                 ASISTENTES
               </span>
@@ -460,7 +460,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
               <small className="text-[#64748b] text-[9px] sm:text-[10px] truncate block">asistencias en sala</small>
             </div>
 
-            <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+            <div className={isLearner ? 'hidden' : 'p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]'}>
               <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-[#64748b] font-mono block">
                 CAPACIDAD
               </span>
@@ -470,7 +470,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
               <small className="text-[#64748b] text-[9px] sm:text-[10px] truncate block">aforo oficial</small>
             </div>
 
-            <div className="p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#eafaf1] border border-[#bbf7d0]">
+            <div className={isLearner ? 'hidden' : 'p-3 sm:p-3.5 rounded-xl sm:rounded-2xl bg-[#eafaf1] border border-[#bbf7d0]'}>
               <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-[#15803d] font-mono block">
                 OCUPACIÓN
               </span>
@@ -482,7 +482,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           </div>
 
           {/* Flujo RF-08: estados controlados y límites del rol operativo */}
-          <div className="p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
+          <div className={isLearner ? 'hidden' : 'p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2'}>
             <div className="flex items-center justify-between gap-2">
               <h4 className="text-[11px] font-bold text-[#1e293b]">Ciclo de actividad</h4>
               <span className="hidden sm:inline text-[10px] text-[#64748b] font-medium">Asistencia: publicada + abierta</span>
@@ -496,8 +496,50 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
             <p className="text-[10px] text-[#64748b]">El encargado opera el ciclo; el administrador lo supervisa.</p>
           </div>
 
+          {/* Resumen de información útil para el aprendiz */}
+          {isLearner && (
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0] space-y-3">
+              <div className="flex items-center justify-between gap-2">
+                <h4 className="text-xs font-bold text-[#1e293b] font-heading">Lo esencial para participar</h4>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isEnCurso ? 'bg-emerald-100 text-[#15803d]' : isFinalizado ? 'bg-slate-100 text-slate-700' : isCancelada ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-700'}`}>
+                  {isEnCurso ? 'Asistencia abierta' : isFinalizado ? 'Finalizada' : isCancelada ? 'Cancelada' : 'Próximamente'}
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="flex items-center gap-2.5 rounded-xl bg-white border border-[#e2e8f0] p-2.5">
+                  <Calendar className="w-4 h-4 text-[#15803d] shrink-0" />
+                  <div>
+                    <span className="block text-[10px] text-[#64748b]">Cuándo</span>
+                    <strong className="block text-xs text-[#1e293b]">{event.date || 'Fecha por confirmar'} · {event.time || event.schedule || 'Horario por confirmar'}</strong>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-xl bg-white border border-[#e2e8f0] p-2.5">
+                  <MapPin className="w-4 h-4 text-[#15803d] shrink-0" />
+                  <div className="min-w-0">
+                    <span className="block text-[10px] text-[#64748b]">Dónde</span>
+                    <strong className="block text-xs text-[#1e293b] truncate">{event.location || 'Lugar por confirmar'}</strong>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-xl bg-white border border-[#e2e8f0] p-2.5">
+                  <Clock className="w-4 h-4 text-[#15803d] shrink-0" />
+                  <div>
+                    <span className="block text-[10px] text-[#64748b]">Duración</span>
+                    <strong className="block text-xs text-[#1e293b]">{event.duration || 'Duración por confirmar'}</strong>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5 rounded-xl bg-white border border-[#e2e8f0] p-2.5">
+                  <Users className="w-4 h-4 text-[#15803d] shrink-0" />
+                  <div>
+                    <span className="block text-[10px] text-[#64748b]">Cupos disponibles</span>
+                    <strong className="block text-xs text-[#1e293b]">{Math.max(0, capacity - attendeesCount)} de {capacity}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Información y Parámetros con Iconos */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]">
+          <div className={isLearner ? 'hidden' : 'grid grid-cols-1 sm:grid-cols-3 gap-3 p-3.5 rounded-2xl bg-[#f8fafc] border border-[#e2e8f0]'}>
             <div className="flex items-center gap-2.5">
               <Calendar className="w-4 h-4 text-[#64748b] shrink-0" />
               <div>
@@ -526,7 +568,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
           {/* Descripción Extendida y Metodología */}
           <div className="space-y-2">
             <h4 className="text-xs font-bold text-[#1e293b] font-heading">
-              Metodología y Objetivos Formativos
+              Sobre esta actividad
             </h4>
             <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-[#334155] leading-relaxed text-xs">
               {event.extendedDescription || event.purpose}
@@ -561,7 +603,7 @@ export default function EventDetailModal({ isOpen, onClose, event: propEvent, on
 
           {event.subactivities?.length > 0 && (
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-[#1e293b] font-heading">Subactividades</h4>
+              <h4 className="text-xs font-bold text-[#1e293b] font-heading">EVENTO</h4>
               <div className="p-3.5 rounded-xl bg-blue-50/60 border border-blue-100 text-[#334155] text-xs">
                 <ul className="space-y-1.5">
                   {event.subactivities.map((subactivity, index) => (

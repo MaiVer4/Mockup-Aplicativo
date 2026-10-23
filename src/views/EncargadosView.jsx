@@ -7,11 +7,12 @@ import {
   Mail, 
   Building2, 
   ShieldCheck, 
-  Calendar 
+  Calendar,
+  Edit3
 } from 'lucide-react';
 import { AREAS } from '../data/mockData';
 
-export default function EncargadosView({ onOpenRegisterModal }) {
+export default function EncargadosView({ onOpenRegisterModal, onOpenEditModal }) {
   const { users, toggleUserStatus, events } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedArea, setSelectedArea] = useState('ALL');
@@ -160,17 +161,27 @@ export default function EncargadosView({ onOpenRegisterModal }) {
                     {enc.status === 'inactivo' ? 'Inactivo' : 'Activo'}
                   </span>
 
-                  <button
-                    type="button"
-                    onClick={() => toggleUserStatus(enc.id)}
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => onOpenEditModal(enc)}
+                      className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-white border border-[#cbd5e1] text-[#475569] hover:border-[#15803d] hover:text-[#15803d] transition-colors cursor-pointer flex items-center gap-1"
+                    >
+                      <Edit3 className="w-3 h-3" />
+                      Editar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleUserStatus(enc.id)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-colors cursor-pointer ${
                       enc.status === 'inactivo'
                         ? 'bg-[#15803d] text-white hover:bg-[#166534]'
                         : 'bg-white border border-[#cbd5e1] text-[#475569] hover:bg-rose-50 hover:text-rose-600'
                     }`}
                   >
-                    {enc.status === 'inactivo' ? 'Habilitar' : 'Desactivar'}
-                  </button>
+                      {enc.status === 'inactivo' ? 'Habilitar' : 'Desactivar'}
+                    </button>
+                  </div>
                 </div>
               </div>
             );

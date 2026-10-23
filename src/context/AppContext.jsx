@@ -523,7 +523,44 @@ export function AppProvider({ children }) {
     }));
   };
 
-  // 8. Crear Aprendiz por el Administrador
+  // 8. Editar perfil de Encargado por el Administrador
+  const updateEncargadoByAdmin = (userId, data) => {
+    const target = usersList.find(u => u.id === userId && u.role === 'admin_area');
+    if (!target) return { success: false, message: 'Encargado no encontrado.' };
+
+    const name = String(data.name || '').trim();
+    const email = String(data.email || '').trim();
+    const area = String(data.area || '').trim();
+    if (!name || !email || !area) {
+      return { success: false, message: 'Nombre, correo y área son obligatorios.' };
+    }
+    if (!email.includes('@')) {
+      return { success: false, message: 'Ingresa un correo electrónico institucional válido.' };
+    }
+
+    const emailExists = usersList.some(u => u.id !== userId && u.email?.toLowerCase() === email.toLowerCase());
+    if (emailExists) {
+      return { success: false, message: 'Ya existe otro usuario con este correo electrónico.' };
+    }
+
+    const updatedUser = {
+      ...target,
+      name,
+      email,
+      username: email.split('@')[0],
+      area,
+      roleLabel: `Encargado // Área ${area}`,
+      shortRole: `Encargado ${area}`,
+      ...(data.password?.trim() ? { password: data.password.trim() } : {})
+    };
+
+    setUsersList(prev => prev.map(user => user.id === userId ? updatedUser : user));
+    if (currentUser?.id === userId) setCurrentUser(updatedUser);
+    addToast('Perfil Actualizado', `Se actualizaron los datos de ${name}.`, 'success');
+    return { success: true, user: updatedUser };
+  };
+
+  // 9. Crear Aprendiz por el Administrador
   const createApprenticeByAdmin = (data) => {
     if (!data.name || !data.documentNumber || !data.email) {
       return { success: false, message: 'Nombre, documento y correo son obligatorios.' };
@@ -1293,6 +1330,7 @@ export function AppProvider({ children }) {
         createApprenticeByAdmin,
         deleteApprentice,
         registerEncargadoByAdmin,
+        updateEncargadoByAdmin,
         registerEncargadoViaToken: registerEncargadoByAdmin,
         changeUserPassword,
         toggleUserStatus,

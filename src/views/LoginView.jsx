@@ -511,8 +511,7 @@ export default function LoginView() {
                         </svg>
                       </div>
                       <div className="text-left">
-                        <span className="block text-xs font-bold text-[#1e293b]">Continuar con Google Institucional</span>
-                        <span className="block text-[10px] text-[#64748b]">Acceso para cuentas existentes @misena.edu.co</span>
+                        <span className="block text-xs font-bold text-[#1e293b]">Google</span>
                       </div>
                     </div>
                     <ArrowRight className="w-4 h-4 text-[#94a3b8] group-hover:text-[#15803d] group-hover:translate-x-0.5 transition-all shrink-0" />
@@ -629,7 +628,7 @@ export default function LoginView() {
                             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" />
                           </svg>
                         </div>
-                        <span className="text-xs font-bold text-[#15803d]">Crear Cuenta Oficial con Google</span>
+                        <span className="text-xs font-bold text-[#15803d]">Google</span>
                       </div>
                       <ArrowRight className="w-4 h-4 text-[#15803d] group-hover:translate-x-0.5 transition-transform shrink-0" />
                     </button>
